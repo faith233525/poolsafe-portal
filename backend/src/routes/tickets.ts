@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../prismaClient";
+import { buildPaginated, errorResponse } from "../lib/response";
 import {
   requireAuthenticated,
   requireSupport,
   requireAdmin,
+  authenticateToken,
   AuthenticatedRequest,
 } from "../utils/auth";
 import { validateBody, validateQuery } from "../middleware/validate";
@@ -16,10 +18,13 @@ import {
 
 export const ticketsRouter = Router();
 
+// Reusable auth chain (decode + role check)
+const authChain: any[] = [authenticateToken, requireAuthenticated];
+
 // Create ticket (authenticated)
 ticketsRouter.post(
   "/",
-  requireAuthenticated,
+  ...authChain,
   validateBody(ticketCreateSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
@@ -47,9 +52,7 @@ ticketsRouter.post(
       }
 
       if (!finalPartnerId || !subject) {
-        return res
-          .status(400)
-          .json({ error: "partnerId and subject required" });
+        return res.status(400).json({ error: "partnerId and subject required" });
       }
 
       const ticket = await prisma.ticket.create({
@@ -66,9 +69,7 @@ ticketsRouter.post(
           priority: priority || "MEDIUM", // LOW, MEDIUM, HIGH
           contactPreference,
           recurringIssue: recurringIssue || false,
-          dateOfOccurrence: dateOfOccurrence
-            ? new Date(dateOfOccurrence)
-            : null,
+          dateOfOccurrence: dateOfOccurrence ? new Date(dateOfOccurrence) : null,
           severity: severity || null, // 1-10 severity slider
           followUpNotes,
         },
@@ -97,13 +98,13 @@ ticketsRouter.post(
       console.error(e);
       res.status(500).json({ error: "internal" });
     }
-  }
+  },
 );
 
 // List tickets with comprehensive filtering (authenticated)
 ticketsRouter.get(
   "/",
-  requireAuthenticated,
+  ...authChain,
   validateQuery(ticketListQuerySchema),
   async (req: AuthenticatedRequest, res) => {
     try {
@@ -116,6 +117,8 @@ ticketsRouter.get(
         startDate,
         endDate,
         search,
+        page = 1,
+        pageSize = 25,
       } = (req as any).validatedQuery;
 
       const where: any = {};
@@ -123,10 +126,7 @@ ticketsRouter.get(
       // Partners can only see their own tickets
       if (req.user!.role === "PARTNER") {
         where.partnerId = req.user!.partnerId;
-      } else if (
-        partnerId &&
-        (req.user!.role === "ADMIN" || req.user!.role === "SUPPORT")
-      ) {
+      } else if (partnerId && (req.user!.role === "ADMIN" || req.user!.role === "SUPPORT")) {
         where.partnerId = partnerId;
       }
 
@@ -151,95 +151,89 @@ ticketsRouter.get(
         ];
       }
 
-      const tickets = await prisma.ticket.findMany({
-        where,
-        include: {
-          partner: {
-            select: {
-              id: true,
-              companyName: true,
-              city: true,
-              state: true,
+      const [tickets, total] = await Promise.all([
+        prisma.ticket.findMany({
+          where,
+          include: {
+            partner: {
+              select: {
+                id: true,
+                companyName: true,
+                city: true,
+                state: true,
+              },
             },
-          },
-          assignedTo: {
-            select: {
-              id: true,
-              displayName: true,
-              email: true,
+            assignedTo: {
+              select: {
+                id: true,
+                displayName: true,
+                email: true,
+              },
             },
+            attachments: true,
+            _count: { select: { attachments: true } },
           },
-          attachments: true,
-          _count: {
-            select: {
-              attachments: true,
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      });
+          orderBy: { createdAt: "desc" },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.ticket.count({ where }),
+      ]);
 
-      res.json(tickets);
+      res.json(buildPaginated(tickets, page, pageSize, total));
     } catch (e) {
       console.error(e);
-      res.status(500).json({ error: "internal" });
+      res.status(500).json(errorResponse("internal"));
     }
-  }
+  },
 );
 
 // Get ticket by id with full details
-ticketsRouter.get(
-  "/:id",
-  requireAuthenticated,
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { id } = req.params;
-      const ticket = await prisma.ticket.findUnique({
-        where: { id },
-        include: {
-          partner: {
-            select: {
-              id: true,
-              companyName: true,
-              streetAddress: true,
-              city: true,
-              state: true,
-              zip: true,
-              country: true,
-              numberOfLoungeUnits: true,
-              topColour: true,
-            },
+ticketsRouter.get("/:id", ...authChain, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
+    const ticket = await prisma.ticket.findUnique({
+      where: { id },
+      include: {
+        partner: {
+          select: {
+            id: true,
+            companyName: true,
+            streetAddress: true,
+            city: true,
+            state: true,
+            zip: true,
+            country: true,
+            numberOfLoungeUnits: true,
+            topColour: true,
           },
-          assignedTo: {
-            select: {
-              id: true,
-              displayName: true,
-              email: true,
-            },
-          },
-          attachments: true,
         },
-      });
+        assignedTo: {
+          select: {
+            id: true,
+            displayName: true,
+            email: true,
+          },
+        },
+        attachments: true,
+      },
+    });
 
-      if (!ticket) {
-        return res.status(404).json({ error: "not found" });
-      }
-
-      // Partners can only view their own tickets
-      if (
-        req.user!.role === "PARTNER" &&
-        ticket.partnerId !== req.user!.partnerId
-      ) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-
-      res.json(ticket);
-    } catch (e) {
-      console.error(e);
-      res.status(500).json({ error: "internal" });
+    if (!ticket) {
+      return res.status(404).json({ error: "not found" });
     }
+
+    // Partners can only view their own tickets
+    if (req.user!.role === "PARTNER" && ticket.partnerId !== req.user!.partnerId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    res.json(ticket);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "internal" });
   }
-);
+});
 
 // Update ticket (authenticated with role-based permissions)
 ticketsRouter.put(
@@ -249,7 +243,7 @@ ticketsRouter.put(
   async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-  let updateData = (req as any).validated;
+      let updateData = (req as any).validated;
 
       // Check if ticket exists and user has access
       const existingTicket = await prisma.ticket.findUnique({
@@ -266,12 +260,7 @@ ticketsRouter.put(
           return res.status(403).json({ error: "Access denied" });
         }
         // Partners can only update certain fields
-        const allowedFields = [
-          "description",
-          "followUpNotes",
-          "contactPreference",
-          "severity",
-        ];
+        const allowedFields = ["description", "followUpNotes", "contactPreference", "severity"];
         const filteredData: any = {};
         Object.keys(updateData)
           .filter((key) => allowedFields.includes(key))
@@ -312,20 +301,22 @@ ticketsRouter.put(
       console.error(e);
       res.status(500).json({ error: "internal" });
     }
-  }
+  },
 );
 
 // Assign ticket to staff member (support/admin)
 ticketsRouter.post(
   "/:id/assign",
   requireSupport,
-  validateBody(
-    ticketUpdateSchema.pick({ assignedToId: true, internalNotes: true })
-  ),
+  validateBody(ticketUpdateSchema.pick({ assignedToId: true, internalNotes: true })),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-  const { assignedToId, internalNotes } = (req as any).validated;
+      const { assignedToId, internalNotes } = (req as any).validated;
+
+      if (!assignedToId) {
+        return res.status(400).json({ error: "assignedToId is required" });
+      }
 
       const updatedTicket = await prisma.ticket.update({
         where: { id },
@@ -335,19 +326,8 @@ ticketsRouter.post(
           status: "IN_PROGRESS", // Auto-update status when assigned
         },
         include: {
-          partner: {
-            select: {
-              id: true,
-              companyName: true,
-            },
-          },
-          assignedTo: {
-            select: {
-              id: true,
-              displayName: true,
-              email: true,
-            },
-          },
+          partner: { select: { id: true, companyName: true } },
+          assignedTo: { select: { id: true, displayName: true, email: true } },
         },
       });
 
@@ -356,7 +336,7 @@ ticketsRouter.post(
       console.error(e);
       res.status(500).json({ error: "internal" });
     }
-  }
+  },
 );
 
 // Update ticket status (support/admin)
@@ -367,7 +347,7 @@ ticketsRouter.post(
   async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-  const { status, internalNotes, resolutionTime } = (req as any).validated;
+      const { status, internalNotes, resolutionTime } = (req as any).validated;
 
       // status validity already guaranteed by schema
 
@@ -402,7 +382,7 @@ ticketsRouter.post(
       console.error(e);
       res.status(500).json({ error: "internal" });
     }
-  }
+  },
 );
 
 // Get ticket statistics
@@ -487,5 +467,5 @@ ticketsRouter.get(
       console.error(e);
       res.status(500).json({ error: "internal" });
     }
-  }
+  },
 );

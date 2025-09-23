@@ -28,6 +28,9 @@ d{
   },
 "workbench.editor.enablePreview": false,
 "markdown.preview.scrollEditorWithPreview": false,
-"debug.javascript.debugByLinkOptions": "false
+"debug.javascript.debugByLinkOptions": false
 
+  ,"git.confirmSync": false
+  ,"git.confirmCommit": false
+  ,"git.autofetch": true
 }

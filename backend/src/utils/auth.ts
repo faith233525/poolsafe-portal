@@ -2,7 +2,8 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { Request, Response, NextFunction } from "express";
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
+// JWT secret is enforced via env loader; no insecure fallback.
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -14,12 +15,7 @@ export interface AuthenticatedRequest extends Request {
 }
 
 // Generate JWT token
-export const generateToken = (
-  userId: string,
-  email: string,
-  role: string,
-  partnerId?: string
-) => {
+export const generateToken = (userId: string, email: string, role: string, partnerId?: string) => {
   return jwt.sign(
     {
       userId,
@@ -28,7 +24,7 @@ export const generateToken = (
       partnerId,
     },
     JWT_SECRET,
-    { expiresIn: "24h" }
+    { expiresIn: "24h" },
   );
 };
 
@@ -50,17 +46,13 @@ export const hashPassword = async (password: string): Promise<string> => {
 // Compare password
 export const comparePassword = async (
   password: string,
-  hashedPassword: string
+  hashedPassword: string,
 ): Promise<boolean> => {
   return bcrypt.compare(password, hashedPassword);
 };
 
 // Middleware to authenticate token
-export const authenticateToken = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
+export const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
@@ -105,8 +97,4 @@ export const requireAdmin = requireRole(["ADMIN"]);
 export const requireSupport = requireRole(["SUPPORT", "ADMIN"]);
 
 // Middleware for partner, support, and admin routes
-export const requireAuthenticated = requireRole([
-  "PARTNER",
-  "SUPPORT",
-  "ADMIN",
-]);
+export const requireAuthenticated = requireRole(["PARTNER", "SUPPORT", "ADMIN"]);

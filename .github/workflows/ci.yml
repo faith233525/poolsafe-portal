@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-test:
@@ -23,7 +23,7 @@ jobs:
       - name: Lint backend
         working-directory: backend
         run: npm run lint
-      - name: Type check
+      - name: Type check backend
         working-directory: backend
         run: npm run typecheck
       - name: Build backend
@@ -33,3 +33,16 @@ jobs:
         if: ${{ false }}
         working-directory: backend
         run: npm run seed
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+      - name: Type check frontend
+        working-directory: frontend
+        run: npm run typecheck
+      - name: Test frontend
+        working-directory: frontend
+        run: npm run test

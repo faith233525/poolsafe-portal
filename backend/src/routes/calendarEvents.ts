@@ -6,6 +6,12 @@ import {
   requireAdmin,
   AuthenticatedRequest,
 } from "../utils/auth";
+import { validateQuery, validateBody } from "../middleware/validate";
+import {
+  calendarEventListQuerySchema,
+  calendarEventCreateSchema,
+  calendarEventUpdateSchema,
+} from "../validation/schemas";
 
 export const calendarEventsRouter = Router();
 
@@ -13,101 +19,88 @@ export const calendarEventsRouter = Router();
 calendarEventsRouter.get(
   "/",
   requireAuthenticated,
+  validateQuery(calendarEventListQuerySchema),
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { partnerId, eventType, startDate, endDate } = req.query;
+      const {
+        partnerId,
+        eventType,
+        startDate,
+        endDate,
+        page = 1,
+        pageSize = 25,
+      } = (req as any).validatedQuery || {};
 
       const where: any = {};
-
-      // Partners can only see their own events
       if (req.user!.role === "PARTNER") {
         where.partnerId = req.user!.partnerId;
-      } else if (
-        partnerId &&
-        (req.user!.role === "ADMIN" || req.user!.role === "SUPPORT")
-      ) {
-        where.partnerId = partnerId as string;
+      } else if (partnerId && (req.user!.role === "ADMIN" || req.user!.role === "SUPPORT")) {
+        where.partnerId = partnerId;
       }
-
-      if (eventType) where.eventType = eventType as string;
-
-      // Date range filtering
+      if (eventType) where.eventType = eventType;
       if (startDate || endDate) {
         where.startDate = {};
-        if (startDate) where.startDate.gte = new Date(startDate as string);
-        if (endDate) where.startDate.lte = new Date(endDate as string);
+        if (startDate) where.startDate.gte = new Date(startDate);
+        if (endDate) where.startDate.lte = new Date(endDate);
       }
 
-      const calendarEvents = await prisma.calendarEvent.findMany({
-        where,
-        include: {
-          partner: {
-            select: {
-              id: true,
-              companyName: true,
-              city: true,
-              state: true,
-            },
+      const [events, total] = await Promise.all([
+        prisma.calendarEvent.findMany({
+          where,
+          include: {
+            partner: { select: { id: true, companyName: true, city: true, state: true } },
+            createdBy: { select: { id: true, displayName: true, email: true } },
           },
-          createdBy: {
-            select: {
-              id: true,
-              displayName: true,
-              email: true,
-            },
-          },
-        },
-        orderBy: {
-          startDate: "asc",
-        },
-      });
+          orderBy: { startDate: "asc" },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.calendarEvent.count({ where }),
+      ]);
 
-      res.json(calendarEvents);
+      res.json({ data: events, page, pageSize, total, totalPages: Math.ceil(total / pageSize) });
     } catch (error) {
       console.error("Error fetching calendar events:", error);
       res.status(500).json({ error: "Failed to fetch calendar events" });
     }
-  }
+  },
 );
 
 // Get calendar event by ID
-calendarEventsRouter.get(
-  "/:id",
-  requireAuthenticated,
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { id } = req.params;
+calendarEventsRouter.get("/:id", requireAuthenticated, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
 
-      const calendarEvent = await prisma.calendarEvent.findUnique({
-        where: { id },
-        include: {
-          partner: true,
-          createdBy: {
-            select: {
-              id: true,
-              displayName: true,
-              email: true,
-            },
+    const calendarEvent = await prisma.calendarEvent.findUnique({
+      where: { id },
+      include: {
+        partner: true,
+        createdBy: {
+          select: {
+            id: true,
+            displayName: true,
+            email: true,
           },
         },
-      });
+      },
+    });
 
-      if (!calendarEvent) {
-        return res.status(404).json({ error: "Calendar event not found" });
-      }
-
-      res.json(calendarEvent);
-    } catch (error) {
-      console.error("Error fetching calendar event:", error);
-      res.status(500).json({ error: "Failed to fetch calendar event" });
+    if (!calendarEvent) {
+      return res.status(404).json({ error: "Calendar event not found" });
     }
+
+    res.json(calendarEvent);
+  } catch (error) {
+    console.error("Error fetching calendar event:", error);
+    res.status(500).json({ error: "Failed to fetch calendar event" });
   }
-);
+});
 
 // Create new calendar event
 calendarEventsRouter.post(
   "/",
   requireSupport,
+  validateBody(calendarEventCreateSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
       const {
@@ -121,116 +114,75 @@ calendarEventsRouter.post(
         isRecurring,
         recurrenceRule,
         reminderMinutes,
-      } = req.body;
-
-      if (!partnerId || !title || !eventType || !startDate) {
-        return res.status(400).json({
-          error: "partnerId, title, eventType, and startDate are required",
-        });
-      }
-
+      } = (req as any).validated;
       const calendarEvent = await prisma.calendarEvent.create({
         data: {
           partnerId,
           createdById,
           title,
-          description,
-          eventType, // OPEN, CLOSED, MAINTENANCE, INSTALLATION, UPGRADE, TRAINING
+          description: description || null,
+          eventType,
           startDate: new Date(startDate),
           endDate: endDate ? new Date(endDate) : null,
           isRecurring: isRecurring || false,
-          recurrenceRule,
-          reminderMinutes,
+          recurrenceRule: recurrenceRule || null,
+          reminderMinutes: reminderMinutes || null,
         },
         include: {
-          partner: {
-            select: {
-              id: true,
-              companyName: true,
-            },
-          },
-          createdBy: {
-            select: {
-              id: true,
-              displayName: true,
-              email: true,
-            },
-          },
+          partner: { select: { id: true, companyName: true } },
+          createdBy: { select: { id: true, displayName: true, email: true } },
         },
       });
-
       res.status(201).json(calendarEvent);
     } catch (error) {
       console.error("Error creating calendar event:", error);
       res.status(500).json({ error: "Failed to create calendar event" });
     }
-  }
+  },
 );
 
 // Update calendar event
 calendarEventsRouter.put(
   "/:id",
   requireSupport,
+  validateBody(calendarEventUpdateSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-      const updateData = req.body;
-
-      // Convert date strings to Date objects if provided
-      if (updateData.startDate) {
-        updateData.startDate = new Date(updateData.startDate);
-      }
-      if (updateData.endDate) {
-        updateData.endDate = new Date(updateData.endDate);
-      }
-
+      const updateData = (req as any).validated;
+      if (updateData.startDate) updateData.startDate = new Date(updateData.startDate);
+      if (updateData.endDate) updateData.endDate = new Date(updateData.endDate);
       const updatedCalendarEvent = await prisma.calendarEvent.update({
         where: { id },
         data: updateData,
         include: {
-          partner: {
-            select: {
-              id: true,
-              companyName: true,
-            },
-          },
-          createdBy: {
-            select: {
-              id: true,
-              displayName: true,
-              email: true,
-            },
-          },
+          partner: { select: { id: true, companyName: true } },
+          createdBy: { select: { id: true, displayName: true, email: true } },
         },
       });
-
       res.json(updatedCalendarEvent);
     } catch (error) {
       console.error("Error updating calendar event:", error);
       res.status(500).json({ error: "Failed to update calendar event" });
     }
-  }
+  },
 );
 
 // Delete calendar event
-calendarEventsRouter.delete(
-  "/:id",
-  requireAdmin,
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { id } = req.params;
+calendarEventsRouter.delete("/:id", requireAdmin, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
 
-      await prisma.calendarEvent.delete({
-        where: { id },
-      });
+    await prisma.calendarEvent.delete({
+      where: { id },
+    });
 
-      res.json({ message: "Calendar event deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting calendar event:", error);
-      res.status(500).json({ error: "Failed to delete calendar event" });
-    }
+    res.json({ message: "Calendar event deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting calendar event:", error);
+    res.status(500).json({ error: "Failed to delete calendar event" });
   }
-);
+});
 
 // Get partner's operational status (open/closed) for a date range
 calendarEventsRouter.get(
@@ -268,7 +220,7 @@ calendarEventsRouter.get(
       console.error("Error fetching partner status:", error);
       res.status(500).json({ error: "Failed to fetch partner status" });
     }
-  }
+  },
 );
 
 // Get upcoming events for a partner
@@ -310,7 +262,7 @@ calendarEventsRouter.get(
       console.error("Error fetching upcoming events:", error);
       res.status(500).json({ error: "Failed to fetch upcoming events" });
     }
-  }
+  },
 );
 
 // Get calendar statistics
@@ -324,41 +276,40 @@ calendarEventsRouter.get(
       const where: any = {};
       if (partnerId) where.partnerId = partnerId as string;
 
-      const [totalEvents, eventTypeStats, upcomingEvents, monthlyStats] =
-        await Promise.all([
-          // Total count
-          prisma.calendarEvent.count({ where }),
+      const [totalEvents, eventTypeStats, upcomingEvents, monthlyStats] = await Promise.all([
+        // Total count
+        prisma.calendarEvent.count({ where }),
 
-          // By event type
-          prisma.calendarEvent.groupBy({
-            by: ["eventType"],
-            where,
-            _count: { eventType: true },
-          }),
+        // By event type
+        prisma.calendarEvent.groupBy({
+          by: ["eventType"],
+          where,
+          _count: { eventType: true },
+        }),
 
-          // Upcoming events (next 30 days)
-          prisma.calendarEvent.count({
-            where: {
-              ...where,
-              startDate: {
-                gte: new Date(),
-                lte: new Date(new Date().setDate(new Date().getDate() + 30)),
-              },
+        // Upcoming events (next 30 days)
+        prisma.calendarEvent.count({
+          where: {
+            ...where,
+            startDate: {
+              gte: new Date(),
+              lte: new Date(new Date().setDate(new Date().getDate() + 30)),
             },
-          }),
+          },
+        }),
 
-          // Monthly stats (last 12 months)
-          prisma.calendarEvent.groupBy({
-            by: ["startDate"],
-            where: {
-              ...where,
-              startDate: {
-                gte: new Date(new Date().setMonth(new Date().getMonth() - 12)),
-              },
+        // Monthly stats (last 12 months)
+        prisma.calendarEvent.groupBy({
+          by: ["startDate"],
+          where: {
+            ...where,
+            startDate: {
+              gte: new Date(new Date().setMonth(new Date().getMonth() - 12)),
             },
-            _count: { id: true },
-          }),
-        ]);
+          },
+          _count: { id: true },
+        }),
+      ]);
 
       res.json({
         totalEvents,
@@ -370,5 +321,5 @@ calendarEventsRouter.get(
       console.error("Error fetching calendar stats:", error);
       res.status(500).json({ error: "Failed to fetch calendar statistics" });
     }
-  }
+  },
 );
