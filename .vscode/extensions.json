@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "prisma.prisma",
+    "github.copilot",
+    "ms-kubernetes-tools.kind-vscode"
+  ]
+}

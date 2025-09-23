@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loungenie-backend
+  labels:
+    app: loungenie-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: loungenie-backend
+  template:
+    metadata:
+      labels:
+        app: loungenie-backend
+    spec:
+      containers:
+      - name: backend
+        image: loungenie-backend:latest
+        ports:
+        - containerPort: 4000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: loungenie-secrets
+              key: database-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: loungenie-secrets
+              key: jwt-secret
+        - name: AZURE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: loungenie-secrets
+              key: azure-client-id
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: loungenie-secrets
+              key: azure-tenant-id
+        - name: AZURE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: loungenie-secrets
+              key: azure-client-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loungenie-backend-service
+spec:
+  selector:
+    app: loungenie-backend
+  ports:
+  - protocol: TCP
+    port: 4000
+    targetPort: 4000
+  type: ClusterIP
