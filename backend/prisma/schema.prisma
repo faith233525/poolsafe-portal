@@ -7,62 +7,12 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-// Enums introduced to replace string literals for stronger data integrity
-enum UserRole {
-    PARTNER
-    SUPPORT
-    ADMIN
-}
-
-enum TicketStatus {
-    OPEN
-    IN_PROGRESS
-    RESOLVED
-}
-
-enum TicketPriority {
-    LOW
-    MEDIUM
-    HIGH
-}
-
-enum ServiceRecordStatus {
-    SCHEDULED
-    IN_PROGRESS
-    COMPLETED
-    CANCELLED
-}
-
-enum ServiceType {
-    MAINTENANCE
-    SUPPORT
-    UPGRADE
-    INSTALLATION
-    TRAINING
-}
-
-enum EventType {
-    OPEN
-    CLOSED
-    MAINTENANCE
-    INSTALLATION
-    UPGRADE
-    TRAINING
-}
-
-enum NotificationType {
-    TICKET_UPDATE
-    ASSIGNMENT
-    CALENDAR_REMINDER
-    SYSTEM
-}
-
 model User {
     id              String          @id @default(uuid())
     email           String          @unique
     password        String?
     displayName     String?
-    role            UserRole        @default(PARTNER)
+    role            String          @default("PARTNER") // PARTNER, SUPPORT, ADMIN
     partnerId       String?
     partner         Partner?        @relation(fields: [partnerId], references: [id])
     assignedTickets Ticket[]        @relation("AssignedStaff")
@@ -120,8 +70,8 @@ model Ticket {
     category          String             @default("General") // Call Button, Charging, Connectivity, Screen, Locking, General Maintenance, Monitor, Antenna, Gateway, LoRa, General System, Other
     description       String?
     unitsAffected     Int?
-    priority          TicketPriority     @default(MEDIUM)
-    status            TicketStatus       @default(OPEN)
+    priority          String             @default("MEDIUM") // LOW, MEDIUM, HIGH
+    status            String             @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED
     contactPreference String?
     recurringIssue    Boolean            @default(false)
     dateOfOccurrence  DateTime?
@@ -159,12 +109,12 @@ model ServiceRecord {
     partner       Partner             @relation(fields: [partnerId], references: [id])
     assignedToId  String?
     assignedTo    User?               @relation(fields: [assignedToId], references: [id])
-    serviceType   ServiceType
+    serviceType   String // Maintenance, Support, Upgrade, Installation, Training
     description   String?
     notes         String?
     scheduledDate DateTime?
     completedDate DateTime?
-    status        ServiceRecordStatus @default(SCHEDULED)
+    status        String    @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
     attachments   String? // JSON array of file paths
     createdAt     DateTime            @default(now())
     updatedAt     DateTime            @updatedAt
@@ -181,7 +131,7 @@ model CalendarEvent {
     createdBy       User?     @relation(fields: [createdById], references: [id])
     title           String
     description     String?
-    eventType       EventType
+    eventType       String // OPEN, CLOSED, MAINTENANCE, INSTALLATION, UPGRADE, TRAINING
     startDate       DateTime
     endDate         DateTime?
     isRecurring     Boolean   @default(false)
@@ -216,7 +166,7 @@ model Notification {
     recipientEmail String?
     title          String
     message        String
-    type           NotificationType
+    type           String // TICKET_UPDATE, ASSIGNMENT, CALENDAR_REMINDER, SYSTEM
     relatedId      String? // Related ticket/service/calendar ID
     relatedType    String? // TICKET, SERVICE, CALENDAR
     isRead         Boolean          @default(false)
