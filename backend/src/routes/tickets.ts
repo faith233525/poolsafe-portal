@@ -6,6 +6,13 @@ import {
   requireAdmin,
   AuthenticatedRequest,
 } from "../utils/auth";
+import { validateBody, validateQuery } from "../middleware/validate";
+import {
+  ticketCreateSchema,
+  ticketListQuerySchema,
+  ticketUpdateSchema,
+  ticketStatusChangeSchema,
+} from "../validation/schemas";
 
 export const ticketsRouter = Router();
 
@@ -13,6 +20,7 @@ export const ticketsRouter = Router();
 ticketsRouter.post(
   "/",
   requireAuthenticated,
+  validateBody(ticketCreateSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
       const {
@@ -30,7 +38,7 @@ ticketsRouter.post(
         dateOfOccurrence,
         severity,
         followUpNotes,
-      } = req.body;
+      } = (req as any).validated;
 
       // Set partnerId based on user role
       let finalPartnerId = partnerId;
@@ -96,6 +104,7 @@ ticketsRouter.post(
 ticketsRouter.get(
   "/",
   requireAuthenticated,
+  validateQuery(ticketListQuerySchema),
   async (req: AuthenticatedRequest, res) => {
     try {
       const {
@@ -107,7 +116,7 @@ ticketsRouter.get(
         startDate,
         endDate,
         search,
-      } = req.query as any;
+      } = (req as any).validatedQuery;
 
       const where: any = {};
 
@@ -236,10 +245,11 @@ ticketsRouter.get(
 ticketsRouter.put(
   "/:id",
   requireAuthenticated,
+  validateBody(ticketUpdateSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-      let updateData = req.body;
+  let updateData = (req as any).validated;
 
       // Check if ticket exists and user has access
       const existingTicket = await prisma.ticket.findUnique({
@@ -309,10 +319,13 @@ ticketsRouter.put(
 ticketsRouter.post(
   "/:id/assign",
   requireSupport,
+  validateBody(
+    ticketUpdateSchema.pick({ assignedToId: true, internalNotes: true })
+  ),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-      const { assignedToId, internalNotes } = req.body;
+  const { assignedToId, internalNotes } = (req as any).validated;
 
       const updatedTicket = await prisma.ticket.update({
         where: { id },
@@ -350,14 +363,13 @@ ticketsRouter.post(
 ticketsRouter.post(
   "/:id/status",
   requireSupport,
+  validateBody(ticketStatusChangeSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-      const { status, internalNotes, resolutionTime } = req.body;
+  const { status, internalNotes, resolutionTime } = (req as any).validated;
 
-      if (!["OPEN", "IN_PROGRESS", "RESOLVED"].includes(status)) {
-        return res.status(400).json({ error: "Invalid status" });
-      }
+      // status validity already guaranteed by schema
 
       const updateData: any = { status };
       if (internalNotes) updateData.internalNotes = internalNotes;
