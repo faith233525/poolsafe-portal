@@ -8,8 +8,8 @@
     "start": "node dist/index.js",
     "build": "tsc",
     "seed": "ts-node scripts/seed.ts",
-    "lint": "eslint 'src/**/*.{ts,tsx}'",
-    "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
+  "lint": "eslint src --ext .ts,.tsx",
+  "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write ..",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --reporter=default --coverage",
@@ -54,6 +54,7 @@
     "prettier": "^3.2.5",
     "prisma": "^6.16.2",
     "supertest": "^7.1.4",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.0.0",
     "vitest": "^3.2.4"

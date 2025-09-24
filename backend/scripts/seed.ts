@@ -1,12 +1,4 @@
-import { execSync } from "child_process";
-
-// Optional: auto-fix lint and formatting before seeding
-try {
-  execSync("npx eslint . --fix", { stdio: "inherit" });
-  execSync("npx prettier --write .", { stdio: "inherit" });
-} catch (_) {
-  // Ignore errors; continue to seed
-}
+// Seed script: populate databases for dev and tests
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../src/utils/auth";
 
