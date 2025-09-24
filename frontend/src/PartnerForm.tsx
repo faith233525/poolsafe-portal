@@ -20,21 +20,23 @@ const initialState = {
   key: "",
 };
 
+type PartnerFormState = typeof initialState;
+
 export default function PartnerForm({
   onSubmit,
   initialData,
   role,
 }: {
-  onSubmit: (data: any) => void;
-  initialData?: any;
+  onSubmit: (data: PartnerFormState) => void;
+  initialData?: Partial<PartnerFormState>;
   role: string;
 }) {
-  const [form, setForm] = useState(initialData || initialState);
+  const [form, setForm] = useState<PartnerFormState>({ ...initialState, ...(initialData || {}) });
   const [error, setError] = useState<string | null>(null);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
+    setForm((f: PartnerFormState) => ({ ...f, [name]: value } as PartnerFormState));
   }
 
   function handleSubmit(e: React.FormEvent) {

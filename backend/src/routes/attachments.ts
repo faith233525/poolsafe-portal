@@ -5,7 +5,7 @@ import { prisma } from "../prismaClient";
 import { requireAuthenticated, AuthenticatedRequest } from "../utils/auth";
 import { validateBody } from "../middleware/validate";
 import { attachmentCreateSchema } from "../validation/schemas";
-// @ts-ignore - multer types may not yet be installed
+// @ts-expect-error: multer types may not be present in this workspace
 import multer from "multer";
 import fs from "fs";
 import path from "path";

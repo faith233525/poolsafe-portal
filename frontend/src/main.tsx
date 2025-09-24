@@ -1,5 +1,4 @@
 import * as Sentry from "@sentry/react";
-import { BrowserTracing } from "@sentry/tracing";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
@@ -12,7 +11,7 @@ if (import.meta.env.DEV && !(window as any).Cypress) {
 
 Sentry.init({
   dsn: "YOUR_SENTRY_DSN_HERE",
-  integrations: [new BrowserTracing()],
+  integrations: [Sentry.browserTracingIntegration?.() ?? []].flat(),
   tracesSampleRate: 1.0,
 });
 
