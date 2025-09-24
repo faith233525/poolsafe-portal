@@ -39,8 +39,12 @@ export default function TicketForm({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!form.subject || !form.description) {
-      setError("Subject and description are required.");
+    if (!form.subject) {
+      setError("Subject is required.");
+      return;
+    }
+    if (!form.description) {
+      setError("Description is required.");
       return;
     }
     onSubmit(form);
@@ -49,7 +53,11 @@ export default function TicketForm({
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       <h2>{initialData ? "Edit Ticket" : "Create Ticket"}</h2>
-      {error && <div className={styles.error}>{error}</div>}
+      {error && (
+        <div className={styles.error} role="alert" aria-live="assertive">
+          {error}
+        </div>
+      )}
       <input
         name="subject"
         value={form.subject}
