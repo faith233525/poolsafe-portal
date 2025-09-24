@@ -1,86 +1,98 @@
-import React, { useEffect, useState } from 'react'
+import React from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import styles from "./App.module.css";
+import Login from "./Login";
+import TicketForm from "./TicketForm";
+import TicketList from "./TicketList";
 
-type Ticket = {
-  id: string
-  subject: string
-  status: string
-  createdAt: string
+function getJwt() {
+  return localStorage.getItem("jwt") || "";
 }
 
-function TicketForm({ onCreated }: { onCreated: () => void }) {
-  const [subject, setSubject] = useState('')
-  const [description, setDescription] = useState('')
+function decodeJwt(token: string): any {
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+}
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault()
-    await fetch('/api/tickets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ partnerId: 'demo-partner', subject, description })
-    })
-    setSubject('')
-    setDescription('')
-    onCreated()
+type User = {
+  role?: string;
+  name?: string;
+};
+
+const UserContext = React.createContext<User | null>(null);
+
+function App() {
+  const [jwt, setJwt] = React.useState(getJwt());
+  const [reload, setReload] = React.useState(0);
+  const user = decodeJwt(jwt) || {};
+
+  React.useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "jwt") {
+        setJwt(getJwt());
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    const originalSetItem = localStorage.setItem;
+    // Patch setItem so same-tab updates also refresh jwt-driven UI
+    localStorage.setItem = function (key: string, value: string) {
+      originalSetItem.call(localStorage, key, value);
+      if (key === "jwt") {
+        setJwt(getJwt());
+      }
+    };
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  function handleLogin(newJwt: string) {
+    localStorage.setItem("jwt", newJwt);
+    setJwt(newJwt);
+  }
+
+  if (!jwt) {
+    return <Login onLogin={handleLogin} />;
   }
 
   return (
-    <form onSubmit={submit} style={{ marginBottom: 20 }}>
-      <div>
-        <label>Subject</label><br />
-        <input value={subject} onChange={e => setSubject(e.target.value)} required style={{ width: 400 }} />
+    <UserContext.Provider value={user}>
+      <div className={styles.layout}>
+        <ToastContainer
+          position="top-right"
+          autoClose={4000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          aria-label="Notification messages"
+        />
+        <header>
+          <h1 className={styles.headerTitle}>LounGenie Support Portal (Scaffold)</h1>
+          <p className={styles.headerMuted}>Demo seed data & ticket submission</p>
+        </header>
+        <div className={styles.card}>
+          {/* Only partners can submit tickets */}
+          {user.role === "partner" ? (
+            <TicketForm onSubmit={() => setReload((r) => r + 1)} role={user.role} />
+          ) : (
+            <div className={styles.info} role="status" aria-live="polite">
+              Ticket submission is only available to partners.
+            </div>
+          )}
+        </div>
+        <div className={styles.card}>
+          <TicketList key={reload} />
+        </div>
       </div>
-      <div>
-        <label>Description</label><br />
-        <textarea value={description} onChange={e => setDescription(e.target.value)} style={{ width: 400, height: 100 }} />
-      </div>
-      <button type="submit">Submit Ticket</button>
-    </form>
-  )
+    </UserContext.Provider>
+  );
 }
 
-function TicketList() {
-  const [tickets, setTickets] = useState<Ticket[]>([])
-
-  async function load() {
-    const res = await fetch('/api/tickets')
-    const data = await res.json()
-    setTickets(data)
-  }
-
-  useEffect(() => { load() }, [])
-
-  return (
-    <div>
-      <h3>Tickets</h3>
-      <table style={{ borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ padding: 6, textAlign: 'left' }}>Subject</th>
-            <th style={{ padding: 6, textAlign: 'left' }}>Status</th>
-            <th style={{ padding: 6, textAlign: 'left' }}>Created</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tickets.map(t => (
-            <tr key={t.id}>
-              <td style={{ padding: 6 }}>{t.subject}</td>
-              <td style={{ padding: 6 }}>{t.status}</td>
-              <td style={{ padding: 6 }}>{new Date(t.createdAt).toLocaleString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-export default function App() {
-  const [reload, setReload] = useState(0)
-  return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', padding: 24 }}>
-      <h1 style={{ color: '#005a8d' }}>LounGenie Support Portal (Scaffold)</h1>
-      <TicketForm onCreated={() => setReload(r => r + 1)} />
-      <TicketList key={reload} />
-    </div>
-  )
-}
+export default App;

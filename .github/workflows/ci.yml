@@ -7,29 +7,54 @@ on:
     branches: [ main ]
 
 jobs:
-  build-test:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Node
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: '20'
+          cache: 'npm'
+
       - name: Install backend deps
         working-directory: backend
         run: npm ci
       - name: Lint backend
         working-directory: backend
         run: npm run lint
-      - name: Type check
+      - name: Type check backend
         working-directory: backend
         run: npm run typecheck
+      - name: Test backend
+        working-directory: backend
+        run: npm test --silent
       - name: Build backend
         working-directory: backend
         run: npm run build
-      - name: (Optional) Seed DB
-        if: ${{ false }}
-        working-directory: backend
-        run: npm run seed
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+      - name: Type check frontend
+        working-directory: frontend
+        run: npm run typecheck
+      - name: Test frontend unit
+        working-directory: frontend
+        run: npm run test --silent
+
+      - name: Cypress e2e
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: frontend
+          install: false
+          browser: chrome
+          start: npm run dev
+          wait-on: 'http://localhost:5173'
+        env:
+          CI: true

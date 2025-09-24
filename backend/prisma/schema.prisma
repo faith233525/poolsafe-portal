@@ -90,6 +90,7 @@ model Ticket {
 
     @@index([partnerId, status])
     @@index([assignedToId])
+    @@index([priority, status])
 }
 
 model TicketAttachment {
@@ -104,11 +105,11 @@ model TicketAttachment {
 }
 
 model ServiceRecord {
-    id            String              @id @default(uuid())
+    id            String    @id @default(uuid())
     partnerId     String
-    partner       Partner             @relation(fields: [partnerId], references: [id])
+    partner       Partner   @relation(fields: [partnerId], references: [id])
     assignedToId  String?
-    assignedTo    User?               @relation(fields: [assignedToId], references: [id])
+    assignedTo    User?     @relation(fields: [assignedToId], references: [id])
     serviceType   String // Maintenance, Support, Upgrade, Installation, Training
     description   String?
     notes         String?
@@ -116,8 +117,8 @@ model ServiceRecord {
     completedDate DateTime?
     status        String    @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
     attachments   String? // JSON array of file paths
-    createdAt     DateTime            @default(now())
-    updatedAt     DateTime            @updatedAt
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
 
     @@index([partnerId])
     @@index([assignedToId])
@@ -161,7 +162,7 @@ model KnowledgeBase {
 }
 
 model Notification {
-    id             String           @id @default(uuid())
+    id             String    @id @default(uuid())
     userId         String? // If null, it's a system-wide notification
     recipientEmail String?
     title          String
@@ -169,10 +170,11 @@ model Notification {
     type           String // TICKET_UPDATE, ASSIGNMENT, CALENDAR_REMINDER, SYSTEM
     relatedId      String? // Related ticket/service/calendar ID
     relatedType    String? // TICKET, SERVICE, CALENDAR
-    isRead         Boolean          @default(false)
+    isRead         Boolean   @default(false)
     sentAt         DateTime?
-    createdAt      DateTime         @default(now())
+    createdAt      DateTime  @default(now())
 
     @@index([userId])
     @@index([type])
+    @@index([userId, isRead, createdAt])
 }

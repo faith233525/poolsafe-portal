@@ -2,7 +2,8 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { Request, Response, NextFunction } from "express";
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
+// JWT secret is enforced via env loader; no insecure fallback.
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -14,12 +15,7 @@ export interface AuthenticatedRequest extends Request {
 }
 
 // Generate JWT token
-export const generateToken = (
-  userId: string,
-  email: string,
-  role: string,
-  partnerId?: string
-) => {
+export const generateToken = (userId: string, email: string, role: string, partnerId?: string) => {
   return jwt.sign(
     {
       userId,
@@ -28,7 +24,7 @@ export const generateToken = (
       partnerId,
     },
     JWT_SECRET,
-    { expiresIn: "24h" }
+    { expiresIn: "24h" },
   );
 };
 
@@ -50,26 +46,42 @@ export const hashPassword = async (password: string): Promise<string> => {
 // Compare password
 export const comparePassword = async (
   password: string,
-  hashedPassword: string
+  hashedPassword: string,
 ): Promise<boolean> => {
   return bcrypt.compare(password, hashedPassword);
 };
 
 // Middleware to authenticate token
-export const authenticateToken = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
+export const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
+  // Debug logging for test diagnosis
+  if (process.env.NODE_ENV === "test") {
+    // eslint-disable-next-line no-console
+    console.log("[AUTH DEBUG] JWT_SECRET:", JWT_SECRET);
+    // eslint-disable-next-line no-console
+    console.log("[AUTH DEBUG] Received token:", token);
+  }
+
   if (!token) {
+    if (process.env.NODE_ENV === "test") {
+      // eslint-disable-next-line no-console
+      console.log("[AUTH DEBUG] No token provided");
+    }
     return res.status(401).json({ error: "Access token required" });
   }
 
   const decoded = verifyToken(token);
+  if (process.env.NODE_ENV === "test") {
+    // eslint-disable-next-line no-console
+    console.log("[AUTH DEBUG] Decoded payload:", decoded);
+  }
   if (!decoded) {
+    if (process.env.NODE_ENV === "test") {
+      // eslint-disable-next-line no-console
+      console.log("[AUTH DEBUG] Invalid or expired token");
+    }
     return res.status(403).json({ error: "Invalid or expired token" });
   }
 
@@ -99,14 +111,26 @@ export const requireRole = (allowedRoles: string[]) => {
 };
 
 // Middleware for admin-only routes
-export const requireAdmin = requireRole(["ADMIN"]);
+export const requireAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  authenticateToken(req, res, () => {
+    requireRole(["ADMIN"])(req, res, next);
+  });
+};
 
 // Middleware for support and admin routes
-export const requireSupport = requireRole(["SUPPORT", "ADMIN"]);
+export const requireSupport = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  authenticateToken(req, res, () => {
+    requireRole(["SUPPORT", "ADMIN"])(req, res, next);
+  });
+};
 
 // Middleware for partner, support, and admin routes
-export const requireAuthenticated = requireRole([
-  "PARTNER",
-  "SUPPORT",
-  "ADMIN",
-]);
+export const requireAuthenticated = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  authenticateToken(req, res, () => {
+    requireRole(["PARTNER", "SUPPORT", "ADMIN"])(req, res, next);
+  });
+};

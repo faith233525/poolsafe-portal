@@ -1,8 +1,8 @@
-d{
+{
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "typescript.suggest.autoImports": true,
   "javascript.suggest.autoImports": true,
@@ -26,8 +26,10 @@ d{
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-"workbench.editor.enablePreview": false,
-"markdown.preview.scrollEditorWithPreview": false,
-"debug.javascript.debugByLinkOptions": "false
-
+  "workbench.editor.enablePreview": false,
+  "markdown.preview.scrollEditorWithPreview": false,
+  "debug.javascript.debugByLinkOptions": "off",
+  "git.confirmSync": false,
+  "git.confirmCommit": false,
+  "git.autofetch": true
 }

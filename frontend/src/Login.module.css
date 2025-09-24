@@ -1,0 +1,45 @@
+.container {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #002b4c22;
+}
+.title {
+  color: #005a8d;
+  margin-bottom: 24px;
+}
+.input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+.button {
+  width: 100%;
+  background: #00b5cc;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.buttonSso {
+  width: 100%;
+  background: #005a8d;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.hr {
+  margin: 24px 0;
+}
+.error {
+  color: red;
+  margin-top: 16px;
+}

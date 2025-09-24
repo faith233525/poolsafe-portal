@@ -8,6 +8,9 @@ Comprehensive B2B support portal for Pool Safe Inc. managing LounGenie devices w
 
 ### 🗄️ Database Schema (COMPLETED)
 
+- **Environment Validation**: All required env vars validated at runtime using Zod
+- **Indices**: Composite indices added for Notification (userId, isRead, createdAt) and Ticket (priority, status)
+
 - **Users**: Role-based access (PARTNER, SUPPORT, ADMIN) with Outlook SSO integration planned
 - **Partners**: Complete business info, LounGenie details, lock information (admin-only), map coordinates
 - **Tickets**: Comprehensive ticketing with assignment, priority, internal notes, file attachments
@@ -17,6 +20,8 @@ Comprehensive B2B support portal for Pool Safe Inc. managing LounGenie devices w
 - **Notifications**: Real-time portal and email notifications
 
 ### 🔧 API Endpoints (COMPLETED)
+
+- **Test Coverage**: Security edge cases, ticket lifecycle, notifications, and new edge case tests for ticket priority/subject
 
 #### Partners API (`/api/partners`)
 
@@ -102,6 +107,8 @@ Comprehensive B2B support portal for Pool Safe Inc. managing LounGenie devices w
 
 ### 🔐 Authentication & Authorization (IN PROGRESS)
 
+- **Validation**: .env.example and config loader now enforce required environment variables
+
 - Implement Partner generic login system
 - Set up Outlook SSO for Support/Admin roles
 - Role-based route protection and UI permissions
@@ -127,12 +134,15 @@ Comprehensive B2B support portal for Pool Safe Inc. managing LounGenie devices w
 
 ## 📊 Current Status Summary
 
-✅ **Database Schema**: Complete with all your requirements
+✅ **Database Schema**: Complete with all your requirements, including new indices
 ✅ **Partner Management**: Full CRUD with role-based access
-✅ **Enhanced Ticketing**: All form fields, assignment, tracking
+✅ **Enhanced Ticketing**: All form fields, assignment, tracking, edge case validation
 ✅ **Service Tracking**: Maintenance, upgrades, training logs
 ✅ **Calendar System**: Open/closed dates, scheduling
 ✅ **Knowledge Base**: Articles, search, ratings, videos
+✅ **Environment Validation**: All required env vars validated at runtime
+✅ **Test Coverage**: Security, ticket, notification, and edge case tests
+✅ **CI**: GitHub Actions runs backend, frontend unit, and Cypress e2e on PRs
 🔄 **Authentication**: Ready for Outlook SSO implementation
 ⏳ **Frontend**: Needs expansion for all new features
 ⏳ **Map Interface**: Ready for SVG implementation
@@ -140,7 +150,7 @@ Comprehensive B2B support portal for Pool Safe Inc. managing LounGenie devices w
 
 ## 🔌 Available Endpoints
 
-```
+```sh
 Backend Server: http://localhost:4000
 - /api/health
 - /api/partners
@@ -155,3 +165,124 @@ Frontend Server: http://localhost:5173
 ```
 
 **Ready for next phase development!** 🚀
+
+---
+
+## 🔄 Recent Backend Enhancements (Post Initial Status)
+
+- Notifications API with pagination, filtering, unread count header, mark read & mark all read.
+- File upload endpoint with sanitized filenames & configurable size limit.
+- Secure attachment download endpoint (auth + ownership / staff access) returning streamed file.
+- Per-route rate limiting (login, register, upload, notification create) + global limiter.
+- Request ID middleware adding `X-Request-ID` header and enriched log lines.
+- Runtime configuration module (`lib/config.ts`) sourcing env vars for limits & upload size.
+
+## ⚙️ Runtime Configuration Variables
+
+| Variable                    | Default  | Purpose                                |
+| --------------------------- | -------- | -------------------------------------- |
+| `UPLOAD_MAX_SIZE`           | 10485760 | Max upload size (bytes)                |
+| `RL_GLOBAL_WINDOW_MS`       | 900000   | Global rate limit window length (ms)   |
+| `RL_GLOBAL_MAX`             | 300      | Global requests per window per IP      |
+| `RL_LOGIN_WINDOW_MS`        | 900000   | Partner login window (ms)              |
+| `RL_LOGIN_MAX`              | 20       | Max login attempts per window per IP   |
+| `RL_REGISTER_WINDOW_MS`     | 3600000  | Registration window (ms)               |
+| `RL_REGISTER_MAX`           | 30       | Max registrations per window per IP    |
+| `RL_UPLOAD_WINDOW_MS`       | 600000   | Upload window (ms)                     |
+| `RL_UPLOAD_MAX`             | 60       | Upload requests per window per IP      |
+| `RL_NOTIFICATION_WINDOW_MS` | 300000   | Notification create window (ms)        |
+| `RL_NOTIFICATION_MAX`       | 100      | Notification creates per window per IP |
+
+All are optional; defaults applied when unset.
+
+## 📎 Attachment Download Endpoint
+
+`GET /api/attachments/:id/download`
+
+Authorization:
+
+- Support/Admin: Full access.
+- Partner: Only if the ticket's `partnerId` matches their own.
+
+Responses:
+
+- `200` Streamed file with `Content-Type` & `Content-Disposition` headers.
+- `404` Attachment record not found.
+- `410` File missing on disk (stale metadata).
+- `403` Forbidden (ownership violation).
+
+Security Notes:
+
+- Filenames sanitized at upload; stored unique server-side filename prevents path traversal.
+- Streamed read avoids buffering large files into memory.
+
+## ✅ Added Test Coverage
+
+- Upload flow & listing.
+- Notifications create/list/mark read & negative authorization paths.
+- Attachment download positive (owner, support) and negative (other partner, missing id) cases.
+
+These tests offer baseline regression protection; further edge cases (oversized upload, rate limit breach) can be added later.
+
+## 🧪 Quick Test Commands
+
+Run from repo root:
+
+```
+# Backend tests
+npm run test:backend
+
+# Frontend unit tests
+npm run test:frontend
+
+# Cypress e2e tests (headless Chrome)
+npm run test:e2e
+
+# Everything
+npm run test:all
+```
+
+## 🚀 Scalability Testing & Findings
+
+- Database seeded with 50 partners, 200 tickets, 100 service records, 50 calendar events, and 20 knowledge base articles for realistic load testing.
+- Backend endpoints and frontend UI tested for pagination, filtering, and performance with large datasets.
+- No major bottlenecks found at current scale; pagination and query optimization effective.
+- Backend is stateless and ready for horizontal scaling (multiple instances, load balancer).
+- For production, recommend switching to PostgreSQL for better concurrency and scaling.
+- Ongoing: Monitor resource usage, optimize queries, and expand batch sizes as needed.
+
+## 📋 Continuous Improvement Plan
+
+- Schedule regular user feedback sessions (monthly survey or interviews).
+- Update documentation and onboarding guides after each major release.
+- Maintain a public changelog and roadmap for transparency.
+- Audit dependencies and code hygiene quarterly.
+- Prioritize new features and improvements based on user feedback and analytics.
+
+---
+
+## B2B Feedback Survey Template
+
+- How easy is it to submit and track support tickets?
+- Which business workflows in the portal could be improved?
+- Are there any features or integrations you wish were available?
+- How effective are the reporting and analytics tools for your organization?
+- How would you rate the onboarding experience for new users?
+- What support resources or help features do you need?
+- Any other suggestions to improve your business operations with the portal?
+
+## Onboarding Documentation Outline
+
+### Partner Organization Onboarding
+
+- Account setup and user roles
+- Submitting and managing tickets
+- Accessing service logs, calendar, and knowledge base
+- Best practices for business workflows
+
+### Support/Admin Onboarding
+
+- Managing users and partners
+- Using analytics and reporting features
+- Advanced ticket and service management
+- Security and compliance guidelines

@@ -50,3 +50,27 @@ Acceptance Criteria
 Next Deliverable
 
 - Tech stack recommendation and trade-offs (`docs/tech-stack.md`).
+
+---
+
+## Roadmap (B2B Focus)
+
+### Q4 2025
+
+- Custom reporting dashboards for partners
+- Bulk ticket actions and advanced filtering
+- Enhanced onboarding guides and help center
+
+### Q1 2026
+
+- Live chat and SLA tracking for support
+- Partner portal customization options
+- API integrations (HubSpot, Outlook, etc.)
+
+### Ongoing
+
+- Regular feedback review and feature prioritization
+- Performance and security improvements
+- Business workflow enhancements based on partner/support/admin input
+
+---
