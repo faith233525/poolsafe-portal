@@ -15,7 +15,7 @@ if (!(globalThis as any)[SEED_KEY]) {
   // Reseed the test database before running tests
   try {
     console.log("🌱 Setting up test database...");
-    execSync(`npm run seed -- --dbFile=test-auth.db`, { stdio: "pipe" });
+  execSync(`npm run seed:raw -- --dbFile=test-auth.db`, { stdio: "pipe" });
     console.log("✅ Test database setup complete");
   } catch (e) {
     console.error(`Failed to reseed test database test-auth.db:`, e);

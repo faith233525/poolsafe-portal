@@ -2,6 +2,13 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
+    pool: "threads",
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
+    },
+    fileParallelism: false,
     environment: "node",
     setupFiles: ["./tests/setup.ts"],
     reporters: ["default"],

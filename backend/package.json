@@ -7,12 +7,15 @@
     "prestart": "npm run build",
     "start": "node dist/index.js",
     "build": "tsc",
-    "seed": "ts-node scripts/seed.ts",
+    "prisma:generate": "prisma generate",
+    "seed": "npm run prisma:generate && npm run seed:raw",
+    "seed:raw": "ts-node scripts/seed.ts",
   "lint": "eslint src --ext .ts,.tsx",
   "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write ..",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --reporter=default --coverage",
+    "pretest": "npm run prisma:generate",
+  "test": "vitest run --reporter=default --coverage",
     "test:watch": "vitest"
   },
   "dependencies": {

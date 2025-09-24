@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./App.module.css";
 
 type Ticket = {
@@ -26,31 +26,45 @@ function TicketList() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  async function load() {
-    setLoading(true);
-    setError(null);
-    try {
-      const jwt = localStorage.getItem("jwt") || "";
-      const res = await fetch("/api/tickets", {
-        headers: jwt ? { Authorization: `Bearer ${jwt}` } : {},
-      });
-      if (!res.ok) {
-        setError("Failed to load tickets. Please try again later.");
-        setLoading(false);
-        return;
-      }
-      const data = await res.json();
-      setTickets(data);
-    } catch {
-      setError("Network error. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
+    const controller = new AbortController();
+
+    const load = async () => {
+      if (!mountedRef.current) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const jwt = typeof window !== "undefined" ? localStorage.getItem("jwt") || "" : "";
+        const res = await fetch("/api/tickets", {
+          headers: jwt ? { Authorization: `Bearer ${jwt}` } : {},
+          signal: controller.signal,
+        });
+        if (!mountedRef.current) return;
+        if (!res.ok) {
+          setError("Failed to load tickets. Please try again later.");
+          return;
+        }
+        const data = await res.json();
+        if (!mountedRef.current) return;
+        setTickets(data);
+      } catch (e: any) {
+        if (mountedRef.current && !(e?.name === "AbortError")) {
+          setError("Network error. Please try again later.");
+        }
+      } finally {
+        if (mountedRef.current) setLoading(false);
+      }
+    };
+
     load();
+
+    return () => {
+      mountedRef.current = false;
+      controller.abort();
+    };
   }, []);
 
   return (
