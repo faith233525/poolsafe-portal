@@ -8,7 +8,7 @@
     "preview": "vite preview",
     "lint": "npx eslint src --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
-    "test": "npx vitest run"
+    "test": "vitest run"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.8.0",
@@ -18,13 +18,16 @@
     "@types/testing-library__react": "^10.0.1",
     "@vitejs/plugin-react": "^4.0.0",
     "cypress": "^15.3.0",
+    "jest-axe": "^10.0.0",
     "jsdom": "^27.0.0",
+    "rollup-plugin-visualizer": "^6.0.3",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",
     "vitest": "^3.2.4"
   },
   "dependencies": {
     "@sentry/react": "^10.14.0",
-    "@sentry/tracing": "^7.120.4"
+    "@sentry/tracing": "^7.120.4",
+    "react-toastify": "^11.0.5"
   }
 }

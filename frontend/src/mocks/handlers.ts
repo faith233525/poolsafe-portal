@@ -1,22 +1,17 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 
 export const handlers = [
-  rest.get("/api/tickets", (req, res, ctx) => {
-    // Example: return demo tickets
-    return res(
-      ctx.status(200),
-      ctx.json([
-        {
-          id: "1",
-          subject: "Demo Ticket",
-          status: "open",
-          createdAt: new Date().toISOString(),
-        },
-      ]),
-    );
+  http.get("/api/tickets", () => {
+    return HttpResponse.json([
+      {
+        id: "1",
+        subject: "Demo Ticket",
+        status: "open",
+        createdAt: new Date().toISOString(),
+      },
+    ]);
   }),
-  rest.post("/api/tickets", (req, res, ctx) => {
-    // Example: always succeed
-    return res(ctx.status(200));
+  http.post("/api/tickets", () => {
+    return new HttpResponse(null, { status: 200 });
   }),
 ];

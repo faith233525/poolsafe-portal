@@ -2,26 +2,21 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { buildApp } from "../src/app";
 import { createPrismaTestClient } from "./prismaTestFactory";
-import { hashPassword, generateToken } from "../src/utils/auth";
+import { generateToken } from "../src/utils/auth";
 
 const app = buildApp();
-const prisma = createPrismaTestClient("test-tickets.db");
+const prisma = createPrismaTestClient("test-auth.db");
 let token: string;
-let partnerId: string;
 
 beforeAll(async () => {
   await prisma.$connect();
-  const partner = await prisma.partner.create({ data: { companyName: "Edge Partner" } });
-  partnerId = partner.id;
-  const user = await prisma.user.create({
-    data: {
-      email: "edgecase@example.com",
-      password: await hashPassword("Password123!"),
-      role: "PARTNER",
-      partnerId: partner.id,
-    },
-  });
-  token = generateToken(user.id, user.email, user.role, partner.id);
+  // Use seeded partner and user
+  const seededPartner = await prisma.partner.findFirst({ where: { companyName: "Test Resort 2" } });
+  const seededUser = await prisma.user.findFirst({ where: { email: "manager2@testresort.com" } });
+  if (!seededPartner || !seededUser) {
+    throw new Error("Seeded partner or user not found. Check seed script and DB state.");
+  }
+  token = generateToken(seededUser.id, seededUser.email, seededUser.role, seededPartner.id);
 });
 
 afterAll(async () => {

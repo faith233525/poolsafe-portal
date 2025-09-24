@@ -17,8 +17,8 @@ describe("App UI", () => {
       ["header", btoa(JSON.stringify({ role: "partner" })), "signature"].join("."),
     );
     // Mock fetch to fail for submit
-    const originalFetch = global.fetch;
-    global.fetch = vi.fn((input: RequestInfo, init?: RequestInit) => {
+  const originalFetch = global.fetch;
+  global.fetch = vi.fn((input: any, init?: RequestInit) => {
       if (typeof input === "string" && input.includes("/api/tickets")) {
         return Promise.resolve(new Response(null, { status: 500 }));
       }
@@ -39,7 +39,7 @@ describe("App UI", () => {
         }),
       );
     });
-    render(<App />);
+  render(<App />);
     fireEvent.change(screen.getByLabelText(/subject/i), { target: { value: "Test" } });
     fireEvent.change(screen.getByLabelText(/description/i), { target: { value: "Desc" } });
     fireEvent.click(screen.getByRole("button", { name: /submit ticket/i }));
@@ -55,41 +55,18 @@ describe("App UI", () => {
       "jwt",
       ["header", btoa(JSON.stringify({ role: "partner" })), "signature"].join("."),
     );
-    render(<App />);
-    expect(screen.getByLabelText(/subject/i)).toBeInTheDocument();
+  const { unmount } = render(<App />);
+  expect(screen.getByLabelText(/subject/i)).toBeInTheDocument();
     // Change role to admin
     window.localStorage.setItem(
       "jwt",
       ["header", btoa(JSON.stringify({ role: "admin" })), "signature"].join("."),
     );
-    // Force rerender
-    // Remount App to simulate role change
-    const { unmount } = render(<App />);
-    unmount();
-    render(<App />);
+  // Re-mount App so it reads the updated JWT from storage
+  unmount();
+  render(<App />);
     await waitFor(() => {
       expect(screen.queryByLabelText(/subject/i)).not.toBeInTheDocument();
-    });
-    it.skip("updates UI when role changes at runtime", async () => {
-      // Skipped: The storage event only fires across tabs/windows, not in the same test context.
-      // In real usage, the UI updates correctly when the JWT changes in localStorage.
-      // See README for details on this edge case.
-      window.localStorage.setItem(
-        "jwt",
-        ["header", btoa(JSON.stringify({ role: "partner" })), "signature"].join("."),
-      );
-      render(<App />);
-      expect(screen.getByLabelText(/subject/i)).toBeInTheDocument();
-      window.localStorage.setItem(
-        "jwt",
-        ["header", btoa(JSON.stringify({ role: "admin" })), "signature"].join("."),
-      );
-      const { unmount } = render(<App />);
-      unmount();
-      render(<App />);
-      await waitFor(() => {
-        expect(screen.queryByLabelText(/subject/i)).not.toBeInTheDocument();
-      });
     });
   });
 
@@ -156,8 +133,8 @@ describe("App UI", () => {
       ["header", btoa(JSON.stringify({ role: "partner" })), "signature"].join("."),
     );
     // Mock fetch to delay response with correct Response type
-    const originalFetch = global.fetch;
-    global.fetch = (input: RequestInfo, init?: RequestInit) => {
+  const originalFetch = global.fetch;
+  global.fetch = (input: any, init?: RequestInit) => {
       if (typeof input === "string" && input.includes("/api/tickets")) {
         // Always return an array for /api/tickets
         return new Promise((resolve) =>

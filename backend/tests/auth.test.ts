@@ -11,19 +11,10 @@ const prisma = createPrismaTestClient("test-auth.db");
 
 beforeAll(async () => {
   await prisma.$connect();
-  await resetDb(prisma);
-  const partner = await prisma.partner.create({
-    data: { companyName: "Test Partner" },
-  });
-  partnerId = partner.id;
-  await prisma.user.create({
-    data: {
-      email: "partner@example.com",
-      password: await hashPassword("Password123!"),
-      role: "PARTNER",
-      partnerId: partner.id,
-    },
-  });
+  // Use seeded partner and user (do NOT reset the DB - it was seeded in setup.ts)
+  const seededPartner = await prisma.partner.findFirst({ where: { companyName: "Test Resort 1" } });
+  if (!seededPartner) throw new Error("Seeded partner not found. Check seed script and DB state.");
+  partnerId = seededPartner.id;
 });
 
 afterAll(async () => {
@@ -34,16 +25,16 @@ describe("Auth Partner Login", () => {
   it("logs in with valid credentials", async () => {
     const res = await request(app)
       .post("/api/auth/login/partner")
-      .send({ email: "partner@example.com", password: "Password123!" });
+      .send({ email: "manager1@testresort.com", password: "partner123" });
     expect(res.status).toBe(200);
     expect(res.body.token).toBeDefined();
-    expect(res.body.user.email).toBe("partner@example.com");
+    expect(res.body.user.email).toBe("manager1@testresort.com");
   });
 
   it("rejects invalid credentials", async () => {
     const res = await request(app)
       .post("/api/auth/login/partner")
-      .send({ email: "partner@example.com", password: "Wrong" });
+      .send({ email: "manager1@testresort.com", password: "Wrong" });
     expect(res.status).toBe(401);
   });
 });

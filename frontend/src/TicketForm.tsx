@@ -1,7 +1,21 @@
 import React, { useState } from "react";
 import styles from "./App.module.css";
 
-const initialState = {
+type FormState = {
+  subject: string;
+  category: string;
+  priority: string;
+  description: string;
+  unitsAffected: number;
+  contactPreference: string;
+  recurringIssue: boolean;
+  dateOfOccurrence: string;
+  severity: number;
+  followUpNotes: string;
+  attachments: File[];
+};
+
+const initialState: FormState = {
   subject: "",
   category: "General",
   priority: "MEDIUM",
@@ -24,19 +38,30 @@ export default function TicketForm({
   initialData?: any;
   role: string;
 }) {
-  const [form, setForm] = useState(initialData || initialState);
+  const [form, setForm] = useState<FormState>(initialData || initialState);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const { name, value, type, checked } = e.target;
-    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+  function handleTextChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    const { name, value } = e.target;
+    setForm((f: FormState) => ({ ...f, [name]: value } as FormState));
+  }
+
+  function handleSelectChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const { name, value } = e.target;
+    setForm((f: FormState) => ({ ...f, [name]: value } as FormState));
+  }
+
+  function handleCheckboxChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, checked } = e.target;
+    setForm((f: FormState) => ({ ...f, [name]: checked } as FormState));
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm((f) => ({ ...f, attachments: Array.from(e.target.files || []) }));
+    setForm((f: FormState) => ({ ...f, attachments: Array.from(e.target.files || []) }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (!form.subject) {
@@ -47,32 +72,66 @@ export default function TicketForm({
       setError("Description is required.");
       return;
     }
-    onSubmit(form);
+    try {
+      setSubmitting(true);
+      const res = await fetch("/api/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        setError("Failed to submit ticket.");
+        return;
+      }
+      onSubmit(form);
+    } catch (err) {
+      setError("Failed to submit ticket.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form className={styles.form} onSubmit={handleSubmit} noValidate aria-label="Ticket Form">
       <h2>{initialData ? "Edit Ticket" : "Create Ticket"}</h2>
       {error && (
-        <div className={styles.error} role="alert" aria-live="assertive">
+        <div
+          className={styles.error}
+          role="alert"
+          aria-live="assertive"
+          data-testid="ticket-error"
+        >
           {error}
         </div>
       )}
+      <label htmlFor="subject">Subject</label>
       <input
+        id="subject"
         name="subject"
         value={form.subject}
-        onChange={handleChange}
+        onChange={handleTextChange}
         placeholder="Subject"
         required
+        disabled={submitting}
       />
+      <label htmlFor="description">Description</label>
       <textarea
+        id="description"
         name="description"
         value={form.description}
-        onChange={handleChange}
+        onChange={handleTextChange}
         placeholder="Description"
         required
+        disabled={submitting}
       />
-      <select name="category" value={form.category} onChange={handleChange}>
+      <label htmlFor="category">Category</label>
+      <select
+        id="category"
+        name="category"
+        value={form.category}
+        onChange={handleSelectChange}
+        disabled={submitting}
+      >
         <option>General</option>
         <option>Connectivity</option>
         <option>Charging</option>
@@ -86,55 +145,88 @@ export default function TicketForm({
         <option>General System</option>
         <option>Other</option>
       </select>
-      <select name="priority" value={form.priority} onChange={handleChange}>
+      <label htmlFor="priority">Priority</label>
+      <select
+        id="priority"
+        name="priority"
+        value={form.priority}
+        onChange={handleSelectChange}
+        disabled={submitting}
+      >
         <option value="LOW">Low</option>
         <option value="MEDIUM">Medium</option>
         <option value="HIGH">High</option>
       </select>
+      <label htmlFor="unitsAffected">Units Affected</label>
       <input
+        id="unitsAffected"
         name="unitsAffected"
         type="number"
         value={form.unitsAffected}
-        onChange={handleChange}
+        onChange={handleTextChange}
         placeholder="Units Affected"
+        disabled={submitting}
       />
+      <label htmlFor="contactPreference">Contact Preference</label>
       <input
+        id="contactPreference"
         name="contactPreference"
         value={form.contactPreference}
-        onChange={handleChange}
+        onChange={handleTextChange}
         placeholder="Contact Preference"
+        disabled={submitting}
       />
+      <label htmlFor="dateOfOccurrence">Date of Occurrence</label>
       <input
+        id="dateOfOccurrence"
         name="dateOfOccurrence"
         type="date"
         value={form.dateOfOccurrence}
-        onChange={handleChange}
+        onChange={handleTextChange}
+        disabled={submitting}
       />
+      <label htmlFor="severity">Severity</label>
       <input
+        id="severity"
         name="severity"
         type="range"
         min={1}
         max={10}
         value={form.severity}
-        onChange={handleChange}
+        onChange={handleTextChange}
+        disabled={submitting}
       />
       <label>
         <input
           name="recurringIssue"
           type="checkbox"
           checked={form.recurringIssue}
-          onChange={handleChange}
+          onChange={handleCheckboxChange}
+          disabled={submitting}
         />{" "}
         Recurring Issue
       </label>
+      <label htmlFor="followUpNotes">Follow Up Notes</label>
       <textarea
+        id="followUpNotes"
         name="followUpNotes"
         value={form.followUpNotes}
-        onChange={handleChange}
+        onChange={handleTextChange}
         placeholder="Follow Up Notes"
+        disabled={submitting}
       />
-      <input name="attachments" type="file" multiple onChange={handleFileChange} />
-      <button type="submit">{initialData ? "Update" : "Create"}</button>
+      <label htmlFor="attachments">Attachments</label>
+      <input
+        id="attachments"
+        name="attachments"
+        type="file"
+        multiple
+        onChange={handleFileChange}
+        disabled={submitting}
+      />
+      <button type="submit" disabled={submitting}>
+        {initialData ? "Update" : "Submit Ticket"}
+      </button>
     </form>
   );
 }

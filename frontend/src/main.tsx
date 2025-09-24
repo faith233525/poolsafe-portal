@@ -4,7 +4,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 
-if (process.env.NODE_ENV === "development") {
+if (import.meta.env.DEV && !(window as any).Cypress) {
   import("./mocks/browser").then(({ worker }) => {
     worker.start();
   });
@@ -19,5 +19,5 @@ Sentry.init({
 createRoot(document.getElementById("root")!).render(
   <Sentry.ErrorBoundary fallback={<p>An error has occurred.</p>} showDialog>
     <App />
-  </Sentry.ErrorBoundary>
+  </Sentry.ErrorBoundary>,
 );

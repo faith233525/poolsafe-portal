@@ -3,29 +3,22 @@ import request from "supertest";
 import { buildApp } from "../src/app";
 import { resetDb } from "./utils";
 import { createPrismaTestClient } from "./prismaTestFactory";
-import { hashPassword, generateToken } from "../src/utils/auth";
+import { generateToken } from "../src/utils/auth";
 
 const app = buildApp();
-let partnerId: string;
+const partnerId = undefined;
 let token: string;
-const prisma = createPrismaTestClient("test-tickets.db");
+const prisma = createPrismaTestClient("test-auth.db");
 
 beforeAll(async () => {
   await prisma.$connect();
-  await resetDb(prisma);
-  const partner = await prisma.partner.create({
-    data: { companyName: "Ticket Partner" },
-  });
-  partnerId = partner.id;
-  const user = await prisma.user.create({
-    data: {
-      email: "ticket_partner@example.com",
-      password: await hashPassword("Password123!"),
-      role: "PARTNER",
-      partnerId: partner.id,
-    },
-  });
-  token = generateToken(user.id, user.email, user.role, partner.id);
+  // Use seeded partner and user (do NOT reset the DB - it was seeded in setup.ts)
+  const seededPartner = await prisma.partner.findFirst({ where: { companyName: "Test Resort 1" } });
+  const seededUser = await prisma.user.findFirst({ where: { email: "manager1@testresort.com" } });
+  if (!seededPartner || !seededUser) {
+    throw new Error("Seeded partner or user not found. Check seed script and DB state.");
+  }
+  token = generateToken(seededUser.id, seededUser.email, seededUser.role, seededPartner.id);
 });
 
 afterAll(async () => {

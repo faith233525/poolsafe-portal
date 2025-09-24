@@ -8,29 +8,25 @@ import { createPrismaTestClient } from "./prismaTestFactory";
 import { hashPassword, generateToken } from "../src/utils/auth";
 
 const app = buildApp();
-const prisma = createPrismaTestClient("test-tickets.db");
+const prisma = createPrismaTestClient("test-auth.db");
 let token: string;
 let ticketId: string;
 
 beforeAll(async () => {
   await prisma.$connect();
-  await resetDb(prisma);
-  const partner = await prisma.partner.create({ data: { companyName: "Attach Partner" } });
-  const user = await prisma.user.create({
-    data: {
-      email: "attach_partner@example.com",
-      password: await hashPassword("Password123!"),
-      role: "PARTNER",
-      partnerId: partner.id,
-    },
-  });
-  token = generateToken(user.id, user.email, user.role, partner.id);
+  // Use seeded partner and user (do NOT reset the DB - it was seeded in setup.ts)
+  const seededPartner = await prisma.partner.findFirst({ where: { companyName: "Test Resort 1" } });
+  const seededUser = await prisma.user.findFirst({ where: { email: "manager1@testresort.com" } });
+  if (!seededPartner || !seededUser) {
+    throw new Error("Seeded partner or user not found. Check seed script and DB state.");
+  }
+  token = generateToken(seededUser.id, seededUser.email, seededUser.role, seededPartner.id);
   const ticket = await prisma.ticket.create({
     data: {
       subject: "Upload test",
       description: "Testing upload",
-      createdByName: user.email,
-      partnerId: partner.id,
+      createdByName: seededUser.email,
+      partnerId: seededPartner.id,
     },
   });
   ticketId = ticket.id;
@@ -38,6 +34,113 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await prisma.$disconnect();
+});
+
+describe("Attachments download and access control", () => {
+  let supportToken: string;
+  let adminToken: string;
+  let attachmentId: string;
+  let seededPartner: any;
+  let seededUser: any;
+  let seededSupport: any;
+  let seededAdmin: any;
+
+  beforeAll(async () => {
+    seededPartner = await prisma.partner.findFirst({ where: { companyName: "Test Resort 1" } });
+    seededUser = await prisma.user.findFirst({ where: { email: "manager1@testresort.com" } });
+    seededSupport = await prisma.user.findFirst({ where: { role: "SUPPORT" } });
+    seededAdmin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
+    supportToken = generateToken(seededSupport.id, seededSupport.email, seededSupport.role);
+    adminToken = generateToken(seededAdmin.id, seededAdmin.email, seededAdmin.role);
+    // Create a test attachment using the same logic as upload
+    const UPLOAD_DIR = path.join(process.cwd(), "uploads");
+    if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    const fileContent = "downloadable content";
+    const hash = require("crypto").createHash("sha256").update(fileContent).digest("hex");
+    const uploadPath = path.join(UPLOAD_DIR, hash);
+    fs.writeFileSync(uploadPath, fileContent);
+    const attachment = await prisma.ticketAttachment.create({
+      data: {
+        filename: "download-test.txt",
+        filepath: hash,
+        mimetype: "text/plain",
+        size: Buffer.byteLength(fileContent),
+        ticketId: ticketId,
+      },
+    });
+    attachmentId = attachment.id;
+  });
+
+  afterAll(() => {
+    const UPLOAD_DIR = path.join(process.cwd(), "uploads");
+    const fileContent = "downloadable content";
+    const hash = require("crypto").createHash("sha256").update(fileContent).digest("hex");
+    const uploadPath = path.join(UPLOAD_DIR, hash);
+    if (fs.existsSync(uploadPath)) fs.unlinkSync(uploadPath);
+  });
+
+  it("allows support to download attachment", async () => {
+    const res = await request(app)
+      .get(`/api/attachments/${attachmentId}/download`)
+      .set("Authorization", `Bearer ${supportToken}`);
+    expect(res.status).toBe(200);
+    expect(res.text).toBe("downloadable content");
+  });
+
+  it("allows admin to download attachment", async () => {
+    const res = await request(app)
+      .get(`/api/attachments/${attachmentId}/download`)
+      .set("Authorization", `Bearer ${adminToken}`);
+    expect(res.status).toBe(200);
+    expect(res.text).toBe("downloadable content");
+  });
+
+  it("denies download for unauthenticated user", async () => {
+    const res = await request(app).get(`/api/attachments/${attachmentId}/download`);
+    expect(res.status).toBe(401);
+  });
+
+  it("denies download for unrelated partner", async () => {
+    // Create a new partner and user
+    const otherPartner = await prisma.partner.create({
+      data: {
+        companyName: "Other Resort",
+        managementCompany: "Other Group",
+        streetAddress: "1 Other St",
+        city: "Other City",
+        state: "OT",
+        zip: "00000",
+        country: "USA",
+        numberOfLoungeUnits: 1,
+        topColour: "Red",
+        userEmail: "other@resort.com",
+        userPass: "otherpass",
+        latitude: 0,
+        longitude: 0,
+      },
+    });
+    const otherUser = await prisma.user.upsert({
+      where: { email: "other@resort.com" },
+      update: {},
+      create: {
+        email: "other@resort.com",
+        password: await hashPassword("otherpass"),
+        displayName: "Other User",
+        role: "PARTNER",
+        partnerId: otherPartner.id,
+      },
+    });
+    const otherToken = generateToken(
+      otherUser.id,
+      otherUser.email,
+      otherUser.role,
+      otherPartner.id,
+    );
+    const res = await request(app)
+      .get(`/api/attachments/${attachmentId}/download`)
+      .set("Authorization", `Bearer ${otherToken}`);
+    expect([403, 404]).toContain(res.status); // Should be forbidden or not found
+  });
 });
 
 describe("Attachments upload", () => {

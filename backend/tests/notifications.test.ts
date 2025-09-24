@@ -5,47 +5,50 @@ import { resetDb } from "./utils";
 import { createPrismaTestClient } from "./prismaTestFactory";
 import { hashPassword, generateToken } from "../src/utils/auth";
 
-const app = buildApp();
-const prisma = createPrismaTestClient("test-auth.db");
+let app: any = buildApp();
+let prisma: any = createPrismaTestClient("test-auth.db");
 let supportToken: string;
 let partnerToken: string;
 let partnerUserId: string;
 
-beforeAll(async () => {
-  await prisma.$connect();
-  await resetDb(prisma);
-  const partner = await prisma.partner.create({ data: { companyName: "Notif Partner" } });
-  const partnerUser = await prisma.user.create({
-    data: {
-      email: "notif_partner@example.com",
-      password: await hashPassword("Password123!"),
-      role: "PARTNER",
-      partnerId: partner.id,
-    },
-  });
-  partnerUserId = partnerUser.id;
-  partnerToken = generateToken(partnerUser.id, partnerUser.email, partnerUser.role, partner.id);
-  const supportUser = await prisma.user.create({
-    data: {
-      email: "support@example.com",
-      password: await hashPassword("Password123!"),
-      role: "SUPPORT",
-    },
-  });
-  supportToken = generateToken(supportUser.id, supportUser.email, supportUser.role);
-});
-
-afterAll(async () => {
-  await prisma.$disconnect();
-});
-
 describe("Notifications", () => {
   let createdId: string;
+
+  beforeAll(async () => {
+    await prisma.$connect();
+    // Use seeded partner and user (do NOT reset the DB - it was seeded in setup.ts)
+    const seededPartner = await prisma.partner.findFirst({
+      where: { companyName: "Test Resort 1" },
+    });
+    const seededUser = await prisma.user.findFirst({ where: { email: "manager1@testresort.com" } });
+    const supportUser = await prisma.user.findFirst({ where: { email: "support@poolsafe.com" } });
+    if (!seededPartner || !seededUser || !supportUser) {
+      throw new Error("Seeded partner or user not found. Check seed script and DB state.");
+    }
+    partnerToken = generateToken(
+      seededUser.id,
+      seededUser.email,
+      seededUser.role,
+      seededPartner.id,
+    );
+    supportToken = generateToken(supportUser.id, supportUser.email, supportUser.role);
+    partnerUserId = seededUser.id;
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
   it("support creates a notification for partner user", async () => {
     const res = await request(app)
       .post("/api/notifications")
       .set("Authorization", `Bearer ${supportToken}`)
-      .send({ userId: partnerUserId, type: "INFO", message: "Test notification" });
+      .send({
+        userId: partnerUserId,
+        type: "INFO",
+        title: "Test Notification",
+        message: "Test notification",
+      });
     expect(res.status).toBe(201);
     expect(res.body.id).toBeDefined();
     createdId = res.body.id;

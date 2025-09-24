@@ -32,12 +32,25 @@ knowledgeBaseRouter.get(
       } = (req as any).validatedQuery || {};
       const where: any = {};
       if (category) where.category = category;
-      if (published && published !== "all") where.isPublished = published === "true";
+      const role = req.user?.role;
+      if (published) {
+        if (published === "all") {
+          if (role !== "SUPPORT" && role !== "ADMIN") {
+            where.isPublished = true;
+          }
+        } else {
+          where.isPublished = published === "true";
+        }
+      } else {
+        if (role !== "SUPPORT" && role !== "ADMIN") {
+          where.isPublished = true;
+        }
+      }
       if (search) {
         where.OR = [
-          { title: { contains: search, mode: "insensitive" } },
-          { content: { contains: search, mode: "insensitive" } },
-          { searchKeywords: { contains: search, mode: "insensitive" } },
+          { title: { contains: search } },
+          { content: { contains: search } },
+          { searchKeywords: { contains: search } },
         ];
       }
       const [articles, total] = await Promise.all([
@@ -194,13 +207,17 @@ knowledgeBaseRouter.get(
       const { query } = req.params;
       const { category, published = "true" } = req.query;
 
+      const orClauses: any[] = [
+        { title: { contains: query } },
+        { searchKeywords: { contains: query } },
+      ];
+      if ((query || "").length >= 5) {
+        orClauses.push({ content: { contains: query } });
+      }
+
       const where: any = {
         isPublished: published === "true",
-        OR: [
-          { title: { contains: query, mode: "insensitive" } },
-          { content: { contains: query, mode: "insensitive" } },
-          { searchKeywords: { contains: query, mode: "insensitive" } },
-        ],
+        OR: orClauses,
       };
 
       if (category) {

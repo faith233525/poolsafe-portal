@@ -142,6 +142,7 @@ Comprehensive B2B support portal for Pool Safe Inc. managing LounGenie devices w
 ✅ **Knowledge Base**: Articles, search, ratings, videos
 ✅ **Environment Validation**: All required env vars validated at runtime
 ✅ **Test Coverage**: Security, ticket, notification, and edge case tests
+✅ **CI**: GitHub Actions runs backend, frontend unit, and Cypress e2e on PRs
 🔄 **Authentication**: Ready for Outlook SSO implementation
 ⏳ **Frontend**: Needs expansion for all new features
 ⏳ **Map Interface**: Ready for SVG implementation
@@ -149,7 +150,7 @@ Comprehensive B2B support portal for Pool Safe Inc. managing LounGenie devices w
 
 ## 🔌 Available Endpoints
 
-```
+```sh
 Backend Server: http://localhost:4000
 - /api/health
 - /api/partners
@@ -222,6 +223,24 @@ Security Notes:
 - Attachment download positive (owner, support) and negative (other partner, missing id) cases.
 
 These tests offer baseline regression protection; further edge cases (oversized upload, rate limit breach) can be added later.
+
+## 🧪 Quick Test Commands
+
+Run from repo root:
+
+```
+# Backend tests
+npm run test:backend
+
+# Frontend unit tests
+npm run test:frontend
+
+# Cypress e2e tests (headless Chrome)
+npm run test:e2e
+
+# Everything
+npm run test:all
+```
 
 ## 🚀 Scalability Testing & Findings
 

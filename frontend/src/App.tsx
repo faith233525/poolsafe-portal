@@ -1,11 +1,10 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "./App.module.css";
 import Login from "./Login";
-
-const LazyTicketForm = React.lazy(() => import("./TicketForm"));
-const LazyTicketList = React.lazy(() => import("./TicketList"));
+import TicketForm from "./TicketForm";
+import TicketList from "./TicketList";
 
 function getJwt() {
   return localStorage.getItem("jwt") || "";
@@ -40,6 +39,14 @@ function App() {
       }
     };
     window.addEventListener("storage", onStorage);
+    const originalSetItem = localStorage.setItem;
+    // Patch setItem so same-tab updates also refresh jwt-driven UI
+    localStorage.setItem = function (key: string, value: string) {
+      originalSetItem.call(localStorage, key, value);
+      if (key === "jwt") {
+        setJwt(getJwt());
+      }
+    };
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
@@ -72,20 +79,16 @@ function App() {
         </header>
         <div className={styles.card}>
           {/* Only partners can submit tickets */}
-          <Suspense fallback={<div className={styles.info}>Loading ticket form...</div>}>
-            {user.role === "partner" ? (
-              <LazyTicketForm onSubmit={() => setReload((r) => r + 1)} role={user.role} />
-            ) : (
-              <div className={styles.info} role="status" aria-live="polite">
-                Ticket submission is only available to partners.
-              </div>
-            )}
-          </Suspense>
+          {user.role === "partner" ? (
+            <TicketForm onSubmit={() => setReload((r) => r + 1)} role={user.role} />
+          ) : (
+            <div className={styles.info} role="status" aria-live="polite">
+              Ticket submission is only available to partners.
+            </div>
+          )}
         </div>
         <div className={styles.card}>
-          <Suspense fallback={<div className={styles.info}>Loading tickets...</div>}>
-            <LazyTicketList key={reload} />
-          </Suspense>
+          <TicketList key={reload} />
         </div>
       </div>
     </UserContext.Provider>

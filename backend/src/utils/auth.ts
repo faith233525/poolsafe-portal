@@ -56,12 +56,32 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
+  // Debug logging for test diagnosis
+  if (process.env.NODE_ENV === "test") {
+    // eslint-disable-next-line no-console
+    console.log("[AUTH DEBUG] JWT_SECRET:", JWT_SECRET);
+    // eslint-disable-next-line no-console
+    console.log("[AUTH DEBUG] Received token:", token);
+  }
+
   if (!token) {
+    if (process.env.NODE_ENV === "test") {
+      // eslint-disable-next-line no-console
+      console.log("[AUTH DEBUG] No token provided");
+    }
     return res.status(401).json({ error: "Access token required" });
   }
 
   const decoded = verifyToken(token);
+  if (process.env.NODE_ENV === "test") {
+    // eslint-disable-next-line no-console
+    console.log("[AUTH DEBUG] Decoded payload:", decoded);
+  }
   if (!decoded) {
+    if (process.env.NODE_ENV === "test") {
+      // eslint-disable-next-line no-console
+      console.log("[AUTH DEBUG] Invalid or expired token");
+    }
     return res.status(403).json({ error: "Invalid or expired token" });
   }
 
@@ -91,10 +111,26 @@ export const requireRole = (allowedRoles: string[]) => {
 };
 
 // Middleware for admin-only routes
-export const requireAdmin = requireRole(["ADMIN"]);
+export const requireAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  authenticateToken(req, res, () => {
+    requireRole(["ADMIN"])(req, res, next);
+  });
+};
 
 // Middleware for support and admin routes
-export const requireSupport = requireRole(["SUPPORT", "ADMIN"]);
+export const requireSupport = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  authenticateToken(req, res, () => {
+    requireRole(["SUPPORT", "ADMIN"])(req, res, next);
+  });
+};
 
 // Middleware for partner, support, and admin routes
-export const requireAuthenticated = requireRole(["PARTNER", "SUPPORT", "ADMIN"]);
+export const requireAuthenticated = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  authenticateToken(req, res, () => {
+    requireRole(["PARTNER", "SUPPORT", "ADMIN"])(req, res, next);
+  });
+};

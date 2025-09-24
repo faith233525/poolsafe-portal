@@ -8,7 +8,7 @@ import { createPrismaTestClient } from "./prismaTestFactory";
 import { hashPassword, generateToken } from "../src/utils/auth";
 
 const app = buildApp();
-const prisma = createPrismaTestClient("test-tickets.db");
+const prisma = createPrismaTestClient("test-auth.db");
 let partnerTokenA: string;
 let partnerTokenB: string;
 let supportToken: string;
@@ -16,39 +16,39 @@ let attachmentId: string;
 
 beforeAll(async () => {
   await prisma.$connect();
-  await resetDb(prisma);
-  const partnerA = await prisma.partner.create({ data: { companyName: "Partner A" } });
-  const partnerB = await prisma.partner.create({ data: { companyName: "Partner B" } });
-
-  const userA = await prisma.user.create({
-    data: {
-      email: "a@example.com",
-      password: await hashPassword("Password123!"),
-      role: "PARTNER",
-      partnerId: partnerA.id,
-    },
+  // Use seeded partners and users (do NOT reset the DB - it was seeded in setup.ts)
+  const seededPartnerA = await prisma.partner.findFirst({
+    where: { companyName: "Test Resort 1" },
   });
-  const userB = await prisma.user.create({
-    data: {
-      email: "b@example.com",
-      password: await hashPassword("Password123!"),
-      role: "PARTNER",
-      partnerId: partnerB.id,
-    },
+  const seededPartnerB = await prisma.partner.findFirst({
+    where: { companyName: "Test Resort 2" },
   });
-  const supportUser = await prisma.user.create({
-    data: { email: "s@example.com", password: await hashPassword("Password123!"), role: "SUPPORT" },
-  });
-  partnerTokenA = generateToken(userA.id, userA.email, userA.role, partnerA.id);
-  partnerTokenB = generateToken(userB.id, userB.email, userB.role, partnerB.id);
+  const seededUserA = await prisma.user.findFirst({ where: { email: "manager1@testresort.com" } });
+  const seededUserB = await prisma.user.findFirst({ where: { email: "manager2@testresort.com" } });
+  const supportUser = await prisma.user.findFirst({ where: { email: "support@poolsafe.com" } });
+  if (!seededPartnerA || !seededPartnerB || !seededUserA || !seededUserB || !supportUser) {
+    throw new Error("Seeded partner or user not found. Check seed script and DB state.");
+  }
+  partnerTokenA = generateToken(
+    seededUserA.id,
+    seededUserA.email,
+    seededUserA.role,
+    seededPartnerA.id,
+  );
+  partnerTokenB = generateToken(
+    seededUserB.id,
+    seededUserB.email,
+    seededUserB.role,
+    seededPartnerB.id,
+  );
   supportToken = generateToken(supportUser.id, supportUser.email, supportUser.role);
 
   const ticket = await prisma.ticket.create({
     data: {
       subject: "Download",
       description: "Test",
-      createdByName: userA.email,
-      partnerId: partnerA.id,
+      createdByName: seededUserA.email,
+      partnerId: seededPartnerA.id,
     },
   });
 

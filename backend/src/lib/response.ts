@@ -14,12 +14,17 @@ export function buildPaginated<T>(
   total: number,
   extra?: Record<string, any>,
 ): PaginatedResult<T> {
+  const totalPages = Math.ceil(total / pageSize);
   return {
+    // original shape
     data,
     page,
     pageSize,
     total,
-    totalPages: Math.ceil(total / pageSize),
+    totalPages,
+    // aliases expected by some tests/consumers
+    items: data,
+    pagination: { page, pageSize, total, totalPages },
     ...(extra || {}),
   };
 }

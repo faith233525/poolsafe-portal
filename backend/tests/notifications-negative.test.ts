@@ -14,35 +14,32 @@ let targetUserId: string;
 
 beforeAll(async () => {
   await prisma.$connect();
-  await resetDb(prisma);
-  const partner1 = await prisma.partner.create({ data: { companyName: "NotifP1" } });
-  const partner2 = await prisma.partner.create({ data: { companyName: "NotifP2" } });
-  const user1 = await prisma.user.create({
-    data: {
-      email: "p1@example.com",
-      password: await hashPassword("Password123!"),
-      role: "PARTNER",
-      partnerId: partner1.id,
-    },
+  // Use seeded partners and users (do NOT reset the DB - it was seeded in setup.ts)
+  const seededPartner1 = await prisma.partner.findFirst({
+    where: { companyName: "Test Resort 1" },
   });
-  targetUserId = user1.id;
-  const user2 = await prisma.user.create({
-    data: {
-      email: "p2@example.com",
-      password: await hashPassword("Password123!"),
-      role: "PARTNER",
-      partnerId: partner2.id,
-    },
+  const seededPartner2 = await prisma.partner.findFirst({
+    where: { companyName: "Test Resort 2" },
   });
-  const supportUser = await prisma.user.create({
-    data: {
-      email: "sup@example.com",
-      password: await hashPassword("Password123!"),
-      role: "SUPPORT",
-    },
-  });
-  partnerToken = generateToken(user1.id, user1.email, user1.role, partner1.id);
-  otherPartnerToken = generateToken(user2.id, user2.email, user2.role, partner2.id);
+  const seededUser1 = await prisma.user.findFirst({ where: { email: "manager1@testresort.com" } });
+  const seededUser2 = await prisma.user.findFirst({ where: { email: "manager2@testresort.com" } });
+  const supportUser = await prisma.user.findFirst({ where: { email: "support@poolsafe.com" } });
+  if (!seededPartner1 || !seededPartner2 || !seededUser1 || !seededUser2 || !supportUser) {
+    throw new Error("Seeded partner or user not found. Check seed script and DB state.");
+  }
+  targetUserId = seededUser1.id;
+  partnerToken = generateToken(
+    seededUser1.id,
+    seededUser1.email,
+    seededUser1.role,
+    seededPartner1.id,
+  );
+  otherPartnerToken = generateToken(
+    seededUser2.id,
+    seededUser2.email,
+    seededUser2.role,
+    seededPartner2.id,
+  );
   supportToken = generateToken(supportUser.id, supportUser.email, supportUser.role);
 
   // Create a notification for user1
@@ -77,7 +74,7 @@ describe("Notifications negative cases", () => {
     const res = await request(app)
       .post("/api/notifications")
       .set("Authorization", `Bearer ${supportToken}`)
-      .send({ userId: targetUserId, type: "INFO", title: "x", message: "y" });
+      .send({ userId: targetUserId, type: "INFO", title: "Test Notification", message: "y" });
     expect(res.status).toBe(201);
   });
 });
