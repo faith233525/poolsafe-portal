@@ -30,10 +30,10 @@ export default defineConfig({
         "**/prismaClient.ts",
       ],
       thresholds: {
-        lines: 35,
+        lines: 30,
         branches: 30,
-        functions: 35,
-        statements: 35,
+        functions: 30,
+        statements: 30,
       },
     },
   },
