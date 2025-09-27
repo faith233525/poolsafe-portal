@@ -145,6 +145,15 @@ vite.config.ts.timestamp-*
 
 # Backend uploads (runtime artifacts)
 backend/uploads/
+!backend/uploads/.keep
+
+# Docker intermediate stuff
+**/Dockerfile.prod
+*.tar
+docker-compose.override.yml
+
+# Generated OpenAPI client (to be created later)
+shared/api-client/
 
 # Prisma nested artifacts
 backend/prisma/prisma/

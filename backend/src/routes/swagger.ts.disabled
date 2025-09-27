@@ -1,0 +1,38 @@
+import { Router } from "express";
+import swaggerUi from "swagger-ui-express";
+import * as fs from "fs";
+import * as path from "path";
+import * as yaml from "js-yaml";
+
+const router = Router();
+
+const openApiPath = path.resolve(__dirname, "../../../openapi/openapi.yaml");
+let openApiSpec: any = {};
+try {
+  const fileContents = fs.readFileSync(openApiPath, "utf8");
+  openApiSpec = yaml.load(fileContents);
+} catch {
+  console.error("Failed to load OpenAPI spec");
+}
+
+// Interactive Swagger UI
+router.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
+
+// Raw JSON spec
+router.get(["/docs.json", "/openapi.json"], (_req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.json(openApiSpec);
+});
+
+// Raw YAML spec passthrough
+router.get(["/docs.yaml", "/openapi.yaml"], (_req, res) => {
+  try {
+    const yamlText = fs.readFileSync(openApiPath, "utf8");
+    res.setHeader("Content-Type", "application/yaml");
+    res.send(yamlText);
+  } catch {
+    res.status(500).json({ error: "Unable to read OpenAPI YAML" });
+  }
+});
+
+export default router;

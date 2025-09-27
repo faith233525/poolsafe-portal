@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
 import styles from "./App.module.css";
 
-export default function ServiceDetails({ recordId, role }: { recordId: string; role: string }) {
+export default function ServiceDetails({
+  recordId,
+  role: _role,
+}: {
+  recordId: string;
+  role: string;
+}) {
   const [record, setRecord] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

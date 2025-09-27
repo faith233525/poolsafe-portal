@@ -55,7 +55,14 @@ export default function ServiceTable({
       </thead>
       <tbody>
         {records.map((record) => (
-          <tr key={record.id} onClick={() => onSelect && onSelect(record.id)}>
+          <tr
+            key={record.id}
+            onClick={() => {
+              if (onSelect) {
+                onSelect(record.id);
+              }
+            }}
+          >
             <td>{record.serviceType}</td>
             <td>{record.status}</td>
             <td>{record.partner?.companyName}</td>
@@ -69,7 +76,9 @@ export default function ServiceTable({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEdit && onEdit(record);
+                    if (onEdit) {
+                      onEdit(record);
+                    }
                   }}
                 >
                   Edit
@@ -77,7 +86,9 @@ export default function ServiceTable({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDelete && onDelete(record.id);
+                    if (onDelete) {
+                      onDelete(record.id);
+                    }
                   }}
                 >
                   Delete

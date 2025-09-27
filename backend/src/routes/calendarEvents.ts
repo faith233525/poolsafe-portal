@@ -37,11 +37,17 @@ calendarEventsRouter.get(
       } else if (partnerId && (req.user!.role === "ADMIN" || req.user!.role === "SUPPORT")) {
         where.partnerId = partnerId;
       }
-      if (eventType) where.eventType = eventType;
+      if (eventType) {
+        where.eventType = eventType;
+      }
       if (startDate || endDate) {
         where.startDate = {};
-        if (startDate) where.startDate.gte = new Date(startDate);
-        if (endDate) where.startDate.lte = new Date(endDate);
+        if (startDate) {
+          where.startDate.gte = new Date(startDate);
+        }
+        if (endDate) {
+          where.startDate.lte = new Date(endDate);
+        }
       }
 
       const [events, total] = await Promise.all([
@@ -149,17 +155,38 @@ calendarEventsRouter.put(
   async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-      const updateData = (req as any).validated;
-      if (updateData.startDate) updateData.startDate = new Date(updateData.startDate);
-      if (updateData.endDate) updateData.endDate = new Date(updateData.endDate);
-      const updatedCalendarEvent = await prisma.calendarEvent.update({
-        where: { id },
-        data: updateData,
-        include: {
-          partner: { select: { id: true, companyName: true } },
-          createdBy: { select: { id: true, displayName: true, email: true } },
-        },
-      });
+      // Only support and admin can update
+      if (req.user?.role === "PARTNER") {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      let updateData;
+      try {
+        updateData = (req as any).validated;
+      } catch {
+        return res.status(500).json({ error: "VALIDATION_ERROR" });
+      }
+      if (updateData.startDate) {
+        updateData.startDate = new Date(updateData.startDate);
+      }
+      if (updateData.endDate) {
+        updateData.endDate = new Date(updateData.endDate);
+      }
+      let updatedCalendarEvent;
+      try {
+        updatedCalendarEvent = await prisma.calendarEvent.update({
+          where: { id },
+          data: updateData,
+          include: {
+            partner: { select: { id: true, companyName: true } },
+            createdBy: { select: { id: true, displayName: true, email: true } },
+          },
+        });
+      } catch (err: any) {
+        if (err.code === "P2025") {
+          return res.status(500).json({ error: "Failed to update calendar event" });
+        }
+        throw err;
+      }
       res.json(updatedCalendarEvent);
     } catch (error) {
       console.error("Error updating calendar event:", error);
@@ -172,11 +199,14 @@ calendarEventsRouter.put(
 calendarEventsRouter.delete("/:id", requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
-
-    await prisma.calendarEvent.delete({
-      where: { id },
-    });
-
+    try {
+      await prisma.calendarEvent.delete({ where: { id } });
+    } catch (err: any) {
+      if (err.code === "P2025") {
+        return res.status(500).json({ error: "Failed to delete calendar event" });
+      }
+      throw err;
+    }
     res.json({ message: "Calendar event deleted successfully" });
   } catch (error) {
     console.error("Error deleting calendar event:", error);
@@ -274,7 +304,9 @@ calendarEventsRouter.get(
       const { partnerId } = req.query;
 
       const where: any = {};
-      if (partnerId) where.partnerId = partnerId as string;
+      if (partnerId) {
+        where.partnerId = partnerId as string;
+      }
 
       const [totalEvents, eventTypeStats, upcomingEvents, monthlyStats] = await Promise.all([
         // Total count

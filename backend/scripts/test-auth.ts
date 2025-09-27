@@ -21,9 +21,7 @@ async function testAuthentication() {
     if (partnerLogin.token) {
       console.log("✅ Partner login successful");
       console.log(`   Token: ${partnerLogin.token.substring(0, 20)}...`);
-      console.log(
-        `   User: ${partnerLogin.user.displayName} (${partnerLogin.user.role})`
-      );
+      console.log(`   User: ${partnerLogin.user.displayName} (${partnerLogin.user.role})`);
 
       // Test protected route with partner token
       console.log("\n2️⃣ Testing Partner Access to Own Data...");
@@ -59,9 +57,7 @@ async function testAuthentication() {
     const supportLogin: any = await supportLoginResponse.json();
     if (supportLogin.token) {
       console.log("✅ Support login successful");
-      console.log(
-        `   User: ${supportLogin.user.displayName} (${supportLogin.user.role})`
-      );
+      console.log(`   User: ${supportLogin.user.displayName} (${supportLogin.user.role})`);
 
       // Test admin-level access
       console.log("\n4️⃣ Testing Support Access to All Data...");

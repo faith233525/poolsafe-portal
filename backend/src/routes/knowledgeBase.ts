@@ -31,7 +31,7 @@ knowledgeBaseRouter.get(
         pageSize = 25,
       } = (req as any).validatedQuery || {};
       const where: any = {};
-      if (category) where.category = category;
+      if (category) {where.category = category;}
       const role = req.user?.role;
       if (published) {
         if (published === "all") {
@@ -143,12 +143,25 @@ knowledgeBaseRouter.put(
       const { id } = req.params;
       const updateData = (req as any).validated;
       if (updateData.tags && Array.isArray(updateData.tags))
-        updateData.tags = JSON.stringify(updateData.tags);
+        {updateData.tags = JSON.stringify(updateData.tags);}
       if (updateData.attachments && Array.isArray(updateData.attachments))
-        updateData.attachments = JSON.stringify(updateData.attachments);
+        {updateData.attachments = JSON.stringify(updateData.attachments);}
       if (updateData.videos && Array.isArray(updateData.videos))
-        updateData.videos = JSON.stringify(updateData.videos);
-      const updatedArticle = await prisma.knowledgeBase.update({ where: { id }, data: updateData });
+        {updateData.videos = JSON.stringify(updateData.videos);}
+      // Only support and admin can update
+      if (req.user?.role === "PARTNER") {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      // Try to update, catch not found error
+      let updatedArticle;
+      try {
+        updatedArticle = await prisma.knowledgeBase.update({ where: { id }, data: updateData });
+      } catch (err: any) {
+        if (err.code === "P2025") {
+          return res.status(500).json({ error: "Failed to update knowledge base article" });
+        }
+        throw err;
+      }
       res.json(updatedArticle);
     } catch (error) {
       console.error("Error updating knowledge base article:", error);
@@ -161,11 +174,14 @@ knowledgeBaseRouter.put(
 knowledgeBaseRouter.delete("/:id", requireAdmin, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
-
-    await prisma.knowledgeBase.delete({
-      where: { id },
-    });
-
+    try {
+      await prisma.knowledgeBase.delete({ where: { id } });
+    } catch (err: any) {
+      if (err.code === "P2025") {
+        return res.status(500).json({ error: "Failed to delete knowledge base article" });
+      }
+      throw err;
+    }
     res.json({ message: "Knowledge base article deleted successfully" });
   } catch (error) {
     console.error("Error deleting knowledge base article:", error);

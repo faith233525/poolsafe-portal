@@ -14,7 +14,7 @@ export const logger = pino({
 // pino-http middleware with custom serializers
 const httpLogger = pinoHttp({
   logger,
-  customProps: (req: any, res: any) => {
+  customProps: (req: any, _res: any) => {
     return {
       requestId: req.requestId,
       userId: req.user?.id,

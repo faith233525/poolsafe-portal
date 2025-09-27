@@ -14,17 +14,14 @@ async function simpleTest() {
 
       // Test authentication
       console.log("\n🔐 Testing partner login...");
-      const loginResponse = await fetch(
-        "http://localhost:4000/api/auth/login/partner",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: "manager@testresort.com",
-            password: "partner123",
-          }),
-        }
-      );
+      const loginResponse = await fetch("http://localhost:4000/api/auth/login/partner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "manager@testresort.com",
+          password: "partner123",
+        }),
+      });
 
       console.log("Login status:", loginResponse.status);
       const loginData = await loginResponse.json();

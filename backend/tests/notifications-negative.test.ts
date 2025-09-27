@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { buildApp } from "../src/app";
-import { resetDb } from "./utils";
+import { resetDb as _resetDb } from "./utils";
 import { createPrismaTestClient } from "./prismaTestFactory";
-import { hashPassword, generateToken } from "../src/utils/auth";
+import { hashPassword as _hashPassword, generateToken } from "../src/utils/auth";
 
 const app = buildApp();
 const prisma = createPrismaTestClient("test-auth.db");

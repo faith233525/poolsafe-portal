@@ -21,9 +21,9 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 const storage = (multer as any).diskStorage({
   destination: (_req: any, _file: any, cb: any) => cb(null, UPLOAD_DIR),
   filename: (_req: any, file: any, cb: any) => {
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const unique = `${Date.now()  }-${  Math.round(Math.random() * 1e9)}`;
     const sanitized = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
-    cb(null, unique + "-" + sanitized);
+    cb(null, `${unique  }-${  sanitized}`);
   },
 });
 const upload = multer({ storage, limits: { fileSize: config.upload.maxSizeBytes } });
@@ -39,9 +39,9 @@ attachmentsRouter.post(
   async (req: AuthenticatedRequest, res) => {
     try {
       const { ticketId } = req.body;
-      if (!ticketId) return res.status(400).json({ error: "ticketId required" });
+      if (!ticketId) {return res.status(400).json({ error: "ticketId required" });}
       const file = (req as any).file;
-      if (!file) return res.status(400).json({ error: "file required" });
+      if (!file) {return res.status(400).json({ error: "file required" });}
 
       // Whitelist of allowed extensions and mimetypes
       const allowedExt = [".png", ".jpg", ".jpeg", ".gif", ".pdf", ".txt", ".log", ".csv"];
@@ -54,7 +54,7 @@ attachmentsRouter.post(
       // Sniff actual file type
       const fileBuffer = fs.readFileSync(path.join(UPLOAD_DIR, file.filename));
       const detected = await fileTypeFromBuffer(fileBuffer).catch(() => null);
-      if (detected && detected.mime && !file.mimetype.startsWith(detected.mime.split("/")[0])) {
+      if (detected?.mime && !file.mimetype.startsWith(detected.mime.split("/")[0])) {
         // Basic category mismatch (e.g., claimed image but not an image)
         fs.unlink(path.join(UPLOAD_DIR, file.filename), () => {});
         return res.status(400).json({ error: "mime_mismatch" });
@@ -146,7 +146,7 @@ attachmentsRouter.get(
         where: { id },
         include: { ticket: { select: { partnerId: true } } },
       });
-      if (!attachment) return res.status(404).json({ error: "Not found" });
+      if (!attachment) {return res.status(404).json({ error: "Not found" });}
 
       // Partner ownership check unless staff role
       const isStaff = req.user!.role === "ADMIN" || req.user!.role === "SUPPORT";
@@ -168,7 +168,7 @@ attachmentsRouter.get(
       fs.createReadStream(absolutePath).pipe(res);
     } catch (e) {
       console.error(e);
-      if (!res.headersSent) res.status(500).json({ error: "download_failed" });
+      if (!res.headersSent) {res.status(500).json({ error: "download_failed" });}
     }
   },
 );

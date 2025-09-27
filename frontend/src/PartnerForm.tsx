@@ -36,7 +36,7 @@ export default function PartnerForm({
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
-    setForm((f: PartnerFormState) => ({ ...f, [name]: value } as PartnerFormState));
+    setForm((f: PartnerFormState) => ({ ...f, [name]: value }) as PartnerFormState);
   }
 
   function handleSubmit(e: React.FormEvent) {

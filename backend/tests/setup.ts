@@ -15,7 +15,13 @@ if (!(globalThis as any)[SEED_KEY]) {
   // Reseed the test database before running tests
   try {
     console.log("🌱 Setting up test database...");
-  execSync(`npm run seed:raw -- --dbFile=test-auth.db`, { stdio: "pipe" });
+    // Ensure schema is applied for the test database
+    execSync(`npx prisma db push --accept-data-loss`, {
+      stdio: "pipe",
+      env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL! },
+    });
+    // Reseed with a clean slate to guarantee required fixtures exist
+    execSync(`npm run seed:raw -- --reset --dbFile=test-auth.db`, { stdio: "pipe" });
     console.log("✅ Test database setup complete");
   } catch (e) {
     console.error(`Failed to reseed test database test-auth.db:`, e);

@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { buildApp } from "../src/app";
-import { resetDb } from "./utils";
+import { resetDb as _resetDb } from "./utils";
 import { createPrismaTestClient } from "./prismaTestFactory";
-import { hashPassword, generateToken } from "../src/utils/auth";
+import { hashPassword as _hashPassword, generateToken } from "../src/utils/auth";
 
-let app: any = buildApp();
-let prisma: any = createPrismaTestClient("test-auth.db");
+const app: any = buildApp();
+const prisma: any = createPrismaTestClient("test-auth.db");
 let supportToken: string;
 let partnerToken: string;
 let partnerUserId: string;

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import { apiFetch } from "./utils/api";
 import styles from "./Login.module.css";
 
 export default function Login({ onLogin }: { onLogin: (jwt: string) => void }) {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -12,10 +13,14 @@ export default function Login({ onLogin }: { onLogin: (jwt: string) => void }) {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      // Determine if it's an email (admin/support) or company name (partner)
+      const isEmail = username.includes('@');
+      const endpoint = isEmail ? "/api/auth/login" : "/api/auth/login/partner";
+      
+      const res = await apiFetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login failed");
@@ -30,16 +35,13 @@ export default function Login({ onLogin }: { onLogin: (jwt: string) => void }) {
   async function handleSsoLogin() {
     setError(null);
     setLoading(true);
-    // Simulate SSO redirect (replace with real Microsoft OAuth2 flow)
     try {
-      // In production, redirect to Microsoft login and handle callback
-      const res = await fetch("/api/auth/sso-demo", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "SSO failed");
-      onLogin(data.token);
+      // Redirect to Microsoft SSO login endpoint
+      const base =
+        (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") || "";
+      window.location.href = `${base}/api/sso/login`;
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   }
@@ -48,12 +50,12 @@ export default function Login({ onLogin }: { onLogin: (jwt: string) => void }) {
     <div className={styles.container}>
       <h2 className={styles.title}>Portal Login</h2>
       <form onSubmit={handleLocalLogin}>
-        <label htmlFor="email">Email</label>
+        <label htmlFor="username">Username</label>
         <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          id="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           required
           className={styles.input}
         />
@@ -67,7 +69,7 @@ export default function Login({ onLogin }: { onLogin: (jwt: string) => void }) {
           className={styles.input}
         />
         <button type="submit" disabled={loading} className={styles.button}>
-          Login (Partner)
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
       <hr className={styles.hr} />

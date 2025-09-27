@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { apiFetch } from "./utils/api";
 import styles from "./App.module.css";
 
 type Ticket = {
@@ -38,7 +39,7 @@ function TicketList() {
       setError(null);
       try {
         const jwt = typeof window !== "undefined" ? localStorage.getItem("jwt") || "" : "";
-        const res = await fetch("/api/tickets", {
+        const res = await apiFetch("/api/tickets", {
           headers: jwt ? { Authorization: `Bearer ${jwt}` } : {},
           signal: controller.signal,
         });

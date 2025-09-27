@@ -8,51 +8,57 @@ import {
   authenticateToken,
   AuthenticatedRequest,
 } from "../utils/auth";
+import { msalInstance, ssoConfig, createGraphClient, isAzureADConfigured } from "../lib/azureAD";
+import { env } from "../lib/env";
+import { ActivityLogger } from "../services/activityLogger";
 
 export const authRouter = Router();
 
-// Partner Login (generic username/password)
-authRouter.post("/login/partner", authLoginLimiter, async (req, res) => {
+// General Login (for admin/support email-based authentication)
+authRouter.post("/login", authLoginLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required" });
     }
 
-    // Find user with partner role
+    // Find user by email
     const prisma = getPrismaClient();
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
-        email: email.toLowerCase(),
-        role: "PARTNER",
+        email: username.toLowerCase(),
       },
       include: {
         partner: {
           select: {
             id: true,
             companyName: true,
-            streetAddress: true,
+            managementCompany: true,
+            numberOfLoungeUnits: true,
             city: true,
             state: true,
-            zip: true,
-            country: true,
-            numberOfLoungeUnits: true,
-            topColour: true,
           },
         },
       },
     });
 
-    if (!user || !user.password) {
+    if (!user?.password) {
+      // Log failed login attempt
+      await ActivityLogger.logLogin(username.toLowerCase(), 'UNKNOWN', false, req, "User not found or no password");
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // Verify password
+    // Compare hashed password
     const isValidPassword = await comparePassword(password, user.password);
     if (!isValidPassword) {
+      // Log failed login attempt
+      await ActivityLogger.logLogin(username.toLowerCase(), user.role, false, req, "Invalid password");
       return res.status(401).json({ error: "Invalid credentials" });
     }
+
+    // Log successful login
+    await ActivityLogger.logLogin(user.email, user.role, true, req);
 
     // Generate token
     const token = generateToken(user.id, user.email, user.role, user.partnerId || undefined);
@@ -64,7 +70,71 @@ authRouter.post("/login/partner", authLoginLimiter, async (req, res) => {
         email: user.email,
         displayName: user.displayName,
         role: user.role,
+        partnerId: user.partnerId,
         partner: user.partner,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Login failed" });
+  }
+});
+
+// Partner Login (company-based authentication)
+authRouter.post("/login/partner", authLoginLimiter, async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required" });
+    }
+
+    // Find partner by exact company name match
+    const prisma = getPrismaClient();
+    const partner = await prisma.partner.findUnique({
+      where: {
+        companyName: username,
+      },
+    });
+
+    if (!partner?.userPass) {
+      // Log failed login attempt
+      await ActivityLogger.logLogin(username, 'PARTNER', false, req, "Partner not found or no password");
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // For partner authentication, we can use simple string comparison
+    // since partners use plain text passwords in the system
+    if (password !== partner.userPass) {
+      // Log failed login attempt
+      await ActivityLogger.logLogin(username, 'PARTNER', false, req, "Invalid password");
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Log successful partner login
+    await ActivityLogger.logLogin(partner.companyName, 'PARTNER', true, req);
+
+    // Generate token for partner
+    const token = generateToken(partner.id, partner.companyName, "PARTNER", partner.id);
+
+    res.json({
+      token,
+      user: {
+        id: partner.id,
+        email: partner.companyName, // Use company name as identifier
+        displayName: partner.companyName,
+        role: "PARTNER",
+        partner: {
+          id: partner.id,
+          companyName: partner.companyName,
+          streetAddress: partner.streetAddress,
+          city: partner.city,
+          state: partner.state,
+          zip: partner.zip,
+          country: partner.country,
+          numberOfLoungeUnits: partner.numberOfLoungeUnits,
+          topColour: partner.topColour,
+        },
       },
     });
   } catch (error) {
@@ -201,6 +271,51 @@ authRouter.post("/login/outlook", async (req, res) => {
 authRouter.get("/me", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const prisma = getPrismaClient();
+
+    // Handle direct partner authentication
+    if (req.user!.role === "PARTNER") {
+      const partner = await prisma.partner.findUnique({
+        where: { id: req.user!.id },
+        select: {
+          id: true,
+          companyName: true,
+          streetAddress: true,
+          city: true,
+          state: true,
+          zip: true,
+          country: true,
+          numberOfLoungeUnits: true,
+          topColour: true,
+          createdAt: true,
+        },
+      });
+
+      if (!partner) {
+        return res.status(404).json({ error: "Partner not found" });
+      }
+
+      res.json({
+        id: partner.id,
+        email: partner.companyName,
+        displayName: partner.companyName,
+        role: "PARTNER",
+        partner: {
+          id: partner.id,
+          companyName: partner.companyName,
+          streetAddress: partner.streetAddress,
+          city: partner.city,
+          state: partner.state,
+          zip: partner.zip,
+          country: partner.country,
+          numberOfLoungeUnits: partner.numberOfLoungeUnits,
+          topColour: partner.topColour,
+        },
+        createdAt: partner.createdAt,
+      });
+      return;
+    }
+
+    // Handle regular user authentication (ADMIN, SUPPORT, etc.)
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
       include: {
@@ -292,7 +407,7 @@ authRouter.put("/change-password", authenticateToken, async (req: AuthenticatedR
       where: { id: req.user!.id },
     });
 
-    if (!user || !user.password) {
+    if (!user?.password) {
       return res.status(404).json({ error: "User not found or no password set" });
     }
 
@@ -319,7 +434,7 @@ authRouter.put("/change-password", authenticateToken, async (req: AuthenticatedR
 });
 
 // Logout (client-side token removal, but we can log the action)
-authRouter.post("/logout", authenticateToken, async (req: AuthenticatedRequest, res) => {
+authRouter.post("/logout", authenticateToken, (req: AuthenticatedRequest, res) => {
   try {
     // In a more sophisticated setup, you might blacklist the token
     // For now, we just acknowledge the logout
@@ -328,4 +443,127 @@ authRouter.post("/logout", authenticateToken, async (req: AuthenticatedRequest, 
     console.error("Logout error:", error);
     res.status(500).json({ error: "Logout failed" });
   }
+});
+
+// ========================================
+// OUTLOOK SSO INTEGRATION
+// ========================================
+
+// Initiate Outlook SSO login (Admin/Support only)
+authRouter.get("/sso/login", async (req, res) => {
+  try {
+    if (!isAzureADConfigured() || !msalInstance) {
+      return res.status(503).json({
+        error: "Outlook SSO is not configured. Please contact administrator.",
+      });
+    }
+
+    const authCodeUrlParameters = {
+      scopes: ssoConfig.scopes,
+      redirectUri: ssoConfig.redirectUri,
+      responseType: ssoConfig.responseType,
+      responseMode: ssoConfig.responseMode as any,
+      prompt: ssoConfig.prompt as any,
+    };
+
+    // Generate the authorization URL
+    const authUrl = await msalInstance.getAuthCodeUrl(authCodeUrlParameters);
+
+    // Redirect to Microsoft login
+    res.redirect(authUrl);
+  } catch (error) {
+    console.error("SSO login initiation error:", error);
+    res.status(500).json({ error: "Failed to initiate SSO login" });
+  }
+});
+
+// Handle SSO callback from Microsoft
+authRouter.get("/sso/callback", async (req, res) => {
+  try {
+    if (!isAzureADConfigured() || !msalInstance) {
+      return res.status(503).json({
+        error: "Outlook SSO is not configured. Please contact administrator.",
+      });
+    }
+
+    const { code, error: authError } = req.query as { code?: string; error?: unknown };
+
+    if (authError) {
+      const msg = typeof authError === "string" ? authError : JSON.stringify(authError);
+      return res.status(400).json({ error: `SSO authentication failed: ${msg}` });
+    }
+
+    if (!code) {
+      return res.status(400).json({ error: "Authorization code not received" });
+    }
+
+    // Exchange code for token (code is defined above)
+    const tokenRequest = {
+      code,
+      scopes: ssoConfig.scopes,
+      redirectUri: ssoConfig.redirectUri,
+    };
+
+    const response = await msalInstance.acquireTokenByCode(tokenRequest);
+
+    if (!response?.accessToken) {
+      return res.status(400).json({ error: "Failed to acquire access token" });
+    }
+
+    // Get user info from Microsoft Graph
+    const graphClient = createGraphClient(response.accessToken);
+    if (!graphClient) {
+      return res.status(503).json({ error: "Microsoft Graph client not available" });
+    }
+
+    const userProfile = await graphClient.api("/me").get();
+
+    const email = userProfile.mail || userProfile.userPrincipalName;
+    if (!email) {
+      return res.status(400).json({ error: "Unable to retrieve email from Microsoft profile" });
+    }
+
+    // Find or create user in our system
+    const prisma = getPrismaClient();
+    let user = await prisma.user.findFirst({
+      where: {
+        email: email.toLowerCase(),
+        role: { in: ["ADMIN", "SUPPORT"] },
+      },
+    });
+
+    if (!user) {
+      // Auto-create support user if not exists (admin must be manually created)
+      user = await prisma.user.create({
+        data: {
+          email: email.toLowerCase(),
+          displayName: userProfile.displayName || email,
+          role: "SUPPORT", // Default to support, admin can upgrade later
+          // No password needed for SSO users
+        },
+      });
+    }
+
+    // Generate JWT token for our system
+    const token = generateToken(user.id, user.email, user.role, user.partnerId || undefined);
+
+    // Redirect to frontend with token (or return JSON for SPA)
+    const redirectUrl =
+      env.NODE_ENV === "production"
+        ? `${req.protocol}://${req.get("host")}/dashboard?token=${token}`
+        : `http://localhost:5174/dashboard?token=${token}`;
+
+    res.redirect(redirectUrl);
+  } catch (error) {
+    console.error("SSO callback error:", error);
+    res.status(500).json({ error: "SSO authentication failed" });
+  }
+});
+
+// Get SSO status
+authRouter.get("/sso/status", (req, res) => {
+  res.json({
+    enabled: isAzureADConfigured(),
+    loginUrl: isAzureADConfigured() ? "/api/auth/sso/login" : null,
+  });
 });

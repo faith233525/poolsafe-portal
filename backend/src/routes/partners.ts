@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { z } from "zod";
 import { prisma } from "../prismaClient";
 import {
   authenticateToken,
@@ -15,12 +16,12 @@ import {
 
 // Utility to mask sensitive partner fields for non-privileged roles
 function maskPartner(partner: any, role: string) {
-  if (!partner) return partner;
-  if (role === "ADMIN" || role === "SUPPORT") return partner;
+  if (!partner) {return partner;}
+  if (role === "ADMIN" || role === "SUPPORT") {return partner;}
   const sensitive = ["lock", "masterCode", "subMasterCode", "lockPart", "key", "userPass"];
   const clone: any = { ...partner };
   sensitive.forEach((k) => {
-    if (k in clone) delete clone[k];
+    if (k in clone) {delete clone[k];}
   });
   return clone;
 }
@@ -195,7 +196,7 @@ partnersRouter.put(
       Object.keys(updateData || {})
         .filter((key) => allowedFields.includes(key))
         .forEach((key) => {
-          filteredData[key] = (updateData as any)[key];
+          filteredData[key] = (updateData)[key];
         });
 
       const updatedPartner = await prisma.partner.update({
@@ -324,5 +325,102 @@ partnersRouter.get("/map", requireSupport, async (req: AuthenticatedRequest, res
   } catch (error) {
     console.error("Error fetching partners map data:", error);
     res.status(500).json({ error: "Failed to fetch partners map data" });
+  }
+});
+
+// Lock Information Management - Support staff can add/update lock info
+const lockInfoSchema = z.object({
+  topColour: z.string().optional(),
+  lock: z
+    .string()
+    .refine((val) => !val || val === "MAKE" || val === "L&F", {
+      message: "Lock must be either 'MAKE' or 'L&F'",
+    })
+    .optional(),
+  masterCode: z.string().optional(),
+  subMasterCode: z.string().optional(),
+  lockPart: z.string().optional(),
+  key: z.string().optional(),
+});
+
+partnersRouter.put(
+  "/:id/lock-info",
+  requireSupport,
+  validateBody(lockInfoSchema),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const lockData = (req as any).validated;
+
+      // Verify partner exists
+      const existingPartner = await prisma.partner.findUnique({
+        where: { id },
+        select: { id: true, companyName: true },
+      });
+
+      if (!existingPartner) {
+        return res.status(404).json({ error: "Partner not found" });
+      }
+
+      // Update only the lock-related fields
+      const updatedPartner = await prisma.partner.update({
+        where: { id },
+        data: lockData,
+        select: {
+          id: true,
+          companyName: true,
+          topColour: true,
+          lock: true,
+          masterCode: true,
+          subMasterCode: true,
+          lockPart: true,
+          key: true,
+          updatedAt: true,
+        },
+      });
+
+      res.json({
+        success: true,
+        message: "Lock information updated successfully",
+        data: updatedPartner,
+      });
+    } catch (error) {
+      console.error("Error updating lock information:", error);
+      res.status(500).json({ error: "Failed to update lock information" });
+    }
+  },
+);
+
+// Get Lock Information - Support and Admin only
+partnersRouter.get("/:id/lock-info", requireSupport, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { id } = req.params;
+
+    const partner = await prisma.partner.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        companyName: true,
+        topColour: true,
+        lock: true,
+        masterCode: true,
+        subMasterCode: true,
+        lockPart: true,
+        key: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!partner) {
+      return res.status(404).json({ error: "Partner not found" });
+    }
+
+    res.json({
+      success: true,
+      data: partner,
+    });
+  } catch (error) {
+    console.error("Error fetching lock information:", error);
+    res.status(500).json({ error: "Failed to fetch lock information" });
   }
 });

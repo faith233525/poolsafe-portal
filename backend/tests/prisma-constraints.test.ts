@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { PrismaClient } from "@prisma/client";
 import { createPrismaTestClient } from "./prismaTestFactory";
 
 const prisma = createPrismaTestClient("test-auth.db");

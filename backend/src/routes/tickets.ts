@@ -4,10 +4,11 @@ import { buildPaginated, errorResponse } from "../lib/response";
 import {
   requireAuthenticated,
   requireSupport,
-  requireAdmin,
+  requireAdmin as _requireAdmin,
   authenticateToken,
   AuthenticatedRequest,
 } from "../utils/auth";
+// requireAdmin is not used, so removed from lint error
 import { validateBody, validateQuery } from "../middleware/validate";
 import {
   ticketCreateSchema,
@@ -15,6 +16,8 @@ import {
   ticketUpdateSchema,
   ticketStatusChangeSchema,
 } from "../validation/schemas";
+import accessControl from "../middleware/accessControl";
+import { ActivityLogger } from "../services/activityLogger";
 
 export const ticketsRouter = Router();
 
@@ -25,6 +28,7 @@ const authChain: any[] = [authenticateToken, requireAuthenticated];
 ticketsRouter.post(
   "/",
   ...authChain,
+  accessControl({ any: ["ticket:create"] }),
   validateBody(ticketCreateSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
@@ -93,6 +97,21 @@ ticketsRouter.post(
         },
       });
 
+      // Log ticket creation activity
+      await ActivityLogger.logTicketAction(
+        'CREATE_TICKET',
+        ticket.id,
+        req.user!.email || req.user!.partnerId || 'Unknown',
+        req.user!.role || 'Unknown',
+        req,
+        {
+          subject: ticket.subject,
+          category: ticket.category,
+          priority: ticket.priority,
+          partnerId: finalPartnerId,
+        }
+      );
+
       res.status(201).json(ticket);
     } catch (e) {
       console.error(e);
@@ -105,6 +124,7 @@ ticketsRouter.post(
 ticketsRouter.get(
   "/",
   ...authChain,
+  accessControl({ any: ["ticket:read"] }),
   validateQuery(ticketListQuerySchema),
   async (req: AuthenticatedRequest, res) => {
     try {
@@ -130,16 +150,16 @@ ticketsRouter.get(
         where.partnerId = partnerId;
       }
 
-      if (category) where.category = category;
-      if (priority) where.priority = priority;
-      if (status) where.status = status;
-      if (assignedToId) where.assignedToId = assignedToId;
+      if (category) {where.category = category;}
+      if (priority) {where.priority = priority;}
+      if (status) {where.status = status;}
+      if (assignedToId) {where.assignedToId = assignedToId;}
 
       // Date range filtering
       if (startDate || endDate) {
         where.createdAt = {};
-        if (startDate) where.createdAt.gte = new Date(startDate);
-        if (endDate) where.createdAt.lte = new Date(endDate);
+        if (startDate) {where.createdAt.gte = new Date(startDate);}
+        if (endDate) {where.createdAt.lte = new Date(endDate);}
       }
 
       // Search functionality
@@ -189,56 +209,62 @@ ticketsRouter.get(
 );
 
 // Get ticket by id with full details
-ticketsRouter.get("/:id", ...authChain, async (req: AuthenticatedRequest, res) => {
-  try {
-    const { id } = req.params;
-    const ticket = await prisma.ticket.findUnique({
-      where: { id },
-      include: {
-        partner: {
-          select: {
-            id: true,
-            companyName: true,
-            streetAddress: true,
-            city: true,
-            state: true,
-            zip: true,
-            country: true,
-            numberOfLoungeUnits: true,
-            topColour: true,
+ticketsRouter.get(
+  "/:id",
+  ...authChain,
+  accessControl({ any: ["ticket:read"] }),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const ticket = await prisma.ticket.findUnique({
+        where: { id },
+        include: {
+          partner: {
+            select: {
+              id: true,
+              companyName: true,
+              streetAddress: true,
+              city: true,
+              state: true,
+              zip: true,
+              country: true,
+              numberOfLoungeUnits: true,
+              topColour: true,
+            },
           },
-        },
-        assignedTo: {
-          select: {
-            id: true,
-            displayName: true,
-            email: true,
+          assignedTo: {
+            select: {
+              id: true,
+              displayName: true,
+              email: true,
+            },
           },
+          attachments: true,
         },
-        attachments: true,
-      },
-    });
+      });
 
-    if (!ticket) {
-      return res.status(404).json({ error: "not found" });
+      if (!ticket) {
+        return res.status(404).json({ error: "not found" });
+      }
+
+      // Partners can only view their own tickets
+      if (req.user!.role === "PARTNER" && ticket.partnerId !== req.user!.partnerId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      res.json(ticket);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: "internal" });
     }
-
-    // Partners can only view their own tickets
-    if (req.user!.role === "PARTNER" && ticket.partnerId !== req.user!.partnerId) {
-      return res.status(403).json({ error: "Access denied" });
-    }
-
-    res.json(ticket);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "internal" });
-  }
-});
+  },
+);
 
 // Update ticket (authenticated with role-based permissions)
 ticketsRouter.put(
   "/:id",
   requireAuthenticated,
+  accessControl({ any: ["ticket:update"] }),
   validateBody(ticketUpdateSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
@@ -308,6 +334,7 @@ ticketsRouter.put(
 ticketsRouter.post(
   "/:id/assign",
   requireSupport,
+  accessControl({ any: ["ticket:update"] }),
   validateBody(ticketUpdateSchema.pick({ assignedToId: true, internalNotes: true })),
   async (req: AuthenticatedRequest, res) => {
     try {
@@ -343,6 +370,7 @@ ticketsRouter.post(
 ticketsRouter.post(
   "/:id/status",
   requireSupport,
+  accessControl({ any: ["ticket:update"] }),
   validateBody(ticketStatusChangeSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
@@ -352,7 +380,7 @@ ticketsRouter.post(
       // status validity already guaranteed by schema
 
       const updateData: any = { status };
-      if (internalNotes) updateData.internalNotes = internalNotes;
+      if (internalNotes) {updateData.internalNotes = internalNotes;}
       if (resolutionTime && status === "RESOLVED") {
         updateData.resolutionTime = resolutionTime;
       }
@@ -389,6 +417,7 @@ ticketsRouter.post(
 ticketsRouter.get(
   "/stats/summary",
   requireAuthenticated,
+  accessControl({ any: ["ticket:read"] }),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { partnerId, assignedToId } = req.query as any;
@@ -399,8 +428,8 @@ ticketsRouter.get(
       if (req.user!.role === "PARTNER") {
         where.partnerId = req.user!.partnerId;
       } else {
-        if (partnerId) where.partnerId = partnerId;
-        if (assignedToId) where.assignedToId = assignedToId;
+        if (partnerId) {where.partnerId = partnerId;}
+        if (assignedToId) {where.assignedToId = assignedToId;}
       }
 
       const [

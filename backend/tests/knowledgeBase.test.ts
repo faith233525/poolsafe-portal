@@ -265,8 +265,8 @@ describe("Knowledge Base API Integration Tests", () => {
         .send(invalidData)
         .expect(400);
 
-  // Our validator returns a standardized code
-  expect(response.body.error).toBe("VALIDATION_ERROR");
+      // Our validator returns a standardized code
+      expect(response.body.error).toBe("VALIDATION_ERROR");
     });
 
     it("should create article with optional fields", async () => {

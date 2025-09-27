@@ -2,10 +2,10 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import { buildApp } from "../src/app";
-import { resetDb } from "./utils";
 import { createPrismaTestClient } from "./prismaTestFactory";
-import { hashPassword, generateToken } from "../src/utils/auth";
+import { generateToken, hashPassword } from "../src/utils/auth";
 
 const app = buildApp();
 const prisma = createPrismaTestClient("test-auth.db");
@@ -40,23 +40,20 @@ describe("Attachments download and access control", () => {
   let supportToken: string;
   let adminToken: string;
   let attachmentId: string;
-  let seededPartner: any;
-  let seededUser: any;
-  let seededSupport: any;
-  let seededAdmin: any;
 
   beforeAll(async () => {
-    seededPartner = await prisma.partner.findFirst({ where: { companyName: "Test Resort 1" } });
-    seededUser = await prisma.user.findFirst({ where: { email: "manager1@testresort.com" } });
-    seededSupport = await prisma.user.findFirst({ where: { role: "SUPPORT" } });
-    seededAdmin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
+    const seededSupport = await prisma.user.findFirst({ where: { role: "SUPPORT" } });
+    const seededAdmin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
+    if (!seededSupport || !seededAdmin) {
+      throw new Error("Required test users not found");
+    }
     supportToken = generateToken(seededSupport.id, seededSupport.email, seededSupport.role);
     adminToken = generateToken(seededAdmin.id, seededAdmin.email, seededAdmin.role);
     // Create a test attachment using the same logic as upload
     const UPLOAD_DIR = path.join(process.cwd(), "uploads");
     if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
     const fileContent = "downloadable content";
-    const hash = require("crypto").createHash("sha256").update(fileContent).digest("hex");
+    const hash = crypto.createHash("sha256").update(fileContent).digest("hex");
     const uploadPath = path.join(UPLOAD_DIR, hash);
     fs.writeFileSync(uploadPath, fileContent);
     const attachment = await prisma.ticketAttachment.create({
@@ -74,7 +71,7 @@ describe("Attachments download and access control", () => {
   afterAll(() => {
     const UPLOAD_DIR = path.join(process.cwd(), "uploads");
     const fileContent = "downloadable content";
-    const hash = require("crypto").createHash("sha256").update(fileContent).digest("hex");
+    const hash = crypto.createHash("sha256").update(fileContent).digest("hex");
     const uploadPath = path.join(UPLOAD_DIR, hash);
     if (fs.existsSync(uploadPath)) fs.unlinkSync(uploadPath);
   });
@@ -113,8 +110,6 @@ describe("Attachments download and access control", () => {
         country: "USA",
         numberOfLoungeUnits: 1,
         topColour: "Red",
-        userEmail: "other@resort.com",
-        userPass: "otherpass",
         latitude: 0,
         longitude: 0,
       },

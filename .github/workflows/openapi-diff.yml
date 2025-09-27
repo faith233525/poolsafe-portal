@@ -1,0 +1,34 @@
+name: OpenAPI Diff Guard
+
+on:
+  pull_request:
+    paths:
+      - "openapi/**"
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch main
+        run: git fetch origin main:main
+      - name: Extract main spec
+        run: |
+          git show main:openapi/openapi.yaml > main-openapi.yaml
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Run breaking change diff
+        run: npm run openapi:diff
+        continue-on-error: true
+      - name: Evaluate diff result
+        run: |
+          if grep -qi 'breaking' openapi-diff-report.txt 2>/dev/null; then
+            echo "Breaking changes detected"; exit 1; else echo "No breaking changes"; fi
+        if: always()

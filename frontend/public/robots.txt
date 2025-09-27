@@ -1,0 +1,22 @@
+# Pool Safe Inc Portal - Robots.txt
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://portal.poolsafeinc.com/sitemap.xml
+
+# Disallow sensitive areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /.well-known/
+Disallow: /cypress/
+
+# Allow crawling of public pages
+Allow: /
+Allow: /partners
+Allow: /contact
+Allow: /about
+
+# Crawl delay (optional)
+Crawl-delay: 1

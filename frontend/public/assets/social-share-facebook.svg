@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0066cc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#004499;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- Logo area -->
+  <circle cx="200" cy="315" r="80" fill="#ffffff" opacity="0.9"/>
+  <text x="200" y="305" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="28" font-weight="bold" fill="#0066cc">POOL</text>
+  <text x="200" y="335" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="28" font-weight="bold" fill="#0066cc">SAFE</text>
+  
+  <!-- Title -->
+  <text x="320" y="275" font-family="Arial, sans-serif" 
+        font-size="48" font-weight="bold" fill="white">Pool Safe Inc Portal</text>
+  <text x="320" y="325" font-family="Arial, sans-serif" 
+        font-size="32" font-weight="normal" fill="#e6f3ff">Professional Pool Equipment Support</text>
+  <text x="320" y="365" font-family="Arial, sans-serif" 
+        font-size="24" font-weight="normal" fill="#b3d9ff">Partner & Customer Management System</text>
+</svg>

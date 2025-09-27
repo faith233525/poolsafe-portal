@@ -8,6 +8,9 @@ type MetricsBundle = {
   httpErrorsTotal: client.Counter;
   uploadsTotal: client.Counter;
   notificationsCreatedTotal: client.Counter;
+  httpStatusClassTotal: client.Counter;
+  dbQueryDurationMs: client.Histogram;
+  authzDeniedTotal: client.Counter;
 };
 
 const g = globalThis as any;
@@ -27,7 +30,14 @@ if (!g.__PS_METRICS__) {
     name: "http_request_duration_ms",
     help: "Duration of HTTP requests in ms",
     labelNames: ["method", "route", "status"],
-    buckets: [5, 10, 25, 50, 100, 250, 500, 1000, 2500],
+    buckets: [1, 3, 5, 10, 25, 50, 100, 250, 500, 1000, 2500],
+    registers: [register],
+  });
+  const dbQueryDurationMs = new client.Histogram({
+    name: "db_query_duration_ms",
+    help: "Duration of database (Prisma) queries in ms",
+    labelNames: ["model", "action", "success"],
+    buckets: [1, 2, 5, 10, 20, 50, 100, 250, 500, 1000],
     registers: [register],
   });
 
@@ -52,6 +62,20 @@ if (!g.__PS_METRICS__) {
     registers: [register],
   });
 
+  const httpStatusClassTotal = new client.Counter({
+    name: "http_status_class_total",
+    help: "HTTP responses aggregated by status class (2xx,3xx,4xx,5xx)",
+    labelNames: ["method", "route", "class"],
+    registers: [register],
+  });
+
+  const authzDeniedTotal = new client.Counter({
+    name: "authz_denied_total",
+    help: "Total number of authorization denials (access control middleware)",
+    labelNames: ["method", "route", "reason", "role"],
+    registers: [register],
+  });
+
   g.__PS_METRICS__ = {
     register,
     httpRequestsTotal,
@@ -59,13 +83,35 @@ if (!g.__PS_METRICS__) {
     httpErrorsTotal,
     uploadsTotal,
     notificationsCreatedTotal,
+    httpStatusClassTotal,
+    dbQueryDurationMs,
+    authzDeniedTotal,
   } as MetricsBundle;
 }
 
-const { register, httpRequestsTotal, httpRequestDurationMs, httpErrorsTotal, uploadsTotal, notificationsCreatedTotal } =
-  g.__PS_METRICS__ as MetricsBundle;
+const {
+  register,
+  httpRequestsTotal,
+  httpRequestDurationMs,
+  httpErrorsTotal,
+  uploadsTotal,
+  notificationsCreatedTotal,
+  httpStatusClassTotal,
+  dbQueryDurationMs,
+  authzDeniedTotal,
+} = g.__PS_METRICS__ as MetricsBundle;
 
-export { register, httpRequestsTotal, httpRequestDurationMs, httpErrorsTotal, uploadsTotal, notificationsCreatedTotal };
+export {
+  register,
+  httpRequestsTotal,
+  httpRequestDurationMs,
+  httpErrorsTotal,
+  uploadsTotal,
+  notificationsCreatedTotal,
+  httpStatusClassTotal,
+  dbQueryDurationMs,
+  authzDeniedTotal,
+};
 
 export function metricsMiddleware(req: Request, res: Response, next: NextFunction) {
   const start = Date.now();
@@ -75,7 +121,9 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
     const labels = { method: req.method, route, status: String(status) } as any;
     httpRequestsTotal.inc(labels);
     httpRequestDurationMs.observe(labels, Date.now() - start);
-    if (status >= 400) httpErrorsTotal.inc(labels);
+    if (status >= 400) {httpErrorsTotal.inc(labels);}
+    const klass = `${Math.floor(status / 100)}xx`;
+    httpStatusClassTotal.inc({ method: req.method, route, class: klass });
   });
   next();
 }

@@ -1,0 +1,52 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: portal-postgres
+    environment:
+      POSTGRES_DB: loungenie
+      POSTGRES_USER: loungenie_user
+      POSTGRES_PASSWORD: changeMePlease
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: portal-backend
+    ports:
+      - "4000:4000"
+    env_file:
+      - backend/.env
+    # When ready to switch to Postgres in production, ensure these are set in your env:
+    # environment:
+    #   PRISMA_SCHEMA: backend/prisma/schema.postgres.prisma
+    #   DATABASE_URL: postgresql://loungenie_user:changeMePlease@postgres:5432/loungenie?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && node dist/index.js"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: portal-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
+# For production hardening you may add:
+# - A reverse proxy (nginx/traefik) handling TLS
+# - Environment variables via a secrets manager instead of env_file

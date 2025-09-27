@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Integration Test - Pool Safe Inc Portal</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .test-section {
+        background: #f5f5f5;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+      }
+      .success {
+        color: green;
+        font-weight: bold;
+      }
+      .error {
+        color: red;
+        font-weight: bold;
+      }
+      .result {
+        background: white;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        border-left: 4px solid #007acc;
+      }
+      button {
+        background: #007acc;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #005a9e;
+      }
+      textarea {
+        width: 100%;
+        height: 150px;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Frontend-Backend Integration Test</h1>
+    <p>
+      This page tests the authentication flow and API compatibility between frontend and backend.
+    </p>
+
+    <div class="test-section">
+      <h2>1. Test Partner Authentication</h2>
+      <button onclick="testPartnerLogin()">Test Partner Login</button>
+      <div id="login-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>2. Test /me Endpoint</h2>
+      <button onclick="testMeEndpoint()">Test Profile Endpoint</button>
+      <div id="me-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>3. Test API Endpoints</h2>
+      <button onclick="testTicketsEndpoint()">Test Tickets</button>
+      <button onclick="testServiceRecordsEndpoint()">Test Service Records</button>
+      <div id="api-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>4. JWT Token Analysis</h2>
+      <button onclick="analyzeJWT()">Analyze JWT Token</button>
+      <div id="jwt-result" class="result"></div>
+      <textarea id="jwt-details" placeholder="JWT analysis will appear here..."></textarea>
+    </div>
+
+    <div class="test-section">
+      <h2>✅ Integration Status</h2>
+      <div id="overall-status" class="result">Click tests above to verify integration.</div>
+    </div>
+
+    <script>
+      let authToken = null;
+
+      async function testPartnerLogin() {
+        const resultDiv = document.getElementById("login-result");
+        resultDiv.innerHTML = "Testing partner authentication...";
+
+        try {
+          const response = await fetch("/api/auth/login/partner", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username: "Test Resort 1",
+              password: "partner123",
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            authToken = data.token;
+            resultDiv.innerHTML = `<span class="success">✅ Partner login successful!</span><br>Token received: ${data.token.substring(0, 50)}...`;
+            updateOverallStatus("Partner authentication: ✅");
+          } else {
+            const error = await response.json();
+            resultDiv.innerHTML = `<span class="error">❌ Partner login failed: ${error.error}</span>`;
+            updateOverallStatus("Partner authentication: ❌");
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `<span class="error">❌ Network error: ${error.message}</span>`;
+          updateOverallStatus("Partner authentication: ❌");
+        }
+      }
+
+      async function testMeEndpoint() {
+        const resultDiv = document.getElementById("me-result");
+
+        if (!authToken) {
+          resultDiv.innerHTML = '<span class="error">❌ No auth token. Please login first.</span>';
+          return;
+        }
+
+        resultDiv.innerHTML = "Testing /me endpoint...";
+
+        try {
+          const response = await fetch("/api/auth/me", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            resultDiv.innerHTML = `<span class="success">✅ /me endpoint works!</span><br>
+                        Role: ${data.role}<br>
+                        Display Name: ${data.displayName}<br>
+                        Company: ${data.partner?.companyName}`;
+            updateOverallStatus("/me endpoint: ✅");
+          } else {
+            const error = await response.json();
+            resultDiv.innerHTML = `<span class="error">❌ /me endpoint failed: ${error.error}</span>`;
+            updateOverallStatus("/me endpoint: ❌");
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `<span class="error">❌ Network error: ${error.message}</span>`;
+          updateOverallStatus("/me endpoint: ❌");
+        }
+      }
+
+      async function testTicketsEndpoint() {
+        const resultDiv = document.getElementById("api-result");
+
+        if (!authToken) {
+          resultDiv.innerHTML = '<span class="error">❌ No auth token. Please login first.</span>';
+          return;
+        }
+
+        resultDiv.innerHTML = "Testing /api/tickets...";
+
+        try {
+          const response = await fetch("/api/tickets", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            resultDiv.innerHTML = `<span class="success">✅ Tickets endpoint works!</span><br>Total tickets: ${data.total}`;
+            updateOverallStatus("API endpoints: ✅");
+          } else {
+            const error = await response.json();
+            resultDiv.innerHTML = `<span class="error">❌ Tickets endpoint failed: ${error.error}</span>`;
+            updateOverallStatus("API endpoints: ❌");
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `<span class="error">❌ Network error: ${error.message}</span>`;
+          updateOverallStatus("API endpoints: ❌");
+        }
+      }
+
+      async function testServiceRecordsEndpoint() {
+        const resultDiv = document.getElementById("api-result");
+
+        if (!authToken) {
+          resultDiv.innerHTML = '<span class="error">❌ No auth token. Please login first.</span>';
+          return;
+        }
+
+        resultDiv.innerHTML = "Testing /api/service-records...";
+
+        try {
+          const response = await fetch("/api/service-records", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            resultDiv.innerHTML = `<span class="success">✅ Service Records endpoint works!</span><br>Total records: ${data.total}`;
+            updateOverallStatus("API endpoints: ✅");
+          } else {
+            const error = await response.json();
+            resultDiv.innerHTML = `<span class="error">❌ Service Records endpoint failed: ${error.error}</span>`;
+            updateOverallStatus("API endpoints: ❌");
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `<span class="error">❌ Network error: ${error.message}</span>`;
+          updateOverallStatus("API endpoints: ❌");
+        }
+      }
+
+      function analyzeJWT() {
+        const resultDiv = document.getElementById("jwt-result");
+        const detailsTextarea = document.getElementById("jwt-details");
+
+        if (!authToken) {
+          resultDiv.innerHTML = '<span class="error">❌ No auth token. Please login first.</span>';
+          return;
+        }
+
+        try {
+          // Decode JWT payload
+          const parts = authToken.split(".");
+          const header = JSON.parse(atob(parts[0]));
+          const payload = JSON.parse(atob(parts[1]));
+
+          resultDiv.innerHTML = `<span class="success">✅ JWT decoded successfully!</span><br>
+                    Algorithm: ${header.alg}<br>
+                    Role: ${payload.role}<br>
+                    User ID: ${payload.userId}`;
+
+          detailsTextarea.value = JSON.stringify(
+            {
+              header: header,
+              payload: payload,
+            },
+            null,
+            2,
+          );
+
+          updateOverallStatus("JWT analysis: ✅");
+        } catch (error) {
+          resultDiv.innerHTML = `<span class="error">❌ JWT decode failed: ${error.message}</span>`;
+          updateOverallStatus("JWT analysis: ❌");
+        }
+      }
+
+      function updateOverallStatus(status) {
+        const statusDiv = document.getElementById("overall-status");
+        const currentStatus = statusDiv.innerHTML;
+
+        if (currentStatus === "Click tests above to verify integration.") {
+          statusDiv.innerHTML = status;
+        } else {
+          statusDiv.innerHTML = currentStatus + "<br>" + status;
+        }
+      }
+
+      // Auto-run login test when page loads
+      window.addEventListener("load", function () {
+        setTimeout(() => {
+          document.getElementById("overall-status").innerHTML = "Running initial tests...";
+          testPartnerLogin();
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>

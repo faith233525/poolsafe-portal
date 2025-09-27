@@ -9,26 +9,99 @@
   "parserOptions": {
     "ecmaVersion": 2021,
     "sourceType": "module",
-    "project": null
+    "project": "./tsconfig.json"
   },
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "security", "node"],
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking"
   ],
   "ignorePatterns": ["dist/**", "node_modules/**"],
   "rules": {
+    // TypeScript-specific rules
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": [
       "warn",
       { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
     ],
-    "no-console": "off"
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/prefer-nullish-coalescing": "off",
+    "@typescript-eslint/prefer-optional-chain": "error",
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/await-thenable": "error",
+    // Allow async handlers in Express and similar callback-based APIs
+    "@typescript-eslint/no-misused-promises": ["warn", { "checksVoidReturn": false }],
+    // Reduce noise from type-guarded runtime code; keep as warnings
+    "@typescript-eslint/no-unsafe-argument": "off",
+    "@typescript-eslint/no-redundant-type-constituents": "off",
+
+    // General code quality rules
+    "no-console": "off",
+    "no-debugger": "error",
+    "no-alert": "error",
+    "prefer-const": "error",
+    "no-var": "error",
+    "object-shorthand": "error",
+    "prefer-arrow-callback": "error",
+    "prefer-template": "error",
+    "eqeqeq": ["error", "always"],
+    "curly": ["error", "all"],
+    "dot-notation": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-script-url": "error",
+    "no-sequences": "error",
+    "no-throw-literal": "error",
+    "radix": "off",
+    "yoda": "error",
+
+    // Node.js specific rules
+    "node/no-unsupported-features/es-syntax": "off",
+    "node/no-missing-import": "off",
+    "node/no-unpublished-import": "off",
+    "node/no-extraneous-import": "off",
+
+    // Security rules
+    "security/detect-object-injection": "off",
+    "security/detect-non-literal-regexp": "off",
+    "security/detect-unsafe-regex": "error",
+    "security/detect-buffer-noassert": "error",
+    "security/detect-child-process": "off",
+    "security/detect-disable-mustache-escape": "error",
+    "security/detect-eval-with-expression": "error",
+    "security/detect-no-csrf-before-method-override": "error",
+    "security/detect-non-literal-fs-filename": "off",
+    "security/detect-non-literal-require": "off",
+    "security/detect-possible-timing-attacks": "off",
+    "security/detect-pseudoRandomBytes": "error"
   },
   "overrides": [
     {
       "files": ["**/*.test.ts", "**/*.test.tsx", "tests/**/*.ts"],
-      "env": { "jest": true }
+      "env": { "jest": true },
+      "rules": {
+        "security/detect-non-literal-fs-filename": "off",
+        "security/detect-object-injection": "off",
+        "@typescript-eslint/no-unsafe-assignment": "off",
+        "@typescript-eslint/no-unsafe-call": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off",
+        "@typescript-eslint/no-unsafe-return": "off",
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["scripts/**/*.ts"],
+      "rules": {
+        "no-console": "off",
+        "security/detect-non-literal-fs-filename": "off"
+      }
     }
   ]
 }

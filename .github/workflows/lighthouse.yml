@@ -1,0 +1,44 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Start static server
+        working-directory: frontend
+        run: npx http-server ./dist -p 4173 &
+
+      - name: Wait for server
+        run: |
+          for i in {1..20}; do
+            curl -sSf http://localhost:4173 >/dev/null && break
+            sleep 2
+          done
+
+      - name: Run Lighthouse (performance only)
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: "http://localhost:4173/"
+          runs: 3
+          uploadArtifacts: true
+          temporaryPublicStorage: true

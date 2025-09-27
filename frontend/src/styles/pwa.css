@@ -1,0 +1,349 @@
+/* PWA-specific styles for Pool Safe Inc Portal */
+
+/* Install button styles */
+#pwa-install-button {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #0066cc, #004499);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+#pwa-install-button:hover {
+  background: linear-gradient(135deg, #0052a3, #003d82);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 102, 204, 0.4);
+}
+
+#pwa-install-button::before {
+  content: "📱";
+  margin-right: 8px;
+}
+
+/* Update notification styles */
+.pwa-update-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  animation: slideIn 0.3s ease-out;
+}
+
+.update-content {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.update-button {
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.update-button:hover {
+  background: #0052a3;
+}
+
+.dismiss-button {
+  background: #f5f5f5;
+  color: #666;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dismiss-button:hover {
+  background: #e0e0e0;
+}
+
+/* Connection status styles */
+#connection-status {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 999;
+  transition: all 0.3s ease;
+}
+
+.status-online {
+  background: #e8f5e8;
+  color: #2d5a2d;
+  border: 1px solid #c3e6c3;
+}
+
+.status-offline {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status-online::before {
+  content: "🟢";
+  margin-right: 6px;
+}
+
+.status-offline::before {
+  content: "🔴";
+  margin-right: 6px;
+}
+
+/* Status message styles */
+.status-message {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 1000;
+  animation: slideUp 0.3s ease-out;
+  max-width: 320px;
+  text-align: center;
+}
+
+.status-message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-message.warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status-message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Offline mode indicators */
+.offline-mode {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.offline-indicator {
+  position: relative;
+}
+
+.offline-indicator::after {
+  content: "Offline";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ffc107;
+  color: #212529;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* PWA-specific loading states */
+.pwa-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pwa-loading::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e0e0e0;
+  border-top: 2px solid #0066cc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* PWA form enhancements */
+.pwa-form-offline {
+  position: relative;
+}
+
+.pwa-form-offline::after {
+  content: "Will sync when online";
+  position: absolute;
+  top: -20px;
+  right: 0;
+  font-size: 11px;
+  color: #856404;
+  background: #fff3cd;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #ffeaa7;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #pwa-install-button {
+    bottom: 70px;
+    right: 16px;
+    left: 16px;
+    border-radius: 8px;
+  }
+
+  .pwa-update-notification {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+  }
+
+  .update-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .update-content span {
+    text-align: center;
+  }
+
+  .status-message {
+    bottom: 140px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    max-width: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  #pwa-install-button {
+    border: 2px solid currentColor;
+  }
+
+  .pwa-update-notification {
+    border-width: 2px;
+  }
+
+  .status-online,
+  .status-offline {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  #pwa-install-button,
+  .pwa-update-notification,
+  .status-message,
+  #connection-status {
+    animation: none;
+    transition: none;
+  }
+
+  .pwa-loading::before {
+    animation: none;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .pwa-update-notification {
+    background: #2d2d2d;
+    border-color: #404040;
+    color: #e0e0e0;
+  }
+
+  .dismiss-button {
+    background: #404040;
+    color: #e0e0e0;
+  }
+
+  .dismiss-button:hover {
+    background: #505050;
+  }
+}
+
+/* iOS specific styles */
+@supports (-webkit-touch-callout: none) {
+  #pwa-install-button {
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Android Chrome specific styles */
+@media (display-mode: standalone) {
+  /* Hide install button when already installed */
+  #pwa-install-button {
+    display: none !important;
+  }
+
+  /* Add app-specific styling when running as PWA */
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

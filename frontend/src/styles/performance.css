@@ -1,0 +1,369 @@
+/* Performance optimization styles */
+
+/* Loading states */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  min-height: 200px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #0066cc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin-top: 16px;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+/* Error fallback */
+.error-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  color: #721c24;
+  text-align: center;
+}
+
+.error-fallback h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.25rem;
+}
+
+.error-fallback p {
+  margin: 0 0 20px 0;
+  font-size: 0.875rem;
+}
+
+.retry-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.retry-button:hover {
+  background-color: #c82333;
+}
+
+/* Image lazy loading */
+img[data-src] {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+img[data-src].loaded {
+  opacity: 1;
+}
+
+img.lazy-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Optimize font loading */
+@font-face {
+  font-family: "System";
+  src: local("Arial"), local("Helvetica"), local("sans-serif");
+  font-display: swap;
+}
+
+/* Reduce layout shift for images */
+.image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.image-container::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+}
+
+.image-container img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Performance optimized animations */
+.optimized-animation {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.slide-in {
+  transform: translateY(20px);
+  opacity: 0;
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+@keyframes slideIn {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Contain layout and paint for performance */
+.performance-contain {
+  contain: layout paint;
+}
+
+.performance-contain-strict {
+  contain: strict;
+}
+
+/* GPU acceleration for smooth animations */
+.gpu-accelerated {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Critical rendering path optimization */
+.above-fold {
+  /* Critical content - loaded first */
+  contain: layout;
+}
+
+.below-fold {
+  /* Non-critical content - can be lazy loaded */
+  content-visibility: auto;
+}
+
+/* Bundle analysis styles (development only) */
+.bundle-analysis {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 300px;
+  max-height: 400px;
+  overflow: auto;
+  font-size: 12px;
+  z-index: 9999;
+}
+
+.bundle-analysis h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+}
+
+.bundle-analysis pre {
+  background: #f5f5f5;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  overflow: auto;
+}
+
+/* Performance hints for different connection types */
+@media (max-width: 768px) {
+  /* Mobile optimizations */
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+  }
+
+  .image-container::before {
+    padding-bottom: 75%; /* 4:3 aspect ratio for mobile */
+  }
+}
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner,
+  .fade-in,
+  .slide-in {
+    animation: none;
+  }
+
+  img[data-src] {
+    transition: none;
+  }
+}
+
+/* High performance mode */
+.high-performance * {
+  animation-duration: 0.1s !important;
+  transition-duration: 0.1s !important;
+}
+
+.high-performance .loading-spinner {
+  animation-duration: 0.5s;
+}
+
+/* Resource priorities */
+.critical-resource {
+  content-visibility: auto;
+  contain-intrinsic-size: 200px;
+}
+
+.non-critical-resource {
+  content-visibility: auto;
+  contain-intrinsic-size: 100px;
+}
+
+/* Intersection observer optimization */
+.intersection-target {
+  min-height: 1px;
+}
+
+/* Virtual scrolling support */
+.virtual-scroll-container {
+  height: 100%;
+  overflow: auto;
+}
+
+.virtual-scroll-item {
+  contain: layout;
+}
+
+/* Network-aware loading */
+.slow-connection .loading-text::after {
+  content: " (Loading optimized for slow connection)";
+  font-size: 12px;
+  color: #999;
+}
+
+/* Service worker update notification */
+.sw-update-notification {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  background: #0066cc;
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+}
+
+.sw-update-notification button {
+  background: white;
+  color: #0066cc;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  margin-left: 12px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Core Web Vitals optimizations */
+.lcp-candidate {
+  /* Optimize largest contentful paint element */
+  contain: layout paint;
+  will-change: auto;
+}
+
+.prevent-cls {
+  width: 100%;
+  height: auto;
+  aspect-ratio: attr(width) / attr(height);
+}
+
+/* Performance monitoring indicators (development) */
+.perf-monitor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-family: monospace;
+  z-index: 10000;
+}
+
+.perf-good {
+  background: rgba(0, 255, 0, 0.8);
+}
+.perf-needs-improvement {
+  background: rgba(255, 165, 0, 0.8);
+}
+.perf-poor {
+  background: rgba(255, 0, 0, 0.8);
+}
+
+/* Async component loading */
+.async-boundary {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Performance-optimized hover effects */
+.hover-optimized {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.hover-optimized:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Memory leak prevention */
+.cleanup-animations {
+  animation-fill-mode: forwards;
+}
+
+/* Progressive enhancement */
+.enhanced-only {
+  display: none;
+}
+
+.js .enhanced-only {
+  display: block;
+}

@@ -24,9 +24,15 @@ notificationsRouter.get(
           : req.user!.id;
 
       const where: any = {};
-      if (effectiveUserId) where.userId = effectiveUserId;
-      if (type) where.type = type;
-      if (isRead) where.isRead = isRead === "true";
+      if (effectiveUserId) {
+        where.userId = effectiveUserId;
+      }
+      if (type) {
+        where.type = type;
+      }
+      if (isRead) {
+        where.isRead = isRead === "true";
+      }
 
       const [items, total, unreadCount] = await Promise.all([
         prisma.notification.findMany({
@@ -81,7 +87,9 @@ notificationsRouter.post(
     try {
       const { id } = req.params;
       const notif = await prisma.notification.findUnique({ where: { id } });
-      if (!notif) return res.status(404).json({ error: "Not found" });
+      if (!notif) {
+        return res.status(404).json({ error: "Not found" });
+      }
       if (
         notif.userId &&
         notif.userId !== req.user!.id &&
@@ -93,7 +101,9 @@ notificationsRouter.post(
       const unreadCount = updated.userId
         ? await prisma.notification.count({ where: { userId: updated.userId, isRead: false } })
         : 0;
-      if (updated.userId) emitNotification(updated.userId, { event: "unread_count", unreadCount });
+      if (updated.userId) {
+        emitNotification(updated.userId, { event: "unread_count", unreadCount });
+      }
       res.json(updated);
     } catch (error) {
       console.error("Error marking notification read:", error);
@@ -136,7 +146,7 @@ notificationsRouter.get("/stream", requireAuthenticated, async (req: Authenticat
     const unreadCount = await prisma.notification.count({ where: { userId, isRead: false } });
     res.write(`event: init\n`);
     res.write(`data: ${JSON.stringify({ unreadCount })}\n\n`);
-  } catch (e) {
+  } catch {
     res.write("event: error\n");
     res.write(`data: ${JSON.stringify({ message: "init_failed" })}\n\n`);
   }

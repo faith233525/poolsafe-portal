@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="40" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="loungeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#20b2aa;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#32cd32;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffa500;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <text x="10" y="22" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="url(#loungeGradient)">
+    loungenie
+  </text>
+  <text x="10" y="35" font-family="Arial, sans-serif" font-size="8" font-weight="normal" fill="#666" letter-spacing="1px">
+    ORDER • STASH • CHARGE • CHILL
+  </text>
+</svg>

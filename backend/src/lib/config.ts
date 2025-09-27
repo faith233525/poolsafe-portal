@@ -1,15 +1,11 @@
 import { z } from "zod";
+import { env as coreEnv } from "./env";
 
-function intFromEnv(key: string, def: number) {
-  const v = process.env[key];
-  if (!v) return def;
-  const n = parseInt(v, 10);
-  return Number.isNaN(n) ? def : n;
-}
+// intFromEnv is not used, so removed to fix lint warning
 
+// Validate only the optional tuning knobs; DB/JWT are provided by core env loader
 const envSchema = z.object({
-  DATABASE_URL: z.string().min(1),
-  JWT_SECRET: z.string().min(10),
+  ALLOWED_ORIGINS: z.string().optional(),
   UPLOAD_MAX_SIZE_MB: z
     .string()
     .regex(/^[0-9]+$/)
@@ -71,6 +67,9 @@ const envSchema = z.object({
 const env = envSchema.parse(process.env);
 
 export const config = {
+  cors: {
+    allowedOrigins: (env.ALLOWED_ORIGINS?.split(/[,\s]+/) || []).filter(Boolean),
+  },
   upload: {
     maxSizeBytes: env.UPLOAD_MAX_SIZE_MB * 1024 * 1024,
   },
@@ -87,6 +86,6 @@ export const config = {
     notificationMax: env.RATE_LIMIT_NOTIFICATIONS_MAX,
   },
   logLevel: env.LOG_LEVEL,
-  databaseUrl: env.DATABASE_URL,
-  jwtSecret: env.JWT_SECRET,
+  databaseUrl: coreEnv.DATABASE_URL,
+  jwtSecret: coreEnv.JWT_SECRET,
 };

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./App.module.css";
 
 export default function ServiceStats({
-  role,
+  role: _role,
   partnerId,
   assignedToId,
 }: {

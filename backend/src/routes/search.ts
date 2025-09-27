@@ -28,9 +28,9 @@ searchRouter.get(
 
       const ticketWhere: any = {
         OR: [
-          { subject: { contains: q, mode: "insensitive" } },
-          { description: { contains: q, mode: "insensitive" } },
-          { createdByName: { contains: q, mode: "insensitive" } },
+          { subject: { contains: q } },
+          { description: { contains: q } },
+          { createdByName: { contains: q } },
         ],
       };
       if (req.user!.role === "PARTNER") {
@@ -40,9 +40,9 @@ searchRouter.get(
       const kbWhere: any = {
         isPublished: true,
         OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { content: { contains: q, mode: "insensitive" } },
-          { searchKeywords: { contains: q, mode: "insensitive" } },
+          { title: { contains: q } },
+          { content: { contains: q } },
+          { searchKeywords: { contains: q } },
         ],
       };
 
@@ -88,8 +88,8 @@ searchRouter.get(
 
       const results = await Promise.all(promises);
       let idx = 0;
-      let ticketsBlock = null;
-      let kbBlock = null;
+      let ticketsBlock: any | undefined;
+      let kbBlock: any | undefined;
       if (doTickets) {
         const data = results[idx++];
         const total = results[idx++];
@@ -113,7 +113,15 @@ searchRouter.get(
         };
       }
 
-      res.json({ query: q, tickets: ticketsBlock, knowledgeBase: kbBlock });
+      // Build response object omitting undefined sections (so property is absent)
+      const response: any = { query: q };
+      if (typeof ticketsBlock !== "undefined") {
+        response.tickets = ticketsBlock;
+      }
+      if (typeof kbBlock !== "undefined") {
+        response.knowledgeBase = kbBlock;
+      }
+      res.json(response);
     } catch (e) {
       console.error("Unified search failed", e);
       res.status(500).json({ error: "search_failed" });

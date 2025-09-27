@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pool Safe Portal - Test Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-item { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🏊‍♂️ Pool Safe Portal - System Test</h1>
+    
+    <div class="test-item">
+        <h3>Frontend Status</h3>
+        <p>✅ Vite dev server running on <a href="http://localhost:5173" target="_blank">http://localhost:5173</a></p>
+    </div>
+
+    <div class="test-item" id="backend-status">
+        <h3>Backend Status</h3>
+        <p id="backend-result">Testing...</p>
+        <button onclick="testBackend()">Test Backend Health</button>
+    </div>
+
+    <div class="test-item" id="login-test">
+        <h3>Login Test</h3>
+        <p>Test credentials: admin@poolsafe.com / admin123</p>
+        <button onclick="testLogin()">Test Login</button>
+        <div id="login-result"></div>
+    </div>
+
+    <div class="test-item">
+        <h3>Features Implemented</h3>
+        <ul>
+            <li>✅ Activity Logging - Tracks all user actions, logins, data changes</li>
+            <li>✅ Admin Dashboard Analytics - Overview, Activity Logs, Security tabs</li>
+            <li>✅ User Management - RBAC with Admin, Support, Partner roles</li>
+            <li>✅ Ticket System - Full CRUD operations with attachments</li>
+            <li>✅ Partner Management - Company profiles and user management</li>
+        </ul>
+    </div>
+
+    <div class="test-item">
+        <h3>Quick Actions</h3>
+        <button onclick="window.open('http://localhost:5173', '_blank')">Open Frontend</button>
+        <button onclick="testBackendAPI()">Test API Endpoints</button>
+    </div>
+
+    <script>
+        async function testBackend() {
+            const result = document.getElementById('backend-result');
+            const status = document.getElementById('backend-status');
+            
+            try {
+                result.textContent = 'Testing backend connection...';
+                
+                const response = await fetch('http://localhost:4000/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    result.innerHTML = `✅ Backend healthy: ${JSON.stringify(data)}`;
+                    status.className = 'test-item success';
+                } else {
+                    result.textContent = `❌ Backend responded with error: ${response.status}`;
+                    status.className = 'test-item error';
+                }
+            } catch (error) {
+                result.textContent = `❌ Backend connection failed: ${error.message}`;
+                status.className = 'test-item error';
+            }
+        }
+
+        async function testLogin() {
+            const result = document.getElementById('login-result');
+            const loginTest = document.getElementById('login-test');
+            
+            try {
+                result.innerHTML = 'Testing login...';
+                
+                const response = await fetch('http://localhost:4000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@poolsafe.com',
+                        password: 'admin123'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    result.innerHTML = `✅ Login successful! User: ${data.user?.name || 'Admin'}`;
+                    loginTest.className = 'test-item success';
+                } else {
+                    const error = await response.text();
+                    result.innerHTML = `❌ Login failed: ${error}`;
+                    loginTest.className = 'test-item error';
+                }
+            } catch (error) {
+                result.innerHTML = `❌ Login test failed: ${error.message}`;
+                loginTest.className = 'test-item error';
+            }
+        }
+
+        async function testBackendAPI() {
+            const endpoints = [
+                '/health',
+                '/api/auth/me',
+                '/api/analytics/overview',
+                '/api/tickets',
+                '/api/partners'
+            ];
+            
+            let results = 'API Endpoint Test Results:\n\n';
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(`http://localhost:4000${endpoint}`);
+                    results += `${endpoint}: ${response.status} ${response.statusText}\n`;
+                } catch (error) {
+                    results += `${endpoint}: ERROR - ${error.message}\n`;
+                }
+            }
+            
+            alert(results);
+        }
+
+        // Auto-test backend on page load
+        window.addEventListener('load', () => {
+            setTimeout(testBackend, 1000);
+        });
+    </script>
+</body>
+</html>

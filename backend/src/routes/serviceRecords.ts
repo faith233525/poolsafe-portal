@@ -38,9 +38,9 @@ serviceRecordsRouter.get(
       } else if (partnerId && (req.user!.role === "ADMIN" || req.user!.role === "SUPPORT")) {
         where.partnerId = partnerId as string;
       }
-      if (serviceType) where.serviceType = serviceType;
-      if (status) where.status = status;
-      if (assignedToId) where.assignedToId = assignedToId;
+      if (serviceType) {where.serviceType = serviceType;}
+      if (status) {where.status = status;}
+      if (assignedToId) {where.assignedToId = assignedToId;}
 
       const [records, total] = await Promise.all([
         prisma.serviceRecord.findMany({
@@ -150,8 +150,8 @@ serviceRecordsRouter.put(
       const { id } = req.params;
       const updateData = (req as any).validated;
 
-      if (updateData.scheduledDate) updateData.scheduledDate = new Date(updateData.scheduledDate);
-      if (updateData.completedDate) updateData.completedDate = new Date(updateData.completedDate);
+      if (updateData.scheduledDate) {updateData.scheduledDate = new Date(updateData.scheduledDate);}
+      if (updateData.completedDate) {updateData.completedDate = new Date(updateData.completedDate);}
       if (updateData.attachments && Array.isArray(updateData.attachments)) {
         updateData.attachments = JSON.stringify(updateData.attachments);
       }
@@ -198,8 +198,8 @@ serviceRecordsRouter.get(
       const { partnerId, assignedToId } = req.query;
 
       const where: any = {};
-      if (partnerId) where.partnerId = partnerId as string;
-      if (assignedToId) where.assignedToId = assignedToId as string;
+      if (partnerId) {where.partnerId = partnerId as string;}
+      if (assignedToId) {where.assignedToId = assignedToId as string;}
 
       const [totalRecords, statusStats, typeStats, monthlyStats] = await Promise.all([
         // Total count

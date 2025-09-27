@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="152" height="152" viewBox="0 0 152 152" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="poolGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0066cc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#004499;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="76" cy="76" r="74" fill="url(#poolGradient)" stroke="#ffffff" stroke-width="2"/>
+  
+  <!-- Pool water representation -->
+  <ellipse cx="76" cy="91.2" rx="53.199999999999996" ry="38" fill="#66b3ff" opacity="0.8"/>
+  
+  <!-- Pool Safe text (for larger sizes) -->
+  
+  <text x="76" y="60.8" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="18.24" font-weight="bold" fill="white">POOL</text>
+  <text x="76" y="83.6" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="18.24" font-weight="bold" fill="white">SAFE</text>
+  
+  
+  <!-- Safety ring accent -->
+  <circle cx="114" cy="38" r="12.16" fill="none" stroke="#ffffff" stroke-width="3.04"/>
+  <circle cx="114" cy="38" r="7.6000000000000005" fill="none" stroke="#ff6b6b" stroke-width="2.28"/>
+</svg>

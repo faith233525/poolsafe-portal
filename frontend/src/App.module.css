@@ -1,3 +1,83 @@
+/* Add mapPointer for cursor style */
+.mapPointer {
+  cursor: pointer;
+}
+
+/* Header content layout */
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* Header logos */
+.headerLogos {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mainLogo {
+  height: 40px;
+  width: auto;
+}
+
+.partnerLogo {
+  height: 32px;
+  width: auto;
+}
+
+.logoSeparator {
+  font-size: 1.5rem;
+  color: #666;
+  font-weight: bold;
+}
+
+/* Header text */
+.headerText {
+  flex: 1;
+  text-align: center;
+}
+
+.headerTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a365d;
+  margin: 0;
+}
+
+.headerMuted {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Accessibility button */
+.accessibilityButton {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #0066cc;
+}
+
+.accessibilityButton:hover,
+.accessibilityButton:focus {
+  background: #e9ecef;
+  border-color: #0066cc;
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Main content target for skip links */
+.mainContentTarget {
+  position: absolute;
+  left: -9999px;
+}
 .card {
   background: #fff;
   border-radius: 8px;
@@ -72,10 +152,488 @@
   margin-top: 24px;
 }
 .layout {
-  /* Add layout styles as needed */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.mainContent {
+  display: flex;
+  flex: 1;
+}
+
+.contentArea {
+  flex: 1;
+  padding: 2rem;
+  margin-left: 260px; /* Account for sidebar width */
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: calc(100vh - 80px); /* Account for header height */
+}
+
+@media (max-width: 768px) {
+  .contentArea {
+    margin-left: 0;
+    padding: 1rem;
+  }
 }
 .info {
   color: gray;
   margin: 12px 0;
   font-size: 1rem;
+}
+
+/* Enhanced Map Styles */
+.mapControls {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.mapControlGroup {
+  display: flex;
+  align-items: center;
+}
+
+.mapLabel {
+  margin-right: 5px;
+  font-weight: 500;
+}
+
+.mapSelect {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+}
+
+.mapButton {
+  padding: 4px 12px;
+  border: 1px solid #0077cc;
+  border-radius: 4px;
+  background: white;
+  color: #0077cc;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mapButton:hover {
+  background: #0077cc;
+  color: white;
+}
+
+.mapStats {
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  align-items: center;
+}
+
+.mapContainer {
+  position: relative;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.mapSvg {
+  display: block;
+}
+
+.mapSvgGrabbing {
+  cursor: grabbing;
+}
+
+.mapSvgGrab {
+  cursor: grab;
+}
+
+.tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  max-width: 250px;
+  z-index: 1000;
+  pointer-events: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tooltipHeader {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.tooltipItem {
+  margin-bottom: 2px;
+}
+
+.tooltipMore {
+  font-style: italic;
+  color: #ccc;
+}
+
+.tooltipCompany {
+  font-weight: bold;
+}
+
+.tooltipStatus {
+  margin-top: 4px;
+}
+
+.legend {
+  margin-top: 15px;
+  font-size: 12px;
+}
+
+.legendTitle {
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.legendItems {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legendColor {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legendHint {
+  color: #666;
+}
+
+.partnerList {
+  margin-top: 20px;
+}
+
+.partnerListHeader {
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.partnerListContainer {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.partnerListItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s;
+}
+
+.partnerListItem:hover {
+  background-color: #f8f9fa;
+}
+
+.partnerListItem:last-child {
+  border-bottom: none;
+}
+
+.partnerInfo {
+  flex: 1;
+}
+
+.partnerCompany {
+  font-weight: 600;
+  color: #333;
+}
+
+.partnerLocation {
+  color: #666;
+  font-size: 14px;
+}
+
+.partnerStatus {
+  font-weight: bold;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+.statusActive {
+  color: #28a745;
+}
+
+.statusPending {
+  color: #ffc107;
+}
+
+.statusInactive {
+  color: #6c757d;
+}
+
+.statusSuspended {
+  color: #dc3545;
+}
+
+.statusDefault {
+  color: #0077cc;
+}
+
+.legendColorActive {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #28a745;
+}
+
+.legendColorPending {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffc107;
+}
+
+.legendColorInactive {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #6c757d;
+}
+
+.legendColorSuspended {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #dc3545;
+}
+
+.legendColorCluster {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff6b35;
+}
+
+.tooltipStatusSpan {
+  font-weight: bold;
+}
+
+/* Email Manager Styles */
+.emailSection {
+  margin-bottom: 30px;
+}
+
+.emailStatusCard {
+  padding: 20px;
+  border: 1px solid #d4edda;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emailStatusIcon {
+  font-size: 20px;
+}
+
+.emailStatusInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.emailStatusTitle {
+  font-weight: bold;
+  color: #155724;
+  margin: 0;
+}
+
+.emailStatusMessage {
+  font-size: 14px;
+  color: #666;
+  margin: 4px 0 0 0;
+}
+
+.emailErrorCard {
+  padding: 20px;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #721c24;
+}
+
+.emailSuccessCard {
+  padding: 20px;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+}
+
+.emailForm {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.emailFormGrid {
+  display: grid;
+  gap: 15px;
+}
+
+.emailFormRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.emailFormLabel {
+  font-weight: 500;
+}
+
+.emailFormHint {
+  color: #666;
+  font-size: 12px;
+}
+
+.emailSelect {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.emailButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.emailButton:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  transform: translateY(-1px);
+}
+
+.emailButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.templateGrid {
+  display: grid;
+  gap: 15px;
+}
+
+.templateCard {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+}
+
+.templateTitle {
+  margin: 0 0 5px 0;
+  color: #0077cc;
+  font-size: 16px;
+}
+
+.templateDescription {
+  margin: 0 0 10px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.templateFields {
+  font-size: 12px;
+  color: #888;
+}
+
+.loadingText {
+  color: #666;
+  font-style: italic;
+}
+
+.configNotice {
+  padding: 20px;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+}
+
+.configNoticeTitle {
+  margin: 0 0 10px 0;
+  color: #856404;
+  font-size: 16px;
+}
+
+.configNoticeText {
+  margin: 0;
+  color: #856404;
+  font-size: 14px;
+}
+
+.configCode {
+  display: block;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+/* Navigation Styles */
+.navigation {
+  background: white;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 0.5rem;
+}
+
+.navButton {
+  padding: 0.75rem 1.5rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  color: #495057;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover {
+  background: #e9ecef;
+  color: #212529;
+}
+
+.navButtonActive {
+  background: #0066cc;
+  color: white;
+  border-color: #0066cc;
+}
+
+.navButtonActive:hover {
+  background: #004499;
+  border-color: #004499;
 }

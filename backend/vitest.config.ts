@@ -25,6 +25,7 @@ export default defineConfig({
         "**/node_modules/**",
         "**/scripts/**",
         "**/tests/**",
+        "**/dist/**",
         "**/index.ts",
         "**/test-server.js",
         "**/prismaClient.ts",

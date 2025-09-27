@@ -1,4 +1,25 @@
-# Frontend Test Setup & Troubleshooting
+# Frontend Overview & Sidebar Navigation
+
+## Sidebar Navigation Drawer
+
+The app now includes a reusable Sidebar component for dashboard/admin/support/partner navigation. It renders role-based links and uses ARIA attributes for accessibility.
+
+**Usage:**
+
+- Sidebar is automatically rendered for authenticated users based on their role.
+- Accessible via keyboard and screen readers.
+
+**Customization:**
+
+- Edit `src/Sidebar.tsx` to add or modify navigation links per role.
+
+## Accessibility Improvements
+
+- ARIA roles and labels are used throughout the app (Sidebar, notifications, modals, skip links).
+- Keyboard navigation and skip links are managed in `src/utils/accessibility.ts`.
+- Accessibility settings modal is available from the header.
+
+## Running Frontend Tests
 
 ## Running Frontend Tests
 

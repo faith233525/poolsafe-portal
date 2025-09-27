@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+. "$(dirname -- "$0")/_/husky.sh"
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" = "main" ] && [ "${ALLOW_DIRECT_MAIN_PUSH:-0}" != "1" ]; then
+  echo "❌ Direct pushes to main are blocked. Open a PR instead (override with ALLOW_DIRECT_MAIN_PUSH=1)." >&2
+  exit 1
+fi
+
+echo "🔍 Running lightweight pre-push checks (lint + typecheck root backend/frontend if changed)"
+
+CHANGED=$(git diff --name-only HEAD~1 2>/dev/null || git ls-files)
+if echo "$CHANGED" | grep -E '^backend/' >/dev/null 2>&1; then
+  (cd backend && npm run lint --silent && npm run typecheck --silent)
+fi
+if echo "$CHANGED" | grep -E '^frontend/' >/dev/null 2>&1; then
+  (cd frontend && npm run lint --silent && npm run typecheck --silent)
+fi
+
+echo "✅ Pre-push checks passed"

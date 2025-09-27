@@ -1,0 +1,224 @@
+// Example Prisma schema for Postgres. Not active by default.
+// To use: copy this file to backend/prisma/schema.postgres.prisma (or another path)
+// and set PRISMA_SCHEMA to that path in production. Keep tests on SQLite unless
+// you decide to switch tests to Postgres as well.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Models copied from schema.prisma; kept in sync manually.
+// Consider maintaining a single source of truth and generating dialect-specific
+// SQL via prisma migrate.
+
+model User {
+  id              String          @id @default(uuid())
+  email           String          @unique
+  password        String?
+  displayName     String?
+  role            String          @default("PARTNER")
+  partnerId       String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  calendarEvents  CalendarEvent[]
+  serviceRecords  ServiceRecord[]
+  assignedTickets Ticket[]        @relation("AssignedStaff")
+  partner         Partner?        @relation(fields: [partnerId], references: [id])
+}
+
+model Partner {
+  id                  String          @id @default(uuid())
+  companyName         String          @unique
+  userPass            String?
+  managementCompany   String?
+  streetAddress       String?
+  city                String?
+  state               String?
+  zip                 String?
+  country             String?
+  numberOfLoungeUnits Int             @default(0)
+  topColour           String?
+  lock                String?
+  masterCode          String?
+  subMasterCode       String?
+  lockPart            String?
+  key                 String?
+  latitude            Float?
+  longitude           Float?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  calendarEvents      CalendarEvent[]
+  serviceRecords      ServiceRecord[]
+  tickets             Ticket[]
+  contacts            Contact[]
+  users               User[]
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  partnerId String
+  firstName String
+  lastName  String
+  title     String?
+  email     String?
+  phone     String?
+  isPrimary Boolean  @default(false)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  partner   Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  tickets   Ticket[]
+
+  @@index([partnerId])
+  @@index([partnerId, isPrimary])
+}
+
+model Ticket {
+  id                String             @id @default(uuid())
+  partnerId         String
+  contactId         String?
+  firstName         String?
+  lastName          String?
+  title             String?
+  createdByName     String?
+  subject           String
+  category          String             @default("General")
+  description       String?
+  unitsAffected     Int?
+  priority          String             @default("MEDIUM")
+  status            String             @default("OPEN")
+  contactPreference String?
+  recurringIssue    Boolean            @default(false)
+  dateOfOccurrence  DateTime?
+  severity          Int?
+  assignedToId      String?
+  internalNotes     String?
+  followUpNotes     String?
+  resolutionTime    Int?
+  escalated         Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  assignedTo        User?              @relation("AssignedStaff", fields: [assignedToId], references: [id])
+  partner           Partner            @relation(fields: [partnerId], references: [id])
+  contact           Contact?           @relation(fields: [contactId], references: [id])
+  attachments       TicketAttachment[]
+
+  @@index([partnerId, status])
+  @@index([assignedToId])
+  @@index([priority, status])
+  @@index([contactId])
+}
+
+model TicketAttachment {
+  id         String   @id @default(uuid())
+  ticketId   String
+  filename   String
+  filepath   String
+  mimetype   String
+  size       Int
+  uploadedAt DateTime @default(now())
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+model ServiceRecord {
+  id            String    @id @default(uuid())
+  partnerId     String
+  assignedToId  String?
+  serviceType   String
+  description   String?
+  notes         String?
+  scheduledDate DateTime?
+  completedDate DateTime?
+  status        String    @default("SCHEDULED")
+  attachments   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  assignedTo    User?     @relation(fields: [assignedToId], references: [id])
+  partner       Partner   @relation(fields: [partnerId], references: [id])
+
+  @@index([partnerId])
+  @@index([assignedToId])
+}
+
+model CalendarEvent {
+  id              String    @id @default(uuid())
+  partnerId       String
+  createdById     String?
+  title           String
+  description     String?
+  eventType       String
+  startDate       DateTime
+  endDate         DateTime?
+  isRecurring     Boolean   @default(false)
+  recurrenceRule  String?
+  reminderMinutes Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdBy       User?     @relation(fields: [createdById], references: [id])
+  partner         Partner   @relation(fields: [partnerId], references: [id])
+
+  @@index([partnerId])
+  @@index([createdById])
+}
+
+model KnowledgeBase {
+  id             String   @id @default(uuid())
+  title          String
+  content        String
+  category       String
+  tags           String?
+  attachments    String?
+  videos         String?
+  searchKeywords String?
+  viewCount      Int      @default(0)
+  rating         Float?
+  isPublished    Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Notification {
+  id             String    @id @default(uuid())
+  userId         String?
+  recipientEmail String?
+  title          String
+  message        String
+  type           String
+  relatedId      String?
+  relatedType    String?
+  isRead         Boolean   @default(false)
+  sentAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([userId, isRead, createdAt])
+}
+
+model ErrorLog {
+  id        String   @id @default(uuid())
+  errorId   String   @unique
+  message   String
+  stack     String?
+  context   String?
+  count     Int      @default(1)
+  firstSeen String
+  lastSeen  String
+  severity  String   @default("medium")
+  type      String   @default("unknown")
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([errorId])
+  @@index([severity])
+  @@index([type])
+  @@index([createdAt])
+  @@index([lastSeen])
+}

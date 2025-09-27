@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./App.module.css";
 
-export default function SummaryFlow({ role }: { role: string }) {
+export default function SummaryFlow({ role: _role }: { role: string }) {
   return (
     <div className={styles.card}>
       <h2>End-to-End Portal Flow</h2>

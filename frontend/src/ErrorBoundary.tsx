@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
+import "./ErrorBoundary.css";
 
 interface Props {
   children: ReactNode;
@@ -19,7 +20,7 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(_error: Error, _errorInfo: ErrorInfo) {
     // Log error to monitoring service if needed
     // console.error(error, errorInfo);
   }
@@ -27,7 +28,7 @@ class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div role="alert" style={{ color: "#b00", padding: "1em" }}>
+        <div role="alert" className="error-boundary-alert">
           <h2>Something went wrong.</h2>
           <pre>{this.state.error?.message}</pre>
         </div>

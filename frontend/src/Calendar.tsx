@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./App.module.css";
 
-export default function Calendar({ role }: { role: string }) {
+export default function Calendar({ role: _role }: { role: string }) {
   const [events, setEvents] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

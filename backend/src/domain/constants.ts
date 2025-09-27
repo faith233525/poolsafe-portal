@@ -3,22 +3,21 @@ export const ROLES = {
   SUPPORT: "SUPPORT",
   ADMIN: "ADMIN",
 } as const;
-export type Role = typeof ROLES[keyof typeof ROLES];
+export type Role = (typeof ROLES)[keyof typeof ROLES];
 
 export const TICKET_STATUS = {
   OPEN: "OPEN",
   IN_PROGRESS: "IN_PROGRESS",
   RESOLVED: "RESOLVED",
 } as const;
-export type TicketStatus = typeof TICKET_STATUS[keyof typeof TICKET_STATUS];
+export type TicketStatus = (typeof TICKET_STATUS)[keyof typeof TICKET_STATUS];
 
 export const TICKET_PRIORITY = {
   LOW: "LOW",
   MEDIUM: "MEDIUM",
   HIGH: "HIGH",
 } as const;
-export type TicketPriority =
-  typeof TICKET_PRIORITY[keyof typeof TICKET_PRIORITY];
+export type TicketPriority = (typeof TICKET_PRIORITY)[keyof typeof TICKET_PRIORITY];
 
 export const TICKET_CATEGORIES = [
   "Call Button",
@@ -34,7 +33,7 @@ export const TICKET_CATEGORIES = [
   "General System",
   "Other",
 ] as const;
-export type TicketCategory = typeof TICKET_CATEGORIES[number];
+export type TicketCategory = (typeof TICKET_CATEGORIES)[number];
 
 export function isRole(value: any): value is Role {
   return Object.values(ROLES).includes(value);

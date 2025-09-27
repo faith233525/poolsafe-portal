@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pool Safe Inc Portal - Complete System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .test-section h3 { margin-top: 0; color: #333; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #cce7ff; color: #004085; border: 1px solid #b8daff; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 20px 0; }
+        .status-card { padding: 15px; border-radius: 8px; text-align: center; }
+        .status-online { background: #d4edda; color: #155724; }
+        .status-offline { background: #f8d7da; color: #721c24; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px; overflow-x: auto; }
+        .feature-test { background: #f8f9fa; margin: 10px 0; padding: 15px; border-radius: 5px; }
+        .credentials { background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏊‍♂️ Pool Safe Inc Portal</h1>
+            <h2>Complete System Test Dashboard</h2>
+            <p>Testing all implemented features including Activity Logging & Admin Analytics</p>
+        </div>
+
+        <div class="credentials">
+            <h3>🔐 Test Credentials</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <div><strong>Admin:</strong><br>admin@poolsafe.com / admin123</div>
+                <div><strong>Support:</strong><br>support@poolsafe.com / support123</div>
+                <div><strong>Partner:</strong><br>Luxury Resorts Ltd. / partner123</div>
+            </div>
+        </div>
+
+        <div class="status-grid">
+            <div id="backendStatus" class="status-card status-offline">
+                <h4>🖥️ Backend Server</h4>
+                <div id="backendInfo">Checking...</div>
+            </div>
+            <div id="frontendStatus" class="status-card status-offline">
+                <h4>💻 Frontend App</h4>
+                <div id="frontendInfo">Checking...</div>
+            </div>
+            <div id="databaseStatus" class="status-card status-offline">
+                <h4>🗄️ Database</h4>
+                <div id="databaseInfo">Checking...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 System Health Checks</h3>
+            <button class="btn-primary" onclick="testAllSystems()">Run Full System Test</button>
+            <button class="btn-success" onclick="testBackendHealth()">Test Backend Health</button>
+            <button class="btn-success" onclick="testFrontendAccess()">Test Frontend Access</button>
+            <div id="healthResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔐 Authentication Tests</h3>
+            <button class="btn-primary" onclick="testAdminLogin()">Test Admin Login</button>
+            <button class="btn-primary" onclick="testSupportLogin()">Test Support Login</button>
+            <button class="btn-primary" onclick="testPartnerLogin()">Test Partner Login</button>
+            <div id="authResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Feature Implementation Tests</h3>
+            <div class="feature-test">
+                <h4>✅ Activity Logging System</h4>
+                <button class="btn-success" onclick="testActivityLogging()">Test Activity Logs</button>
+                <button class="btn-warning" onclick="testAnalyticsEndpoints()">Test Analytics API</button>
+                <div id="activityResults"></div>
+            </div>
+            
+            <div class="feature-test">
+                <h4>✅ Admin Dashboard Analytics</h4>
+                <button class="btn-success" onclick="testAdminDashboard()">Test Dashboard Data</button>
+                <button class="btn-warning" onclick="testSecurityMetrics()">Test Security Metrics</button>
+                <div id="dashboardResults"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔒 API Endpoint Tests</h3>
+            <button class="btn-primary" onclick="testCoreEndpoints()">Test Core APIs</button>
+            <button class="btn-warning" onclick="testProtectedEndpoints()">Test Protected APIs</button>
+            <div id="apiResults"></div>
+        </div>
+
+        <div id="overallResults"></div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:4000';
+        const FRONTEND_URL = 'http://localhost:5173';
+
+        // Test results storage
+        let testResults = {
+            backend: false,
+            frontend: false,
+            database: false,
+            auth: false,
+            activityLogs: false,
+            analytics: false
+        };
+
+        // Utility functions
+        function showResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        function updateStatus(elementId, online, info) {
+            const element = document.getElementById(elementId);
+            element.className = `status-card ${online ? 'status-online' : 'status-offline'}`;
+            document.getElementById(elementId.replace('Status', 'Info')).innerHTML = info;
+        }
+
+        // System Health Tests
+        async function testBackendHealth() {
+            try {
+                showResult('healthResults', '🔍 Testing backend health...', 'info');
+                const response = await fetch(`${BACKEND_URL}/api/health`);
+                const data = await response.json();
+                
+                if (response.ok && data.ok) {
+                    testResults.backend = true;
+                    updateStatus('backendStatus', true, 'Online ✅<br>Port: 4000');
+                    showResult('healthResults', '✅ Backend health check passed!', 'success');
+                    return true;
+                } else {
+                    throw new Error('Health check failed');
+                }
+            } catch (error) {
+                updateStatus('backendStatus', false, 'Offline ❌<br>' + error.message);
+                showResult('healthResults', `❌ Backend health check failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testFrontendAccess() {
+            try {
+                showResult('healthResults', '🔍 Testing frontend access...', 'info');
+                const response = await fetch(FRONTEND_URL);
+                
+                if (response.ok) {
+                    testResults.frontend = true;
+                    updateStatus('frontendStatus', true, 'Online ✅<br>Port: 5173');
+                    showResult('healthResults', '✅ Frontend access successful!', 'success');
+                    return true;
+                } else {
+                    throw new Error('Frontend not accessible');
+                }
+            } catch (error) {
+                updateStatus('frontendStatus', false, 'Offline ❌<br>' + error.message);
+                showResult('healthResults', `❌ Frontend access failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testDatabaseConnection() {
+            try {
+                showResult('healthResults', '🔍 Testing database connection...', 'info');
+                const response = await fetch(`${BACKEND_URL}/api/readyz`);
+                const data = await response.json();
+                
+                if (data.ready) {
+                    testResults.database = true;
+                    updateStatus('databaseStatus', true, 'Connected ✅<br>Prisma DB');
+                    showResult('healthResults', '✅ Database connection successful!', 'success');
+                    return true;
+                } else {
+                    throw new Error('Database not ready');
+                }
+            } catch (error) {
+                updateStatus('databaseStatus', false, 'Disconnected ❌<br>' + error.message);
+                showResult('healthResults', `❌ Database connection failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Authentication Tests
+        async function testAdminLogin() {
+            try {
+                showResult('authResults', '🔐 Testing admin login...', 'info');
+                const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'admin@poolsafe.com',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.ok && data.token) {
+                    testResults.auth = true;
+                    showResult('authResults', `✅ Admin login successful! Role: ${data.user.role}`, 'success');
+                    return data.token;
+                } else {
+                    throw new Error(data.error || 'Login failed');
+                }
+            } catch (error) {
+                showResult('authResults', `❌ Admin login failed: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function testSupportLogin() {
+            try {
+                showResult('authResults', '🔐 Testing support login...', 'info');
+                const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'support@poolsafe.com',
+                        password: 'support123'
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.ok && data.token) {
+                    showResult('authResults', `✅ Support login successful! Role: ${data.user.role}`, 'success');
+                    return data.token;
+                } else {
+                    throw new Error(data.error || 'Login failed');
+                }
+            } catch (error) {
+                showResult('authResults', `❌ Support login failed: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function testPartnerLogin() {
+            try {
+                showResult('authResults', '🔐 Testing partner login...', 'info');
+                const response = await fetch(`${BACKEND_URL}/api/auth/login/partner`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'Luxury Resorts Ltd.',
+                        password: 'partner123'
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.ok && data.token) {
+                    showResult('authResults', `✅ Partner login successful! Company: ${data.user.partner?.companyName}`, 'success');
+                    return data.token;
+                } else {
+                    throw new Error(data.error || 'Login failed');
+                }
+            } catch (error) {
+                showResult('authResults', `❌ Partner login failed: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        // Feature Tests
+        async function testActivityLogging() {
+            try {
+                showResult('activityResults', '📝 Testing Activity Logging system...', 'info');
+                const token = await testAdminLogin();
+                if (!token) throw new Error('Need admin token for test');
+
+                const response = await fetch(`${BACKEND_URL}/api/analytics/activity-logs?limit=5`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    testResults.activityLogs = true;
+                    showResult('activityResults', `✅ Activity Logging working! Found ${data.logs?.length || 0} recent logs`, 'success');
+                    if (data.logs && data.logs.length > 0) {
+                        const latest = data.logs[0];
+                        showResult('activityResults', `Latest log: ${latest.action} by ${latest.userEmail} at ${new Date(latest.timestamp).toLocaleString()}`, 'info');
+                    }
+                } else {
+                    throw new Error(data.error || 'Activity logs fetch failed');
+                }
+            } catch (error) {
+                showResult('activityResults', `❌ Activity Logging test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAnalyticsEndpoints() {
+            try {
+                showResult('activityResults', '📊 Testing Analytics endpoints...', 'info');
+                const token = await testAdminLogin();
+                if (!token) throw new Error('Need admin token for test');
+
+                // Test multiple analytics endpoints
+                const endpoints = [
+                    '/api/analytics/overview',
+                    '/api/analytics/activity-summary',
+                    '/api/analytics/security-metrics'
+                ];
+
+                let successCount = 0;
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (response.ok) {
+                            successCount++;
+                            showResult('activityResults', `✅ ${endpoint} - Working`, 'success');
+                        } else {
+                            showResult('activityResults', `⚠️ ${endpoint} - Status: ${response.status}`, 'error');
+                        }
+                    } catch (err) {
+                        showResult('activityResults', `❌ ${endpoint} - Error: ${err.message}`, 'error');
+                    }
+                }
+                
+                if (successCount === endpoints.length) {
+                    testResults.analytics = true;
+                    showResult('activityResults', `✅ All ${successCount} analytics endpoints working!`, 'success');
+                } else {
+                    showResult('activityResults', `⚠️ ${successCount}/${endpoints.length} analytics endpoints working`, 'error');
+                }
+            } catch (error) {
+                showResult('activityResults', `❌ Analytics endpoints test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAdminDashboard() {
+            try {
+                showResult('dashboardResults', '🎛️ Testing Admin Dashboard data...', 'info');
+                const token = await testAdminLogin();
+                if (!token) throw new Error('Need admin token for test');
+
+                const response = await fetch(`${BACKEND_URL}/api/analytics/overview`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showResult('dashboardResults', `✅ Dashboard data loaded! Users: ${data.totalUsers}, Partners: ${data.totalPartners}, Tickets: ${data.totalTickets}`, 'success');
+                    showResult('dashboardResults', `Recent Activity: ${data.recentActivityCount || 0} activities in last 24h`, 'info');
+                } else {
+                    throw new Error(data.error || 'Dashboard data fetch failed');
+                }
+            } catch (error) {
+                showResult('dashboardResults', `❌ Admin Dashboard test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSecurityMetrics() {
+            try {
+                showResult('dashboardResults', '🔒 Testing Security Metrics...', 'info');
+                const token = await testAdminLogin();
+                if (!token) throw new Error('Need admin token for test');
+
+                const response = await fetch(`${BACKEND_URL}/api/analytics/security-metrics`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showResult('dashboardResults', `✅ Security Metrics loaded! Failed logins: ${data.failedLogins}, Successful logins: ${data.successfulLogins}`, 'success');
+                    showResult('dashboardResults', `Security Events: ${data.securityEvents || 0} events tracked`, 'info');
+                } else {
+                    throw new Error(data.error || 'Security metrics fetch failed');
+                }
+            } catch (error) {
+                showResult('dashboardResults', `❌ Security Metrics test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCoreEndpoints() {
+            try {
+                showResult('apiResults', '🔗 Testing core API endpoints...', 'info');
+                
+                const endpoints = [
+                    { url: '/api/health', auth: false, name: 'Health Check' },
+                    { url: '/api/readyz', auth: false, name: 'Readiness Check' },
+                    { url: '/api/metrics', auth: false, name: 'Metrics' }
+                ];
+
+                let successCount = 0;
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(`${BACKEND_URL}${endpoint.url}`);
+                        if (response.ok) {
+                            successCount++;
+                            showResult('apiResults', `✅ ${endpoint.name} - Status: ${response.status}`, 'success');
+                        } else {
+                            showResult('apiResults', `⚠️ ${endpoint.name} - Status: ${response.status}`, 'error');
+                        }
+                    } catch (err) {
+                        showResult('apiResults', `❌ ${endpoint.name} - Error: ${err.message}`, 'error');
+                    }
+                }
+                
+                showResult('apiResults', `📊 Core APIs: ${successCount}/${endpoints.length} working`, 'info');
+            } catch (error) {
+                showResult('apiResults', `❌ Core endpoints test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testProtectedEndpoints() {
+            try {
+                showResult('apiResults', '🔐 Testing protected API endpoints...', 'info');
+                const token = await testAdminLogin();
+                if (!token) throw new Error('Need admin token for test');
+
+                const endpoints = [
+                    '/api/users',
+                    '/api/partners',
+                    '/api/tickets',
+                    '/api/analytics/overview'
+                ];
+
+                let successCount = 0;
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (response.ok) {
+                            successCount++;
+                            showResult('apiResults', `✅ ${endpoint} - Authenticated access OK`, 'success');
+                        } else {
+                            showResult('apiResults', `⚠️ ${endpoint} - Status: ${response.status}`, 'error');
+                        }
+                    } catch (err) {
+                        showResult('apiResults', `❌ ${endpoint} - Error: ${err.message}`, 'error');
+                    }
+                }
+                
+                showResult('apiResults', `🔒 Protected APIs: ${successCount}/${endpoints.length} working`, 'info');
+            } catch (error) {
+                showResult('apiResults', `❌ Protected endpoints test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAllSystems() {
+            // Clear previous results
+            ['healthResults', 'authResults', 'activityResults', 'dashboardResults', 'apiResults', 'overallResults'].forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+
+            showResult('overallResults', '🚀 Running Complete System Test...', 'info');
+
+            // Run all tests
+            await testBackendHealth();
+            await testFrontendAccess();
+            await testDatabaseConnection();
+            await testAdminLogin();
+            await testActivityLogging();
+            await testAnalyticsEndpoints();
+            await testAdminDashboard();
+            await testCoreEndpoints();
+
+            // Calculate overall results
+            const totalTests = Object.keys(testResults).length;
+            const passedTests = Object.values(testResults).filter(Boolean).length;
+            const successRate = (passedTests / totalTests * 100).toFixed(1);
+
+            showResult('overallResults', `
+                <h3>🎯 Overall Test Results</h3>
+                <p><strong>Success Rate:</strong> ${successRate}% (${passedTests}/${totalTests} tests passed)</p>
+                <div style="margin: 15px 0;">
+                    <div>Backend Health: ${testResults.backend ? '✅' : '❌'}</div>
+                    <div>Frontend Access: ${testResults.frontend ? '✅' : '❌'}</div>
+                    <div>Database Connection: ${testResults.database ? '✅' : '❌'}</div>
+                    <div>Authentication: ${testResults.auth ? '✅' : '❌'}</div>
+                    <div>Activity Logging: ${testResults.activityLogs ? '✅' : '❌'}</div>
+                    <div>Analytics Dashboard: ${testResults.analytics ? '✅' : '❌'}</div>
+                </div>
+                ${successRate >= 85 ? 
+                    '<p class="result success">🎉 System is ready for production deployment!</p>' : 
+                    '<p class="result error">⚠️ Some issues detected - review failed tests above</p>'
+                }
+            `, successRate >= 85 ? 'success' : 'error');
+        }
+
+        // Auto-run basic health checks on page load
+        window.addEventListener('load', async function() {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testBackendHealth();
+            await testFrontendAccess();
+            await testDatabaseConnection();
+        });
+    </script>
+</body>
+</html>

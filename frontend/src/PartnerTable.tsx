@@ -52,7 +52,14 @@ export default function PartnerTable({
       </thead>
       <tbody>
         {partners.map((partner) => (
-          <tr key={partner.id} onClick={() => onSelect && onSelect(partner.id)}>
+          <tr
+            key={partner.id}
+            onClick={() => {
+              if (onSelect) {
+                onSelect(partner.id);
+              }
+            }}
+          >
             <td>{partner.companyName}</td>
             <td>{partner.managementCompany}</td>
             <td>
@@ -69,7 +76,9 @@ export default function PartnerTable({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEdit && onEdit(partner);
+                    if (onEdit) {
+                      onEdit(partner);
+                    }
                   }}
                 >
                   Edit
@@ -77,7 +86,9 @@ export default function PartnerTable({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDelete && onDelete(partner.id);
+                    if (onDelete) {
+                      onDelete(partner.id);
+                    }
                   }}
                 >
                   Delete

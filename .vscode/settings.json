@@ -31,5 +31,8 @@
   "debug.javascript.debugByLinkOptions": "off",
   "git.confirmSync": false,
   "git.confirmCommit": false,
-  "git.autofetch": true
+  "git.autofetch": true,
+  "[dockerfile]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
+  }
 }

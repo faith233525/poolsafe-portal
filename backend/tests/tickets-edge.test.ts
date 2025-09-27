@@ -29,7 +29,7 @@ describe("Ticket edge cases", () => {
       .post("/api/tickets")
       .set("Authorization", `Bearer ${token}`)
       .send({ subject: "Test", priority: "INVALID" });
-    expect([400, 422]).toContain(res.status);
+    expect(res.status).toBe(400);
   });
 
   it("rejects missing subject", async () => {
@@ -37,7 +37,7 @@ describe("Ticket edge cases", () => {
       .post("/api/tickets")
       .set("Authorization", `Bearer ${token}`)
       .send({ description: "No subject" });
-    expect([400, 422]).toContain(res.status);
+    expect(res.status).toBe(400);
   });
 
   it("accepts max priority value", async () => {

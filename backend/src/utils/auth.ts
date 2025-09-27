@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { Request, Response, NextFunction } from "express";
+import { env } from "../lib/env";
 
-// JWT secret is enforced via env loader; no insecure fallback.
-const JWT_SECRET = process.env.JWT_SECRET as string;
+// JWT secret comes from centralized env loader (dev fallback allowed, prod required)
+const JWT_SECRET = env.JWT_SECRET as string;
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -32,7 +33,7 @@ export const generateToken = (userId: string, email: string, role: string, partn
 export const verifyToken = (token: string) => {
   try {
     return jwt.verify(token, JWT_SECRET) as any;
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -53,8 +54,8 @@ export const comparePassword = async (
 
 // Middleware to authenticate token
 export const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1]; // Bearer TOKEN
 
   // Debug logging for test diagnosis
   if (process.env.NODE_ENV === "test") {

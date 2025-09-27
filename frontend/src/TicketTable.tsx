@@ -56,7 +56,14 @@ export default function TicketTable({
       </thead>
       <tbody>
         {tickets.map((ticket) => (
-          <tr key={ticket.id} onClick={() => onSelect && onSelect(ticket.id)}>
+          <tr
+            key={ticket.id}
+            onClick={() => {
+              if (onSelect) {
+                onSelect(ticket.id);
+              }
+            }}
+          >
             <td>{ticket.subject}</td>
             <td>{ticket.category}</td>
             <td>{ticket.priority}</td>
@@ -69,7 +76,9 @@ export default function TicketTable({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEdit && onEdit(ticket);
+                    if (onEdit) {
+                      onEdit(ticket);
+                    }
                   }}
                 >
                   Edit
@@ -77,7 +86,9 @@ export default function TicketTable({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDelete && onDelete(ticket.id);
+                    if (onDelete) {
+                      onDelete(ticket.id);
+                    }
                   }}
                 >
                   Delete

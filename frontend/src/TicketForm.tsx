@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { apiFetch } from "./utils/api";
 import styles from "./App.module.css";
 
 type FormState = {
@@ -32,11 +33,11 @@ const initialState: FormState = {
 export default function TicketForm({
   onSubmit,
   initialData,
-  role,
+  role: _role,
 }: {
   onSubmit: (data: any) => void;
   initialData?: any;
-  role: string;
+  role: string; // This line remains unchanged
 }) {
   const [form, setForm] = useState<FormState>(initialData || initialState);
   const [error, setError] = useState<string | null>(null);
@@ -44,17 +45,17 @@ export default function TicketForm({
 
   function handleTextChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
-    setForm((f: FormState) => ({ ...f, [name]: value } as FormState));
+    setForm((f: FormState) => ({ ...f, [name]: value }) as FormState);
   }
 
   function handleSelectChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const { name, value } = e.target;
-    setForm((f: FormState) => ({ ...f, [name]: value } as FormState));
+    setForm((f: FormState) => ({ ...f, [name]: value }) as FormState);
   }
 
   function handleCheckboxChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, checked } = e.target;
-    setForm((f: FormState) => ({ ...f, [name]: checked } as FormState));
+    setForm((f: FormState) => ({ ...f, [name]: checked }) as FormState);
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -74,7 +75,7 @@ export default function TicketForm({
     }
     try {
       setSubmitting(true);
-      const res = await fetch("/api/tickets", {
+      const res = await apiFetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -84,7 +85,7 @@ export default function TicketForm({
         return;
       }
       onSubmit(form);
-    } catch (err) {
+    } catch {
       setError("Failed to submit ticket.");
     } finally {
       setSubmitting(false);
@@ -95,12 +96,7 @@ export default function TicketForm({
     <form className={styles.form} onSubmit={handleSubmit} noValidate aria-label="Ticket Form">
       <h2>{initialData ? "Edit Ticket" : "Create Ticket"}</h2>
       {error && (
-        <div
-          className={styles.error}
-          role="alert"
-          aria-live="assertive"
-          data-testid="ticket-error"
-        >
+        <div className={styles.error} role="alert" aria-live="assertive" data-testid="ticket-error">
           {error}
         </div>
       )}

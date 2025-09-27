@@ -1,21 +1,30 @@
-// Seed script: populate databases for dev and tests
+// Seed script: populate databases for dev, tests, or a single DATABASE_URL
 import { PrismaClient } from "@prisma/client";
+import crypto from "crypto";
 import { hashPassword } from "../src/utils/auth";
 
 // Get DB file from command line or env
-let dbFile = "dev.db";
 let resetFlag = false;
+let cliDbFile: string | undefined;
+let cliDbUrl: string | undefined;
 for (const arg of process.argv) {
-  if (arg.startsWith("--dbFile=")) {
-    dbFile = arg.split("=")[1];
-  }
   if (arg === "--reset") {
     resetFlag = true;
+  }
+  if (arg.startsWith("--dbFile=")) {
+    cliDbFile = arg.split("=")[1];
+  }
+  if (arg.startsWith("--dbUrl=")) {
+    cliDbUrl = arg.split("=")[1];
   }
 }
 
 // List of DB files to seed
-const dbFiles = ["dev.db", "test-auth.db", "test-tickets.db"];
+const dbFiles = process.env.SEED_DB_FILES
+  ? process.env.SEED_DB_FILES.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+  : ["dev.db", "test-auth.db", "test-tickets.db"];
 
 async function clearDatabase(prisma: PrismaClient) {
   console.log("🧹 Clearing existing data...");
@@ -38,15 +47,8 @@ async function clearDatabase(prisma: PrismaClient) {
   }
 }
 
-async function seedDb(dbFile: string, shouldReset: boolean = false) {
-  const databaseUrl = `file:./${dbFile}`;
-  const prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: databaseUrl,
-      },
-    },
-  });
+async function seedDatabase(databaseUrl: string, label: string, shouldReset: boolean = false) {
+  const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
 
   try {
     // Clear database if reset flag is provided
@@ -54,119 +56,247 @@ async function seedDb(dbFile: string, shouldReset: boolean = false) {
       await clearDatabase(prisma);
     }
 
-    // Check if data already exists to avoid duplicates
+    // Remove test partners that may cause unique constraint errors in tests
+    const testPartnerNames = [
+      "New Test Resort",
+      "Other Resort",
+      "RequiredFieldTest",
+      "CascadeTest",
+    ];
+    for (const name of testPartnerNames) {
+      await prisma.partner.deleteMany({ where: { companyName: name } });
+    }
+    // Observe existing partners (no early return so user upserts always run)
     const existingPartners = await prisma.partner.count();
     if (existingPartners > 0 && !shouldReset) {
       console.log(
-        `ℹ️  Database ${dbFile} already has ${existingPartners} partners. Use --reset flag to clear and reseed.`,
+        `ℹ️  ${label}: ${existingPartners} partners already exist. Ensuring required users & contacts...`,
       );
-      return;
     }
-    // Seed Test Resort 1 and 2 and verify creation
-    const testResorts = [
+
+    // List of actual partners and users (ignore email)
+    const actualPartners = [
+      {
+        user_login: "adventureland",
+        number: "8002557826",
+        display_name: "Adventureland",
+        top_colour: "Ice Blue",
+        company_name: "Adventureland",
+        management_company: "Palace Entertainment",
+        number_of_loungenie_units: 15,
+        street_address: "3300 Adventureland Dr",
+        city: "Altoona",
+        state: "IA",
+        zip: "50009",
+        country: "USA",
+      },
+      {
+        user_login: "beechbend",
+        number: "2707817634",
+        display_name: "Beech Bend Park & Splash Lagoon",
+        top_colour: "Ice Blue",
+        company_name: "Beech Bend Park & Splash Lagoon",
+        management_company: "Beech Bend Park & Splash Lagoon",
+        number_of_loungenie_units: 19,
+        street_address: "798 Beech Bend Rd",
+        city: "Bowling Green",
+        state: "KY",
+        zip: "42101",
+        country: "USA",
+      },
+      {
+        user_login: "bigdamwaterpark",
+        number: "8707744677",
+        display_name: "Big Dam Waterpark",
+        top_colour: "Classic Blue",
+        company_name: "Big Dam Waterpark",
+        management_company: "P23 - Big Dam Waterpark",
+        number_of_loungenie_units: 12,
+        street_address: "5501 Crossroads Pkwy",
+        city: "Texarkana",
+        state: "AR",
+        zip: "71854",
+        country: "USA",
+      },
+      {
+        user_login: "breakwaterbeach",
+        number: "7327936488",
+        display_name: "Breakwater Beach Waterpark",
+        top_colour: "Ice Blue",
+        company_name: "Breakwater Beach Waterpark",
+        management_company: "Breakwater Beach Waterpark",
+        number_of_loungenie_units: 10,
+        street_address: "800 Ocean Terrace",
+        city: "Seaside Heights",
+        state: "NJ",
+        zip: "8751",
+        country: "USA",
+      },
+      // ... (add all other partners from the provided list)
+    ];
+
+    // Upsert support and admin users
+    // Use env-configurable seed values to avoid leaking real emails in code
+    const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL_SEED || "support@poolsafe.com";
+    const SUPPORT_PASSWORD = process.env.SUPPORT_PASSWORD_SEED || "LounGenie123!!";
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL_SEED || "admin@poolsafe.com";
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD_SEED || "admin123";
+    const DEFAULT_COMPANY_PASSWORD =
+      process.env.SEED_COMPANY_DEFAULT_PASSWORD || crypto.randomBytes(16).toString("hex");
+    // Hash passwords immediately before user creation
+    const hashedSupportPassword = await hashPassword(SUPPORT_PASSWORD);
+    const hashedAdminPassword = await hashPassword(ADMIN_PASSWORD);
+    // Reuse one hashed password for all seeded partner users (non-test)
+    const partnerUserPassword = await hashPassword(
+      process.env.SEED_PARTNER_USER_PASSWORD || "PartnerUser123!!",
+    );
+    // Always create partners required by tests
+    const testPartners = [
       {
         companyName: "Test Resort 1",
-        email: "manager1@testresort.com",
-        displayName: "Resort Manager 1",
+        managementCompany: "Test Management 1",
+        streetAddress: "1 Test St",
+        city: "Testville",
+        state: "TS",
+        zip: "11111",
+        country: "USA",
+        numberOfLoungeUnits: 10,
+        topColour: "Blue",
+        userPass: "partner123", // Ensure login test matches
       },
       {
         companyName: "Test Resort 2",
-        email: "manager2@testresort.com",
-        displayName: "Resort Manager 2",
+        managementCompany: "Test Management 2",
+        streetAddress: "2 Test Ave",
+        city: "Testburg",
+        state: "TS",
+        zip: "22222",
+        country: "USA",
+        numberOfLoungeUnits: 20,
+        topColour: "Red",
+        userPass: "Manager2Pass!",
       },
     ];
-    const hashedPartnerPassword = await hashPassword("partner123");
-    let validPartnerIds: string[] = [];
-    let testResortPartners: { [email: string]: string } = {};
-    for (const resort of testResorts) {
-      let partner = await prisma.partner.findFirst({ where: { companyName: resort.companyName } });
+    for (const p of testPartners) {
+      let partner = await prisma.partner.findFirst({ where: { companyName: p.companyName } });
       if (!partner) {
         partner = await prisma.partner.create({
           data: {
-            companyName: resort.companyName,
-            managementCompany: "Management Group 1",
-            streetAddress: "100 Beach Blvd",
-            city: "Miami",
-            state: "FL",
-            zip: "33100",
-            country: "USA",
-            numberOfLoungeUnits: 10,
-            topColour: "Classic Blue",
-            userEmail: resort.email,
-            userPass: "partner123",
-            latitude: 25.7617,
-            longitude: -80.1918,
+            companyName: p.companyName,
+            managementCompany: p.managementCompany,
+            streetAddress: p.streetAddress,
+            city: p.city,
+            state: p.state,
+            zip: p.zip,
+            country: p.country,
+            numberOfLoungeUnits: p.numberOfLoungeUnits,
+            topColour: p.topColour,
+            userPass: p.userPass,
           },
         });
       }
-      if (!partner || !partner.id) {
-        throw new Error(`❌ Could not create/find partner for ${resort.companyName}`);
-      }
-      validPartnerIds.push(partner.id);
-      testResortPartners[resort.email] = partner.id;
-      // Upsert user for this partner
-      let user = await prisma.user.upsert({
-        where: { email: resort.email },
-        update: {},
-        create: {
-          email: resort.email,
-          password: hashedPartnerPassword,
-          displayName: resort.displayName,
-          role: "PARTNER",
-          partnerId: partner.id,
-        },
-      });
-      if (!user || !user.id) {
-        throw new Error(`❌ Could not upsert user for ${resort.email}`);
-      }
-      console.log(
-        `✅ Upserted partner and user: ${resort.companyName} (${resort.email}) in ${dbFile}`,
-      );
     }
-    // Verify existence after upsert
-    for (const resort of testResorts) {
-      const partner = await prisma.partner.findFirst({
-        where: { companyName: resort.companyName },
-      });
-      const user = await prisma.user.findFirst({ where: { email: resort.email } });
-      if (!partner || !user) {
-        throw new Error(
-          `❌ Verification failed: ${resort.companyName} or user ${resort.email} missing after upsert in ${dbFile}.`,
-        );
-      }
-      console.log(
-        `✅ Verified: ${resort.companyName} and user ${resort.email} exist in DB ${dbFile}.`,
-      );
-    }
-    // Upsert support and admin users
-    const hashedSupportPassword = await hashPassword("support123");
-    const hashedAdminPassword = await hashPassword("admin123");
+
+    // Upsert support and admin users with test emails
     await prisma.user.upsert({
-      where: { email: "support@poolsafe.com" },
+      where: { email: SUPPORT_EMAIL },
       update: {},
       create: {
-        email: "support@poolsafe.com",
-        password: hashedSupportPassword,
+        email: SUPPORT_EMAIL,
         displayName: "Support Staff",
+        password: hashedSupportPassword,
         role: "SUPPORT",
       },
     });
     await prisma.user.upsert({
-      where: { email: "admin@poolsafe.com" },
+      where: { email: ADMIN_EMAIL },
       update: {},
       create: {
-        email: "admin@poolsafe.com",
-        password: hashedAdminPassword,
+        email: ADMIN_EMAIL,
         displayName: "Admin User",
+        password: hashedAdminPassword,
         role: "ADMIN",
       },
     });
+
+    // Upsert manager1 and manager2 for test partners
+    // Already handled above, do not redeclare partner1, partner2, partnerUserPassword
+
+    // Upsert all other actual partners and users (use dummy emails for privacy)
+    for (const p of actualPartners) {
+      // Skip test partners already handled above
+      if (testPartners.some((tp) => tp.companyName === p.company_name)) continue;
+      let partner = await prisma.partner.findFirst({ where: { companyName: p.company_name } });
+      let created = false;
+      if (!partner) {
+        partner = await prisma.partner.create({
+          data: {
+            companyName: p.company_name,
+            managementCompany: p.management_company,
+            streetAddress: p.street_address,
+            city: p.city,
+            state: p.state,
+            zip: p.zip,
+            country: p.country,
+            numberOfLoungeUnits: p.number_of_loungenie_units,
+            topColour: p.top_colour,
+            // Use env-driven default for company-level password to avoid hardcoding
+            userPass: DEFAULT_COMPANY_PASSWORD,
+          },
+        });
+        created = true;
+      }
+      if (!partner) throw new Error(`❌ Could not create/find partner for ${p.company_name}`);
+      // Upsert dummy partner user
+      await prisma.user.upsert({
+        where: { email: `${p.user_login}@dummy.com` },
+        update: { partnerId: partner.id },
+        create: {
+          email: `${p.user_login}@dummy.com`,
+          displayName: p.display_name,
+          password: partnerUserPassword,
+          role: "PARTNER",
+          partnerId: partner.id,
+        },
+      });
+      console.log(`${created ? "✅ Created" : "ℹ️  Ensured"} partner ${p.company_name}`);
+    }
+    // Upsert partner scoped user accounts expected by tests (manager1@testresort.com, manager2@testresort.com)
+    // These represent individual partner user accounts distinct from company-level login via companyName.
+    const partner1 = await prisma.partner.findFirst({ where: { companyName: "Test Resort 1" } });
+    const partner2 = await prisma.partner.findFirst({ where: { companyName: "Test Resort 2" } });
+    if (partner1) {
+      await prisma.user.upsert({
+        where: { email: "manager1@testresort.com" },
+        update: { partnerId: partner1.id },
+        create: {
+          email: "manager1@testresort.com",
+          password: partnerUserPassword,
+          displayName: "Manager 1",
+          role: "PARTNER",
+          partnerId: partner1.id,
+        },
+      });
+    }
+    if (partner2) {
+      await prisma.user.upsert({
+        where: { email: "manager2@testresort.com" },
+        update: { partnerId: partner2.id },
+        create: {
+          email: "manager2@testresort.com",
+          password: partnerUserPassword,
+          displayName: "Manager 2",
+          role: "PARTNER",
+          partnerId: partner2.id,
+        },
+      });
+    }
     // Print counts for debugging
     const partnerCount = await prisma.partner.count();
     const userCount = await prisma.user.count();
-    console.log(`DB ${dbFile}: Partner count = ${partnerCount}, User count = ${userCount}`);
+    console.log(`DB ${label}: Partner count = ${partnerCount}, User count = ${userCount}`);
   } catch (error) {
-    console.error(`❌ Error seeding database ${dbFile}:`, error);
+    console.error(`❌ Error seeding database ${label}:`, error);
     throw error;
   } finally {
     await prisma.$disconnect();
@@ -174,32 +304,48 @@ async function seedDb(dbFile: string, shouldReset: boolean = false) {
 }
 
 async function main() {
-  // Check if specific DB file was provided via command line
-  let targetDbFiles = dbFiles;
-  for (const arg of process.argv) {
-    if (arg.startsWith("--dbFile=")) {
-      const specifiedFile = arg.split("=")[1];
-      targetDbFiles = [specifiedFile];
-      break;
-    }
-  }
+  // Priority: explicit --dbUrl > SEED_DB_URL/DATABASE_URL > explicit --dbFile > default files
+  const envDbUrl = process.env.SEED_DB_URL || process.env.DATABASE_URL;
 
-  for (const dbFile of targetDbFiles) {
-    console.log(`\nSeeding ${dbFile}...`);
-    await seedDb(dbFile, resetFlag);
+  if (cliDbUrl || envDbUrl) {
+    const dbUrl = (cliDbUrl || envDbUrl)!;
+    const label = dbUrl.startsWith("file:") ? dbUrl.replace(/^file:\.\//, "") : "custom-url";
+    console.log(`\nSeeding single database via URL: ${dbUrl}`);
+    await seedDatabase(dbUrl, label, resetFlag);
+  } else {
+    const targetDbFiles = cliDbFile ? [cliDbFile] : dbFiles;
+    for (const dbFile of targetDbFiles) {
+      const databaseUrl = `file:./${dbFile}`;
+      console.log(`\nSeeding ${dbFile}...`);
+      await seedDatabase(databaseUrl, dbFile, resetFlag);
+    }
   }
 
   console.log("\n🎉 Large dataset seeding completed successfully!");
   if (resetFlag) {
     console.log("🧹 Database was reset and reseeded with fresh data.");
   }
-  console.log("\nTest Credentials:");
-  console.log("📧 Admin: admin@poolsafe.com / admin123");
-  console.log("📧 Support: support@poolsafe.com / support123");
-  console.log("📧 Partner: manager1@testresort.com / partner123");
+  console.log("\nTest/Seeded Credentials:");
+  console.log(
+    `📧 Admin: ${process.env.ADMIN_EMAIL_SEED || "admin@poolsafe.com"} / ${process.env.ADMIN_PASSWORD_SEED || "admin123"}`,
+  );
+  console.log(
+    `📧 Support: ${process.env.SUPPORT_EMAIL_SEED || "support@poolsafe.com"} / ${process.env.SUPPORT_PASSWORD_SEED || "LounGenie123!!"}`,
+  );
   console.log("🏨 Partner Company: Test Resort 1");
+  console.log(
+    `Partner test user: manager1@testresort.com / ${process.env.SEED_PARTNER_USER_PASSWORD || "PartnerUser123!!"}`,
+  );
+  if (process.env.SEED_COMPANY_DEFAULT_PASSWORD) {
+    console.log(`Company-level password default: ${process.env.SEED_COMPANY_DEFAULT_PASSWORD}`);
+  } else {
+    console.log("Company-level password default: [auto-generated per run]");
+  }
   console.log("ℹ️  Use --reset flag to clear and reseed database with fresh data.");
-  console.log("ℹ️  Use --dbFile=filename.db to seed a specific database file.");
+  console.log("ℹ️  Use --dbFile=filename.db to seed a specific SQLite database file.");
+  console.log(
+    "ℹ️  Use --dbUrl=connectionString to seed a specific database URL (e.g., Postgres). You must generate Prisma Client for the target provider.",
+  );
 }
 
 main().catch((e) => {

@@ -29,6 +29,16 @@ export const partnerCreateSchema = z.object({
   country: z.string().optional(),
   numberOfLoungeUnits: z.number().int().min(0).default(0),
   topColour: z.string().optional(),
+  lock: z
+    .string()
+    .refine((val) => !val || val === "MAKE" || val === "L&F", {
+      message: "Lock must be either 'MAKE' or 'L&F'",
+    })
+    .optional(),
+  masterCode: z.string().optional(),
+  subMasterCode: z.string().optional(),
+  lockPart: z.string().optional(),
+  key: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   userPass: z.string().optional(),
@@ -136,12 +146,11 @@ export const calendarEventListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1).optional(),
   pageSize: z.coerce.number().int().min(1).max(100).default(50).optional(),
 });
-
-// Knowledge Base list/search pagination (reuse where appropriate)
+z.string().optional();
 export const knowledgeBaseListQuerySchema = z.object({
   category: z.string().optional(),
   search: z.string().min(2).optional(),
-  published: z.enum(["true", "false", "all"]).optional(),
+  // ...existing code...
   page: z.coerce.number().int().min(1).default(1).optional(),
   pageSize: z.coerce.number().int().min(1).max(100).default(25).optional(),
 });
