@@ -29,7 +29,10 @@ class ErrorTracker {
   private reportEndpoint = "/api/errors";
 
   constructor() {
-    this.setupGlobalErrorHandlers();
+    // Only attach browser globals when window/document exist
+    if (typeof window !== "undefined" && typeof document !== "undefined") {
+      this.setupGlobalErrorHandlers();
+    }
   }
 
   private setupGlobalErrorHandlers() {
@@ -82,14 +85,17 @@ class ErrorTracker {
   }
 
   private setupNetworkErrorHandling() {
-    const originalFetch = window.fetch;
+    if (typeof window === "undefined" || typeof window.fetch !== "function") {
+      return;
+    }
+    const originalFetch = window.fetch.bind(window);
     window.fetch = async (...args) => {
       try {
-        const response = await originalFetch(...args);
+        const response = await originalFetch(...(args as Parameters<typeof fetch>));
         if (!response.ok) {
           this.logError(new Error(`Network error: ${response.status} ${response.statusText}`), {
             type: "network",
-            route: window.location.pathname,
+            route: typeof window !== "undefined" ? window.location.pathname : undefined,
             severity: response.status >= 500 ? "high" : "medium",
             metadata: {
               url: args[0],
@@ -102,7 +108,7 @@ class ErrorTracker {
       } catch (error) {
         this.logError(error as Error, {
           type: "network",
-          route: window.location.pathname,
+          route: typeof window !== "undefined" ? window.location.pathname : undefined,
           severity: "high",
           metadata: {
             url: args[0],
@@ -118,9 +124,9 @@ class ErrorTracker {
     const timestamp = new Date().toISOString();
 
     const enrichedContext: ErrorContext = {
-      userId: localStorage.getItem("userId"),
-      route: window.location.pathname,
-      userAgent: navigator.userAgent,
+      userId: typeof localStorage !== "undefined" ? localStorage.getItem("userId") : null,
+      route: typeof window !== "undefined" ? window.location.pathname : undefined,
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
       timestamp,
       ...context,
     };
@@ -156,7 +162,7 @@ class ErrorTracker {
     }
 
     // Send to backend (if online and not in development)
-    if (navigator.onLine && process.env.NODE_ENV === "production") {
+    if (typeof navigator !== "undefined" && navigator.onLine && process.env.NODE_ENV === "production") {
       this.sendErrorReport(this.errors.get(errorId)!);
     }
 
@@ -196,6 +202,7 @@ class ErrorTracker {
 
   private storeErrorLocally(errorReport: ErrorReport) {
     try {
+      if (typeof localStorage === "undefined") return;
       const stored = localStorage.getItem("errorReports");
       const reports = stored ? JSON.parse(stored) : {};
       reports[errorReport.id] = errorReport;
@@ -222,6 +229,7 @@ class ErrorTracker {
 
   public getStoredErrors(): ErrorReport[] {
     try {
+      if (typeof localStorage === "undefined") return [];
       const stored = localStorage.getItem("errorReports");
       return stored ? Object.values(JSON.parse(stored)) : [];
     } catch {

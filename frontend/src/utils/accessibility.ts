@@ -192,19 +192,26 @@ export class AccessibilityManager {
 
   // Page Change Announcements
   private announcePageChanges(): void {
-    if (typeof window === "undefined" || typeof MutationObserver === "undefined") return;
+    if (typeof window === "undefined" || typeof document === "undefined" || typeof MutationObserver === "undefined") return;
     // Announce route changes for SPAs
     let currentPath = window.location.pathname;
 
-    const observer = new MutationObserver(() => {
-      if (window.location.pathname !== currentPath) {
-        currentPath = window.location.pathname;
-        const title = document.title;
-        this.announce(`Navigated to ${title}`, "polite");
-      }
-    });
+    let observer: MutationObserver | null = null;
+    try {
+      observer = new MutationObserver(() => {
+        if (typeof window === "undefined" || typeof document === "undefined") return;
+        if (window.location.pathname !== currentPath) {
+          currentPath = window.location.pathname;
+          const title = document.title;
+          this.announce(`Navigated to ${title}`, "polite");
+        }
+      });
+    } catch {
+      // In some jsdom versions, MutationObserver may not behave as expected; skip announcements.
+      return;
+    }
 
-    if (typeof document !== "undefined" && document.body) {
+    if (observer && document.body) {
       observer.observe(document.body, { childList: true, subtree: true });
     }
   }
