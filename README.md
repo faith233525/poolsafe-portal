@@ -16,6 +16,11 @@ A comprehensive support portal for Pool Safe Inc partners with complete Activity
 - `cypress/` - E2E testing suite - **CONFIGURED**
 - `docs/` - Project documentation and specifications
 
+## 📚 Documentation
+
+- Test Plan: `docs/test-plan.md`
+- Deployment Plan: `docs/deployment-plan.md`
+
 ## ✅ System Status
 
 1. Backend
@@ -31,7 +36,7 @@ npx prisma generate
 npm run dev
 ```
 
-1. Frontend
+2. Frontend
 
 ```powershell
 cd frontend
@@ -47,7 +52,7 @@ cd frontend
 - Stop backend service before restoring.
 - Replace corrupted database file with backup copy.
 - Restart backend service and verify integrity.
-2. Frontend
+3. Frontend
 
 ### Migration/Seed Validation
 - After restore, run `prisma migrate deploy` and `npm run seed` to ensure schema and data integrity.
@@ -124,13 +129,14 @@ Contact: project owner or repo maintainer for credentials and Azure registration
 - If you see `jest is not defined`, ensure you use `vi.fn` for mocks (Vitest).
 - If you see `tickets.map is not a function`, make sure your fetch mocks for `/api/tickets` always return an array.
 - If you see CSS module import errors, ensure you have a `declaration.d.ts` file with:
-
+ 
   ```ts
   declare module "*.module.css" {
     const classes: { [key: string]: string };
     export default classes;
   }
   ```
+ 
 - If you see React version or act(...) warnings, update your test to wrap state updates in `act()` if needed.
 
 ### React & Test Library Versions
