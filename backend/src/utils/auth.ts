@@ -4,7 +4,7 @@ import { Request, Response, NextFunction } from "express";
 import { env } from "../lib/env";
 
 // JWT secret comes from centralized env loader (dev fallback allowed, prod required)
-const JWT_SECRET = env.JWT_SECRET as string;
+const JWT_SECRET: string = env.JWT_SECRET;
 
 export interface AuthenticatedRequest extends Request {
   user?: {

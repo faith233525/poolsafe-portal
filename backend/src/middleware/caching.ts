@@ -41,7 +41,7 @@ export const cacheConfig = {
 export const smartCache = (config: { ttl: number; keyPrefix: string; varyBy?: string[] }) => {
   return (req: CustomRequest, res: Response, next: NextFunction) => {
     // Build cache key based on URL, method, user, and optional vary parameters
-    let keyParts = [
+    const keyParts = [
       config.keyPrefix,
       req.method,
       req.originalUrl,
@@ -51,8 +51,14 @@ export const smartCache = (config: { ttl: number; keyPrefix: string; varyBy?: st
     // Add vary parameters if specified
     if (config.varyBy) {
       config.varyBy.forEach(param => {
-        if (req.query[param]) {
-          keyParts.push(`${param}:${req.query[param]}`);
+        const val = req.query[param];
+        if (val !== undefined) {
+          const str = Array.isArray(val)
+            ? val.map(v => (typeof v === 'string' ? v : JSON.stringify(v))).join(',')
+            : typeof val === 'object'
+              ? JSON.stringify(val)
+              : String(val);
+          keyParts.push(`${param}:${str}`);
         }
       });
     }
@@ -111,7 +117,7 @@ export const cacheInvalidation = {
 // Cache warming for frequently accessed data
 export const cacheWarmer = {
   // Warm up dashboard caches for active partners
-  warmDashboards: async (partnerIds: string[]) => {
+  warmDashboards: (partnerIds: string[]) => {
     logger.info('Starting dashboard cache warming', { count: partnerIds.length });
     
     for (const partnerId of partnerIds) {
@@ -135,7 +141,7 @@ export const cacheWarmer = {
   },
   
   // Warm up knowledge base cache
-  warmKnowledgeBase: async () => {
+  warmKnowledgeBase: () => {
     logger.info('Warming knowledge base cache');
     
     try {

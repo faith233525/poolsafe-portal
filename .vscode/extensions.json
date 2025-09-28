@@ -1,9 +1,14 @@
 {
   "recommendations": [
-    "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
-    "prisma.prisma",
+    "esbenp.prettier-vscode",
+    "Prisma.prisma",
     "github.copilot",
+    "eamodio.gitlens",
+    "EditorConfig.EditorConfig",
+    "rangav.vscode-thunder-client",
+    "ms-azuretools.vscode-docker",
+    "ms-vscode.vscode-typescript-next",
     "ms-kubernetes-tools.kind-vscode"
   ]
 }

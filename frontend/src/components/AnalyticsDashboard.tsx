@@ -208,7 +208,7 @@ const AnalyticsDashboard: React.FC = () => {
               <div className={styles.statIcon}>⚡</div>
             </div>
             <div className={styles.statCard}>
-              <h3>Today's Logins</h3>
+              <h3>Today&apos;s Logins</h3>
               <div className={styles.statValue}>{dashboardData.overview.todayLogins}</div>
               <div className={styles.statIcon}>👥</div>
             </div>

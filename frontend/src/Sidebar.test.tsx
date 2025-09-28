@@ -7,7 +7,8 @@ import "@testing-library/jest-dom";
 describe("Sidebar", () => {
   it("renders admin links", () => {
     render(<Sidebar role="admin" />);
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    // Sidebar renders buttons with labels
+    expect(screen.getByText("Analytics Dashboard")).toBeInTheDocument();
     expect(screen.getByText("Tickets")).toBeInTheDocument();
     expect(screen.getByText("Partners")).toBeInTheDocument();
     expect(screen.getByText("Knowledge Base")).toBeInTheDocument();
@@ -16,7 +17,7 @@ describe("Sidebar", () => {
 
   it("renders support links", () => {
     render(<Sidebar role="support" />);
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Analytics Dashboard")).toBeInTheDocument();
     expect(screen.getByText("Tickets")).toBeInTheDocument();
     expect(screen.getByText("Knowledge Base")).toBeInTheDocument();
     expect(screen.queryByText("Partners")).not.toBeInTheDocument();

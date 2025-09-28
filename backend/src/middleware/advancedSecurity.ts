@@ -32,7 +32,7 @@ export const apiKeyAuth = (req: Request, res: Response, next: NextFunction) => {
       userAgent: req.get('User-Agent'),
       url: req.url,
       method: req.method,
-      providedKey: apiKey.substring(0, 8) + '...' // Log partial key for debugging
+  providedKey: `${apiKey.substring(0, 8)}...` // Log partial key for debugging
     }, 'high');
     
     return res.status(401).json({ 

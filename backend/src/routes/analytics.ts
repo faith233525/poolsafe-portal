@@ -472,13 +472,23 @@ analyticsRouter.get("/activity-logs", requireSupport, async (req: AuthenticatedR
     const skip = (page - 1) * limit;
     
     const where: any = {};
-    if (action) where.action = action;
-    if (userRole) where.userRole = userRole;
-    if (success !== undefined) where.success = success;
+    if (action) {
+      where.action = action;
+    }
+    if (userRole) {
+      where.userRole = userRole;
+    }
+    if (success !== undefined) {
+      where.success = success;
+    }
     if (startDate || endDate) {
       where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
+      if (startDate) {
+        where.createdAt.gte = startDate;
+      }
+      if (endDate) {
+        where.createdAt.lte = endDate;
+      }
     }
 
     const [logs, total] = await Promise.all([

@@ -1,4 +1,4 @@
-# 🏊‍♂️ Pool Safe Inc Support Partner Portal 
+# 🏊‍♂️ Pool Safe Inc Support Partner Portal
 
 ## ✅ **PRODUCTION READY** - All Features Implemented
 
@@ -31,7 +31,7 @@ npx prisma generate
 npm run dev
 ```
 
-2. Frontend
+1. Frontend
 
 ```powershell
 cd frontend
@@ -69,8 +69,8 @@ npm install
 npm run dev
 ```
 
-- Backend: http://localhost:4000/api/health
-- Frontend: http://localhost:5173
+- Backend: <http://localhost:4000/api/health>
+- Frontend: <http://localhost:5173>
 
 Test endpoints:
 
@@ -124,6 +124,7 @@ Contact: project owner or repo maintainer for credentials and Azure registration
 - If you see `jest is not defined`, ensure you use `vi.fn` for mocks (Vitest).
 - If you see `tickets.map is not a function`, make sure your fetch mocks for `/api/tickets` always return an array.
 - If you see CSS module import errors, ensure you have a `declaration.d.ts` file with:
+
   ```ts
   declare module "*.module.css" {
     const classes: { [key: string]: string };
@@ -268,6 +269,17 @@ npx cypress run
 
 - For file upload tests, ensure `cypress-file-upload` is installed and imported in `cypress/support/e2e.ts`.
 - Download test artifacts (screenshots, videos) from `frontend/cypress/screenshots` and `frontend/cypress/videos` after test runs.
+
+#### Windows one-liner (smoke)
+
+If you only need the smoke test and want the runner to manage the server lifecycle, use the helper script:
+
+```powershell
+cd frontend\scripts
+./e2e-preview.ps1 -Port 5173 -TimeoutSeconds 60
+```
+
+This will build the frontend, start Vite preview bound to 127.0.0.1, wait until it's reachable, run `cypress/e2e/smoke.cy.js`, and clean up the server.
 
 ### Downloading Artifacts
 

@@ -28,6 +28,10 @@ export class AccessibilityManager {
   }
 
   private init(): void {
+    // In non-browser testing/SSR contexts, window/document may be undefined
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return;
+    }
     this.setupSkipLinks();
     this.setupFocusManagement();
     this.setupKeyboardNavigation();
@@ -135,9 +139,9 @@ export class AccessibilityManager {
 
   // Motion Preferences
   private setupMotionPreferences(): void {
-    const reducedMotion =
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
-      this.preferences.reducedMotion;
+    if (typeof window === "undefined") return;
+    const mq = typeof window.matchMedia === "function" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+    const reducedMotion = (mq?.matches ?? false) || this.preferences.reducedMotion;
 
     if (reducedMotion) {
       document.documentElement.classList.add("reduce-motion");
@@ -145,7 +149,7 @@ export class AccessibilityManager {
     }
 
     // Listen for system preference changes
-    window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", (e) => {
+    mq?.addEventListener?.("change", (e) => {
       if (e.matches) {
         document.documentElement.classList.add("reduce-motion");
         this.updatePreference("reducedMotion", true);
@@ -158,8 +162,9 @@ export class AccessibilityManager {
 
   // Contrast Preferences
   private setupContrastPreferences(): void {
-    const highContrast =
-      window.matchMedia("(prefers-contrast: high)").matches || this.preferences.highContrast;
+    if (typeof window === "undefined") return;
+    const mq = typeof window.matchMedia === "function" ? window.matchMedia("(prefers-contrast: high)") : null;
+    const highContrast = (mq?.matches ?? false) || this.preferences.highContrast;
 
     if (highContrast) {
       document.documentElement.classList.add("high-contrast");
@@ -167,7 +172,7 @@ export class AccessibilityManager {
     }
 
     // Listen for system preference changes
-    window.matchMedia("(prefers-contrast: high)").addEventListener("change", (e) => {
+    mq?.addEventListener?.("change", (e) => {
       if (e.matches) {
         document.documentElement.classList.add("high-contrast");
         this.updatePreference("highContrast", true);
@@ -187,6 +192,7 @@ export class AccessibilityManager {
 
   // Page Change Announcements
   private announcePageChanges(): void {
+    if (typeof window === "undefined" || typeof MutationObserver === "undefined") return;
     // Announce route changes for SPAs
     let currentPath = window.location.pathname;
 
@@ -198,13 +204,16 @@ export class AccessibilityManager {
       }
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+    if (typeof document !== "undefined" && document.body) {
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
   }
 
   // Public Methods
 
   // Announce to screen readers
   public announce(message: string, priority: "polite" | "assertive" = "polite"): void {
+    if (typeof document === "undefined") return;
     const regionId = priority === "assertive" ? "alert-region" : "live-region";
     const region = document.getElementById(regionId);
 
@@ -300,6 +309,7 @@ export class AccessibilityManager {
 
   // Add accessible loading state
   public setLoadingState(element: HTMLElement, loading: boolean, loadingText = "Loading..."): void {
+    if (typeof document === "undefined") return;
     if (loading) {
       element.setAttribute("aria-busy", "true");
       element.setAttribute("aria-describedby", "loading-description");
@@ -367,6 +377,15 @@ export class AccessibilityManager {
   // Private Helper Methods
 
   private loadPreferences(): AccessibilityPreferences {
+    if (typeof localStorage === "undefined") {
+      return {
+        reducedMotion: false,
+        highContrast: false,
+        screenReader: false,
+        largeText: false,
+        colorBlindness: null,
+      };
+    }
     const stored = localStorage.getItem("accessibility-preferences");
     return stored
       ? JSON.parse(stored)
@@ -380,6 +399,7 @@ export class AccessibilityManager {
   }
 
   private savePreferences(): void {
+    if (typeof localStorage === "undefined") return;
     localStorage.setItem("accessibility-preferences", JSON.stringify(this.preferences));
   }
 
@@ -504,10 +524,12 @@ export class AccessibilityManager {
 export const accessibilityManager = AccessibilityManager.getInstance();
 
 // Initialize accessibility features when DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      accessibilityManager.announce("Pool Safe Inc Portal loaded", "polite");
+    });
+  } else {
     accessibilityManager.announce("Pool Safe Inc Portal loaded", "polite");
-  });
-} else {
-  accessibilityManager.announce("Pool Safe Inc Portal loaded", "polite");
+  }
 }

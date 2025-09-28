@@ -8,10 +8,14 @@ const logFormat = winston.format.combine(
     format: 'YYYY-MM-DD HH:mm:ss'
   }),
   winston.format.errors({ stack: true }),
-  winston.format.printf(({ level, message, timestamp, stack, ...meta }) => {
+  winston.format.printf((info) => {
+    const { level, message, timestamp, stack, ...meta } = info as Record<string, unknown>;
     const metaString = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
-    const stackTrace = stack ? `\n${stack}` : '';
-    return `${timestamp} [${level.toUpperCase()}]: ${message}${stackTrace}${metaString ? `\n${metaString}` : ''}`;
+    const stackTrace = stack ? `\n${JSON.stringify(stack, null, 2)}` : '';
+    const safeMessage = typeof message === 'string' ? message : JSON.stringify(message);
+    const safeLevel = typeof level === 'string' ? level.toUpperCase() : JSON.stringify(level).toUpperCase();
+  const safeTimestamp = typeof timestamp === 'string' ? timestamp : JSON.stringify(timestamp ?? '');
+    return `${safeTimestamp} [${safeLevel}]: ${safeMessage}${stackTrace}${metaString ? `\n${metaString}` : ''}`;
   })
 );
 

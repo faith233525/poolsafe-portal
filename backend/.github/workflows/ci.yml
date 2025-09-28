@@ -1,10 +1,7 @@
-name: CI
+name: Backend CI (reusable)
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_call:
 
 jobs:
   build:

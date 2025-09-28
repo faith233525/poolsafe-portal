@@ -23,8 +23,12 @@ export class OptimizedQueries {
       const skip = (page - 1) * limit;
       const where: any = { partnerId };
       
-      if (status) where.status = status;
-      if (priority) where.priority = priority;
+      if (status) {
+        where.status = status;
+      }
+      if (priority) {
+        where.priority = priority;
+      }
 
       const [tickets, total] = await Promise.all([
         this.prisma.ticket.findMany({

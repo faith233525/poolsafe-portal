@@ -10,6 +10,11 @@ jobs:
   test:
     name: Test & Build
     runs-on: ubuntu-latest
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -77,8 +82,10 @@ jobs:
           working-directory: frontend
           install: false
           browser: chrome
-          start: npm run dev
+          build: npm run build
+          start: npm run preview -- --port 5173 --strictPort --host
           wait-on: "http://localhost:5173"
+          wait-on-timeout: 120000
         env:
           CI: true
 
@@ -103,8 +110,20 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
+      - name: Check deploy secrets
+        shell: bash
+        run: |
+          missing=()
+          [[ -z "${{ secrets.VPS_HOST }}" ]] && missing+=(VPS_HOST)
+          [[ -z "${{ secrets.VPS_USER }}" ]] && missing+=(VPS_USER)
+          [[ -z "${{ secrets.VPS_SSH_KEY }}" ]] && missing+=(VPS_SSH_KEY)
+          if [[ ${#missing[@]} -gt 0 ]]; then
+            echo "Missing secrets: ${missing[*]}"
+            exit 78 # neutral
+          fi
       - name: Deploy to VPS with Blue-Green Strategy
         uses: appleboy/ssh-action@v1.0.3
+        if: ${{ success() }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
@@ -112,13 +131,13 @@ jobs:
           script: |
             # Download enhanced deployment script if not exists
             if [[ ! -f /opt/deploy-blue-green.sh ]]; then
-              echo "📥 Downloading enhanced deployment script..."
+              echo "Downloading enhanced deployment script..."
               sudo curl -fsSL https://raw.githubusercontent.com/faith233525/Fatima-Pool-Safe-Inc-Portal-2025-Final-/main/deploy/deploy-blue-green.sh -o /opt/deploy-blue-green.sh
               sudo chmod +x /opt/deploy-blue-green.sh
             fi
 
             # Execute blue-green deployment
-            echo "� Starting blue-green deployment..."
+            echo "Starting blue-green deployment..."
             sudo /opt/deploy-blue-green.sh deploy
 
       - name: Deployment Status Check
@@ -133,7 +152,7 @@ jobs:
             sudo /opt/deploy-blue-green.sh status
 
             # Perform final health check
-            echo "� Performing comprehensive health check..."
+            echo "Performing comprehensive health check..."
             sudo /opt/deploy-blue-green.sh health
 
             # Check system resources
@@ -147,31 +166,30 @@ jobs:
     needs: [test, deploy]
     runs-on: ubuntu-latest
     if: always()
+    permissions:
+      contents: write
     steps:
       - name: Notify Success
         if: ${{ needs.deploy.result == 'success' }}
         run: |
-          echo "✅ Deployment completed successfully!"
-          echo "🌐 Application URL: https://${{ secrets.VPS_HOST }}"
-          echo "📊 Monitoring: https://${{ secrets.VPS_HOST }}/api/monitoring/dashboard"
+          echo "Deployment completed successfully!"
+          echo "See environment dashboard for details."
 
       - name: Notify Failure
         if: ${{ needs.deploy.result == 'failure' }}
         run: |
-          echo "❌ Deployment failed!"
-          echo "🔄 Automatic rollback should have been initiated"
-          echo "🔍 Check VPS logs for details"
+          echo "Deployment failed!"
+          echo "Automatic rollback should have been initiated"
+          echo "Check VPS logs for details"
 
-         - name: Email Alert on Failure
-           if: ${{ needs.deploy.result == 'failure' }}
-           run: |
-             echo "Deployment failed for commit ${{ github.sha }} on branch ${{ github.ref }}. Check Actions for details." | mail -s "Pool Safe Inc Portal CI/CD Failure" ${{ secrets.ALERT_EMAIL }}
-
-         - name: Email Alert on Failure
-           if: ${{ needs.deploy.result == 'failure' }}
-           uses: actions/github-script@v7
-           with:
-             script: |
-               const subject = 'Pool Safe Inc Portal CI/CD Failure';
-               const body = `Deployment failed for commit ${{ github.sha }} on branch ${{ github.ref }}.\nCheck Actions for details.`;
-               require('child_process').execSync(`echo "${body}" | mail -s "${subject}" ${{ secrets.ALERT_EMAIL }}`);
+      # Optional: create an issue on failure (requires repo write token)
+      - name: Open issue on failure
+        if: ${{ needs.deploy.result == 'failure' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const repo = context.repo;
+            const title = 'Deployment failed';
+            const body = `Deployment failed for commit ${context.sha} on ${context.ref}. Check Actions logs for details.`;
+            await github.rest.issues.create({ owner: repo.owner, repo: repo.repo, title, body });

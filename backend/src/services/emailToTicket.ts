@@ -71,7 +71,7 @@ export function startEmailToTicketService() {
           if (err || !results || results.length === 0) {return;}
           const fetch = imap.fetch(results, { bodies: "" });
           fetch.on("message", (msg: any) => {
-            msg.on("body", (stream: any) => {
+            msg.on("body", (_stream: any) => {
               // simpleParser(stream, async (err: any, parsed: any) => {
               //   if (err) {return;}
               //   await createTicketFromEmail({
