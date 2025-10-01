@@ -85,6 +85,23 @@ npm run dev
 - Backend: <http://localhost:4000/api/health>
 - Frontend: <http://localhost:5173>
 
+## Public Demo Portal (static HTML)
+
+The repository includes a self-contained demo/marketing portal at `frontend/public/loungenie-portal.html`:
+
+- Purpose: Showcase design, Training Videos, Partner Map, and staff sign-in without needing the React app.
+- Styling: Uses inline `<style>` within the HTML by design so the file can be dropped onto any static host with zero build steps.
+- Backend calls: By default, requests use same-origin relative paths. To point to a different backend domain, set a global before the script runs:
+
+  ```html
+  <script>
+    window.__API_BASE__ = "https://api.your-domain.com";
+  </script>
+  <script src="/public/loungenie-portal.html"><!-- your hosting will serve this file --></script>
+  ```
+
+If you prefer to keep CSS separate for maintainability, you can extract the inline styles into a dedicated CSS file and include it with a `<link>` tag. The current inline approach is intentional for portability.
+
 ### Test Endpoints
 
 ## Backend Environment Variables

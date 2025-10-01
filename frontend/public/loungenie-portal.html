@@ -6236,6 +6236,13 @@
         prompt: "select_account",
       };
 
+      // Configurable Backend API base:
+      // - Defaults to same-origin relative paths ("")
+      // - To target a different backend domain, set window.__API_BASE__ before this script runs
+      //   Example:
+      //   <script>window.__API_BASE__ = "https://api.your-domain.com";<\/script>
+      const API_BASE = (typeof window.__API_BASE__ === "string" ? window.__API_BASE__ : "").replace(/\/$/, "");
+
       // Initialize MSAL instance
       let msalInstance = null;
       if (typeof msal !== "undefined") {
@@ -6383,7 +6390,7 @@
       async function syncOutlookUserWithBackend(userInfo) {
         try {
           // Send user info to backend for validation/creation
-          const response = await fetch("http://localhost:4001/api/auth/outlook-sync", {
+          const response = await fetch(`${API_BASE}/api/auth/outlook-sync`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -6605,7 +6612,7 @@
       // Fetch real partner data from backend
       async function loadPartnerData() {
         try {
-          const response = await fetch("http://localhost:4001/api/partners");
+          const response = await fetch(`${API_BASE}/api/partners`);
           if (response.ok) {
             const partners = await response.json();
             partnerDatabase = partners.map((partner) => ({

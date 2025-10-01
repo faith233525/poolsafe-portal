@@ -36,6 +36,8 @@ import { attachResolvedPermissions } from "./middleware/accessControl";
 
 export function buildApp() {
   const app = express();
+  // Running behind reverse proxies (nginx, traefik) in most deployments
+  app.set("trust proxy", true);
   const allowed = config.cors.allowedOrigins;
   app.use(
     cors({
