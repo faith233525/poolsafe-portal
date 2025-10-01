@@ -11,7 +11,7 @@ describe("Response Utilities", () => {
       const result = buildPaginated(data, 1, 10, 25);
 
       expect(result).toEqual({
-        data: data,
+        data,
         page: 1,
         pageSize: 10,
         total: 25,

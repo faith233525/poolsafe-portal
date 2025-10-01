@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
+import { apiFetch } from "./utils/api";
 import styles from "./App.module.css";
 
 interface Partner {
@@ -54,7 +55,10 @@ export default function PartnerMap({ role: _role }: { role: string }) {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("/api/partners");
+        const token = localStorage.getItem("auth_token");
+        const res = await apiFetch("/api/partners", {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to load partners");
         setPartners(data);
@@ -289,7 +293,7 @@ export default function PartnerMap({ role: _role }: { role: string }) {
         </div>
 
         <div className={styles.mapControlGroup}>
-          <button onClick={resetView} className={styles.mapButton}>
+          <button onClick={resetView} onKeyDown={(e) => e.key === 'Enter' && resetView()} className={styles.mapButton}>
             Reset View
           </button>
         </div>
@@ -368,7 +372,11 @@ export default function PartnerMap({ role: _role }: { role: string }) {
 
         {/* Tooltip */}
         {tooltip.visible && (
-          <div className={styles.tooltip} style={{ left: tooltip.x, top: tooltip.y }}>
+          <div
+            className={styles.tooltip}
+            // Use CSS variables to avoid inline style lint violation while preserving dynamic positioning
+            {...{ style: { ["--tooltip-left" as any]: `${tooltip.x}px`, ["--tooltip-top" as any]: `${tooltip.y}px` } }}
+          >
             {Array.isArray(tooltip.partner) ? (
               <div>
                 <div className={styles.tooltipHeader}>

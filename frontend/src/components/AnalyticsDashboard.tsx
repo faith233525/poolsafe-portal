@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { apiFetch } from '../utils/api';
-import styles from './AnalyticsDashboard.module.css';
+import React, { useState, useEffect } from "react";
+import { apiFetch } from "../utils/api";
+import styles from "./AnalyticsDashboard.module.css";
 
 interface DashboardData {
   overview: {
@@ -54,7 +54,7 @@ const AnalyticsDashboard: React.FC = () => {
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'security'>('overview');
+  const [activeTab, setActiveTab] = useState<"overview" | "activity" | "security">("overview");
   const [timeRange, setTimeRange] = useState(30);
 
   useEffect(() => {
@@ -62,18 +62,18 @@ const AnalyticsDashboard: React.FC = () => {
   }, [timeRange]);
 
   const apiCall = async (url: string) => {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem("auth_token");
     const response = await apiFetch(url, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`API call failed: ${response.statusText}`);
     }
-    
+
     return response.json();
   };
 
@@ -82,45 +82,54 @@ const AnalyticsDashboard: React.FC = () => {
     try {
       const [dashboardResponse, activityResponse] = await Promise.all([
         apiCall(`/api/analytics/enhanced-dashboard?days=${timeRange}`),
-        apiCall('/api/analytics/activity-logs?limit=20'),
+        apiCall("/api/analytics/activity-logs?limit=20"),
       ]);
 
       setDashboardData(dashboardResponse);
       setActivityLogs(activityResponse.logs);
       setError(null);
     } catch (err) {
-      console.error('Failed to load dashboard data:', err);
-      setError('Failed to load dashboard data');
+      console.error("Failed to load dashboard data:", err);
+      setError("Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusClass = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'open': return '#ff6b6b';
-      case 'in_progress': return '#ffa726';
-      case 'resolved': return '#66bb6a';
-      case 'closed': return '#90a4ae';
-      default: return '#9e9e9e';
+      case "open":
+        return styles.statusOpen;
+      case "in_progress":
+        return styles.statusInProgress;
+      case "resolved":
+        return styles.statusResolved;
+      case "closed":
+        return styles.statusClosed;
+      default:
+        return styles.statusDefault;
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityClass = (priority: string) => {
     switch (priority.toLowerCase()) {
-      case 'high': return '#f44336';
-      case 'medium': return '#ff9800';
-      case 'low': return '#4caf50';
-      default: return '#9e9e9e';
+      case "high":
+        return styles.priorityHigh;
+      case "medium":
+        return styles.priorityMedium;
+      case "low":
+        return styles.priorityLow;
+      default:
+        return styles.priorityDefault;
     }
   };
 
@@ -150,68 +159,126 @@ const AnalyticsDashboard: React.FC = () => {
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1>Analytics Dashboard</h1>
-        <div className={styles.controls}>
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(Number(e.target.value))}
-            className={styles.timeRangeSelect}
-          >
-            <option value={7}>Last 7 days</option>
-            <option value={30}>Last 30 days</option>
-            <option value={90}>Last 90 days</option>
-            <option value={365}>Last year</option>
-          </select>
+    <div className="container space-y-8 fade-in">
+      {/* Modern Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="text-3xl">📊</div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+            <p className="text-muted">Comprehensive insights and performance metrics</p>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <label className="form-label text-sm">Time Range:</label>
+            <select
+              value={timeRange}
+              onChange={(e) => setTimeRange(Number(e.target.value))}
+              className="form-select"
+              title="Select time range for analytics"
+              aria-label="Time range selector"
+            >
+              <option value={7}>📅 Last 7 days</option>
+              <option value={30}>📅 Last 30 days</option>
+              <option value={90}>📅 Last 90 days</option>
+              <option value={365}>📅 Last year</option>
+            </select>
+          </div>
+
+          <button onClick={loadDashboardData} className="btn btn-secondary" disabled={loading}>
+            <span className="buttonContent">
+              <span>🔄</span>
+              Refresh
+            </span>
+          </button>
         </div>
       </div>
 
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${activeTab === 'overview' ? styles.active : ''}`}
-          onClick={() => setActiveTab('overview')}
-        >
-          Overview
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'activity' ? styles.active : ''}`}
-          onClick={() => setActiveTab('activity')}
-        >
-          Activity Logs
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'security' ? styles.active : ''}`}
-          onClick={() => setActiveTab('security')}
-        >
-          Security
-        </button>
+      {/* Modern Tabs */}
+      <div className="glass-panel">
+        <div className="flex space-x-1 p-1">
+          {[
+            { id: "overview", label: "📊 Overview", icon: "📊" },
+            { id: "activity", label: "📝 Activity Logs", icon: "📝" },
+            { id: "security", label: "🔒 Security", icon: "🔒" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              className={`flex-1 px-6 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                activeTab === tab.id
+                  ? "bg-gradient-to-r from-aqua to-blue-med text-white shadow-glow"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              }`}
+              onClick={() => setActiveTab(tab.id as any)}
+            >
+              <span className="buttonContent">
+                <span>{tab.icon}</span>
+                {tab.label.replace(tab.icon + " ", "")}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {activeTab === 'overview' && dashboardData && (
-        <div className={styles.overviewTab}>
-          {/* Overview Cards */}
-          <div className={styles.statsGrid}>
-            <div className={styles.statCard}>
-              <h3>Total Partners</h3>
-              <div className={styles.statValue}>{dashboardData.overview.totalPartners}</div>
-              <div className={styles.statIcon}>🏢</div>
-            </div>
-            <div className={styles.statCard}>
-              <h3>Total Tickets</h3>
-              <div className={styles.statValue}>{dashboardData.overview.totalTickets}</div>
-              <div className={styles.statIcon}>🎫</div>
-            </div>
-            <div className={styles.statCard}>
-              <h3>Active Tickets</h3>
-              <div className={styles.statValue}>{dashboardData.overview.activeTickets}</div>
-              <div className={styles.statIcon}>⚡</div>
-            </div>
-            <div className={styles.statCard}>
-              <h3>Today&apos;s Logins</h3>
-              <div className={styles.statValue}>{dashboardData.overview.todayLogins}</div>
-              <div className={styles.statIcon}>👥</div>
-            </div>
+      {activeTab === "overview" && dashboardData && (
+        <div className="space-y-8">
+          {/* Modern Overview Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                title: "Total Partners",
+                value: dashboardData.overview.totalPartners,
+                icon: "🏢",
+                gradient: "from-blue-500 to-blue-600",
+                bgColor: "bg-blue-50",
+                textColor: "text-blue-700",
+              },
+              {
+                title: "Total Tickets",
+                value: dashboardData.overview.totalTickets,
+                icon: "🎫",
+                gradient: "from-purple-500 to-purple-600",
+                bgColor: "bg-purple-50",
+                textColor: "text-purple-700",
+              },
+              {
+                title: "Active Tickets",
+                value: dashboardData.overview.activeTickets,
+                icon: "⚡",
+                gradient: "from-orange-500 to-orange-600",
+                bgColor: "bg-orange-50",
+                textColor: "text-orange-700",
+              },
+              {
+                title: "Today's Logins",
+                value: dashboardData.overview.todayLogins,
+                icon: "👥",
+                gradient: "from-green-500 to-green-600",
+                bgColor: "bg-green-50",
+                textColor: "text-green-700",
+              },
+            ].map((stat, index) => (
+              <div
+                key={stat.title}
+                className={`card hover:scale-105 transition-transform duration-200 ${stat.bgColor} border-0 slide-in ${styles[`slideIn${index * 100}`]}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                    <p className={`text-3xl font-bold ${stat.textColor}`}>
+                      {stat.value.toLocaleString()}
+                    </p>
+                  </div>
+                  <div
+                    className={`w-12 h-12 rounded-full bg-gradient-to-r ${stat.gradient} flex items-center justify-center text-white text-xl shadow-lg`}
+                  >
+                    {stat.icon}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Charts Row */}
@@ -223,10 +290,7 @@ const AnalyticsDashboard: React.FC = () => {
                 {dashboardData.ticketStats.byStatus.map((item) => (
                   <div key={item.status} className={styles.chartItem}>
                     <div className={styles.chartLabel}>
-                      <span
-                        className={styles.chartDot}
-                        style={{ backgroundColor: getStatusColor(item.status) }}
-                      ></span>
+                      <span className={`${styles.chartDot} ${getStatusClass(item.status)}`}></span>
                       {item.status}
                     </div>
                     <div className={styles.chartValue}>{item.count}</div>
@@ -243,8 +307,7 @@ const AnalyticsDashboard: React.FC = () => {
                   <div key={item.priority} className={styles.chartItem}>
                     <div className={styles.chartLabel}>
                       <span
-                        className={styles.chartDot}
-                        style={{ backgroundColor: getPriorityColor(item.priority) }}
+                        className={`${styles.chartDot} ${getPriorityClass(item.priority)}`}
                       ></span>
                       {item.priority}
                     </div>
@@ -271,18 +334,12 @@ const AnalyticsDashboard: React.FC = () => {
                   <span>{ticket.subject}</span>
                   <span>{ticket.partnerName}</span>
                   <span>
-                    <span
-                      className={styles.priority}
-                      style={{ backgroundColor: getPriorityColor(ticket.priority) }}
-                    >
+                    <span className={`${styles.priority} ${getPriorityClass(ticket.priority)}`}>
                       {ticket.priority}
                     </span>
                   </span>
                   <span>
-                    <span
-                      className={styles.status}
-                      style={{ backgroundColor: getStatusColor(ticket.status) }}
-                    >
+                    <span className={`${styles.status} ${getStatusClass(ticket.status)}`}>
                       {ticket.status}
                     </span>
                   </span>
@@ -294,7 +351,7 @@ const AnalyticsDashboard: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'activity' && (
+      {activeTab === "activity" && (
         <div className={styles.activityTab}>
           <div className={styles.activityHeader}>
             <h3>Recent Activity Logs</h3>
@@ -314,27 +371,31 @@ const AnalyticsDashboard: React.FC = () => {
             </div>
             {activityLogs.map((log) => (
               <div key={log.id} className={styles.tableRow}>
-                <span>{log.userEmail || 'System'}</span>
+                <span>{log.userEmail || "System"}</span>
                 <span>
-                  <span className={`${styles.role} ${styles[log.userRole?.toLowerCase() || 'unknown']}`}>
-                    {log.userRole || 'Unknown'}
+                  <span
+                    className={`${styles.role} ${styles[log.userRole?.toLowerCase() || "unknown"]}`}
+                  >
+                    {log.userRole || "Unknown"}
                   </span>
                 </span>
                 <span>{log.action}</span>
                 <span>
-                  <span className={`${styles.statusBadge} ${log.success ? styles.success : styles.failure}`}>
-                    {log.success ? '✓' : '✗'}
+                  <span
+                    className={`${styles.statusBadge} ${log.success ? styles.success : styles.failure}`}
+                  >
+                    {log.success ? "✓" : "✗"}
                   </span>
                 </span>
                 <span>{formatDate(log.createdAt)}</span>
-                <span className={styles.ipAddress}>{log.ipAddress || 'N/A'}</span>
+                <span className={styles.ipAddress}>{log.ipAddress || "N/A"}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {activeTab === 'security' && (
+      {activeTab === "security" && (
         <div className={styles.securityTab}>
           <div className={styles.securityAlert}>
             <h3>🔒 Security Monitoring</h3>
@@ -345,22 +406,28 @@ const AnalyticsDashboard: React.FC = () => {
             <div className={styles.metricCard}>
               <h4>Failed Login Attempts (24h)</h4>
               <div className={styles.metricValue}>
-                {activityLogs.filter(log => log.action === 'LOGIN' && !log.success).length}
+                {activityLogs.filter((log) => log.action === "LOGIN" && !log.success).length}
               </div>
             </div>
             <div className={styles.metricCard}>
               <h4>Unique IP Addresses</h4>
               <div className={styles.metricValue}>
-                {new Set(activityLogs.map(log => log.ipAddress).filter(Boolean)).size}
+                {new Set(activityLogs.map((log) => log.ipAddress).filter(Boolean)).size}
               </div>
             </div>
             <div className={styles.metricCard}>
               <h4>Active Users Today</h4>
               <div className={styles.metricValue}>
-                {new Set(activityLogs
-                  .filter(log => new Date(log.createdAt).toDateString() === new Date().toDateString())
-                  .map(log => log.userEmail)
-                ).size}
+                {
+                  new Set(
+                    activityLogs
+                      .filter(
+                        (log) =>
+                          new Date(log.createdAt).toDateString() === new Date().toDateString(),
+                      )
+                      .map((log) => log.userEmail),
+                  ).size
+                }
               </div>
             </div>
           </div>
@@ -375,14 +442,16 @@ const AnalyticsDashboard: React.FC = () => {
                 <span>Error</span>
               </div>
               {activityLogs
-                .filter(log => log.action === 'LOGIN' && !log.success)
+                .filter((log) => log.action === "LOGIN" && !log.success)
                 .slice(0, 10)
                 .map((log) => (
                   <div key={log.id} className={styles.tableRow}>
                     <span>{log.userEmail}</span>
                     <span className={styles.ipAddress}>{log.ipAddress}</span>
                     <span>{formatDate(log.createdAt)}</span>
-                    <span className={styles.errorMessage}>{log.errorMessage || 'Authentication failed'}</span>
+                    <span className={styles.errorMessage}>
+                      {log.errorMessage || "Authentication failed"}
+                    </span>
                   </div>
                 ))}
             </div>

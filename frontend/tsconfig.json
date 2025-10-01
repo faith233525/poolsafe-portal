@@ -12,9 +12,12 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "noEmit": false,
     "jsx": "react-jsx"
   },
   "include": ["src", "src/types"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "composite": true,
+  "declaration": true,
+  "declarationMap": true
 }

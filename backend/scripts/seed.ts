@@ -74,7 +74,7 @@ async function seedDatabase(databaseUrl: string, label: string, shouldReset: boo
       );
     }
 
-    // List of actual partners and users (ignore email)
+    // List of actual partners and users with location coordinates
     const actualPartners = [
       {
         user_login: "adventureland",
@@ -89,6 +89,8 @@ async function seedDatabase(databaseUrl: string, label: string, shouldReset: boo
         state: "IA",
         zip: "50009",
         country: "USA",
+        latitude: 41.637302,
+        longitude: -93.472463,
       },
       {
         user_login: "beechbend",
@@ -103,6 +105,8 @@ async function seedDatabase(databaseUrl: string, label: string, shouldReset: boo
         state: "KY",
         zip: "42101",
         country: "USA",
+        latitude: 36.944736,
+        longitude: -86.461282,
       },
       {
         user_login: "bigdamwaterpark",
@@ -117,6 +121,8 @@ async function seedDatabase(databaseUrl: string, label: string, shouldReset: boo
         state: "AR",
         zip: "71854",
         country: "USA",
+        latitude: 33.466667,
+        longitude: -94.037778,
       },
       {
         user_login: "breakwaterbeach",
@@ -131,8 +137,73 @@ async function seedDatabase(databaseUrl: string, label: string, shouldReset: boo
         state: "NJ",
         zip: "8751",
         country: "USA",
+        latitude: 39.944994,
+        longitude: -74.071956,
       },
-      // ... (add all other partners from the provided list)
+      {
+        user_login: "ritznewyork",
+        number: "2123089100",
+        display_name: "The Ritz-Carlton, New York Central Park",
+        top_colour: "Classic Blue",
+        company_name: "The Ritz-Carlton, New York Central Park",
+        management_company: "Marriott International",
+        number_of_loungenie_units: 25,
+        street_address: "50 Central Park S",
+        city: "New York",
+        state: "NY",
+        zip: "10019",
+        country: "USA",
+        latitude: 40.764046,
+        longitude: -73.979681,
+      },
+      {
+        user_login: "fourseasonmiami",
+        number: "3053583535",
+        display_name: "Four Seasons Hotel Miami",
+        top_colour: "Ice Blue",
+        company_name: "Four Seasons Hotel Miami",
+        management_company: "Four Seasons Hotels and Resorts",
+        number_of_loungenie_units: 20,
+        street_address: "1435 Brickell Ave",
+        city: "Miami",
+        state: "FL",
+        zip: "33131",
+        country: "USA",
+        latitude: 25.766228,
+        longitude: -80.190262,
+      },
+      {
+        user_login: "peninsulabh",
+        number: "3105512888",
+        display_name: "The Peninsula Beverly Hills",
+        top_colour: "Classic Blue",
+        company_name: "The Peninsula Beverly Hills",
+        management_company: "The Hongkong and Shanghai Hotels",
+        number_of_loungenie_units: 18,
+        street_address: "9882 S Santa Monica Blvd",
+        city: "Beverly Hills",
+        state: "CA",
+        zip: "90212",
+        country: "USA",
+        latitude: 34.067932,
+        longitude: -118.399408,
+      },
+      {
+        user_login: "stregischicago",
+        number: "3125735600",
+        display_name: "The St. Regis Chicago",
+        top_colour: "Ice Blue",
+        company_name: "The St. Regis Chicago",
+        management_company: "Marriott International",
+        number_of_loungenie_units: 22,
+        street_address: "401 E Wacker Dr",
+        city: "Chicago",
+        state: "IL",
+        zip: "60601",
+        country: "USA",
+        latitude: 41.89624,
+        longitude: -87.623177,
+      },
     ];
 
     // Upsert support and admin users
@@ -225,7 +296,9 @@ async function seedDatabase(databaseUrl: string, label: string, shouldReset: boo
     // Upsert all other actual partners and users (use dummy emails for privacy)
     for (const p of actualPartners) {
       // Skip test partners already handled above
-      if (testPartners.some((tp) => tp.companyName === p.company_name)) continue;
+      if (testPartners.some((tp) => tp.companyName === p.company_name)) {
+        continue;
+      }
       let partner = await prisma.partner.findFirst({ where: { companyName: p.company_name } });
       let created = false;
       if (!partner) {
@@ -240,13 +313,17 @@ async function seedDatabase(databaseUrl: string, label: string, shouldReset: boo
             country: p.country,
             numberOfLoungeUnits: p.number_of_loungenie_units,
             topColour: p.top_colour,
+            latitude: p.latitude,
+            longitude: p.longitude,
             // Use env-driven default for company-level password to avoid hardcoding
             userPass: DEFAULT_COMPANY_PASSWORD,
           },
         });
         created = true;
       }
-      if (!partner) throw new Error(`❌ Could not create/find partner for ${p.company_name}`);
+      if (!partner) {
+        throw new Error(`❌ Could not create/find partner for ${p.company_name}`);
+      }
       // Upsert dummy partner user
       await prisma.user.upsert({
         where: { email: `${p.user_login}@dummy.com` },

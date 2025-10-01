@@ -5,6 +5,11 @@ interface SidebarProps {
   role: "admin" | "support" | "partner";
   onNavigate?: (view: string) => void;
   activeView?: string;
+  user?: {
+    name?: string;
+    email?: string;
+    displayName?: string;
+  };
 }
 
 const navLinks: Record<SidebarProps["role"], { label: string; view: string; icon: string }[]> = {
@@ -38,19 +43,19 @@ const Sidebar: React.FC<SidebarProps> = ({ role, onNavigate, activeView }) => {
     <nav aria-label="Main navigation" className={styles.sidebar} role="navigation">
       <div className={styles.sidebarHeader}>
         <div className={styles.logo}>
-          <span className={styles.logoIcon}>🏊‍♂️</span>
-          <span className={styles.logoText}>Pool Safe</span>
+          <span className={styles.logoIcon}>🛋️</span>
+          <span className={styles.logoText}>LounGenie</span>
         </div>
         <div className={styles.sidebarTitle}>Navigation</div>
       </div>
-      
+
       <div className={styles.navSection}>
         <ul className={styles.navList}>
           {navLinks[role].map((link) => (
             <li key={link.view} className={styles.navItem}>
               <button
                 onClick={() => handleNavigation(link.view)}
-                className={`${styles.navLink} ${activeView === link.view ? styles.active : ''}`}
+                className={`${styles.navLink} ${activeView === link.view ? styles.active : ""}`}
                 type="button"
               >
                 <span className={styles.navIcon}>{link.icon}</span>
@@ -64,11 +69,9 @@ const Sidebar: React.FC<SidebarProps> = ({ role, onNavigate, activeView }) => {
       <div className={styles.sidebarFooter}>
         <div className={styles.roleIndicator}>
           <span className={styles.roleIcon}>
-            {role === 'admin' ? '👑' : role === 'support' ? '🎧' : '🏢'}
+            {role === "admin" ? "👑" : role === "support" ? "🎧" : "🏢"}
           </span>
-          <span className={styles.roleText}>
-            {role.charAt(0).toUpperCase() + role.slice(1)}
-          </span>
+          <span className={styles.roleText}>{role.charAt(0).toUpperCase() + role.slice(1)}</span>
         </div>
       </div>
     </nav>

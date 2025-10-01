@@ -33,6 +33,8 @@
   border: none;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.15);
+  -webkit-backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   color: #fff;
   font-size: 1rem;
@@ -57,6 +59,8 @@
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 0.5rem;
+  -webkit-backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 
@@ -101,8 +105,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error {
@@ -145,6 +153,8 @@
 
 .statCard {
   background: rgba(255, 255, 255, 0.15);
+  -webkit-backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   padding: 2rem;
@@ -194,6 +204,7 @@
 
 .chartCard {
   background: rgba(255, 255, 255, 0.15);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   padding: 1.5rem;
@@ -246,6 +257,7 @@
 /* Tables */
 .recentTickets {
   background: rgba(255, 255, 255, 0.15);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   padding: 1.5rem;
@@ -342,6 +354,7 @@
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 
@@ -352,6 +365,7 @@
 
 .activityTable {
   background: rgba(255, 255, 255, 0.15);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   overflow: hidden;
@@ -453,6 +467,7 @@
 
 .metricCard {
   background: rgba(255, 255, 255, 0.15);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-radius: 12px;
   padding: 1.5rem;
@@ -477,6 +492,7 @@
 
 .failedLogins {
   background: rgba(255, 255, 255, 0.15);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   padding: 1.5rem;
@@ -536,7 +552,7 @@
   }
 
   .tableHeader span:before {
-    content: attr(data-label) ': ';
+    content: attr(data-label) ": ";
     font-weight: 700;
     color: rgba(255, 255, 255, 0.8);
   }

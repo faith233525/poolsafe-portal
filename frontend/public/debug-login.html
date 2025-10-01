@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pool Safe Portal - Login Debug</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f0f0f0;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .test-section h3 {
+        margin-top: 0;
+        color: #2563eb;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 10px 5px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #1d4ed8;
+      }
+      .result {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 4px;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+      .success {
+        background: #d1fae5;
+        border: 1px solid #10b981;
+        color: #065f46;
+      }
+      .error {
+        background: #fee2e2;
+        border: 1px solid #ef4444;
+        color: #991b1b;
+      }
+      .info {
+        background: #dbeafe;
+        border: 1px solid #3b82f6;
+        color: #1e40af;
+      }
+      input {
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 200px;
+      }
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .app-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #059669;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔧 Pool Safe Portal Login Debug Tool</h1>
+      <p>This page will help us test if the frontend can communicate with the backend API.</p>
+
+      <!-- Connection Test -->
+      <div class="test-section">
+        <h3>Step 1: Test Backend Connection</h3>
+        <p>First, let's check if the backend API is reachable:</p>
+        <button onclick="testConnection()">Test Backend Health</button>
+        <div id="connection-result" class="result"></div>
+      </div>
+
+      <!-- API Endpoint Tests -->
+      <div class="test-section">
+        <h3>Step 2: Test Login APIs Directly</h3>
+
+        <h4>Partner Company Login:</h4>
+        <button onclick="testPartnerCompanyLogin()">Test Partner Login (Test Resort 1)</button>
+        <div id="partner-company-result" class="result"></div>
+
+        <h4>Individual User Login:</h4>
+        <button onclick="testIndividualLogin()">
+          Test Individual Login (manager1@testresort.com)
+        </button>
+        <div id="individual-result" class="result"></div>
+
+        <h4>Support Login:</h4>
+        <button onclick="testSupportLogin()">Test Support Login (support@poolsafe.com)</button>
+        <div id="support-result" class="result"></div>
+      </div>
+
+      <!-- Custom Test -->
+      <div class="test-section">
+        <h3>Step 3: Custom Login Test</h3>
+        <p>Try your own credentials:</p>
+        <div class="login-form">
+          <input type="text" id="custom-username" placeholder="Username/Email" />
+          <input type="password" id="custom-password" placeholder="Password" />
+          <div>
+            <button onclick="testCustomLogin('/api/auth/login')">Test Regular Login</button>
+            <button onclick="testCustomLogin('/api/auth/login/partner')">Test Partner Login</button>
+          </div>
+          <div id="custom-result" class="result"></div>
+        </div>
+      </div>
+
+      <!-- Frontend App Test -->
+      <div class="test-section">
+        <h3>Step 4: Frontend App Test</h3>
+        <p>If all tests above work, try the actual app:</p>
+        <a href="/" target="_blank" rel="noopener" class="app-button">Open Pool Safe Portal App</a>
+      </div>
+    </div>
+
+    <script>
+      function showResult(elementId, message, type = "info") {
+        const element = document.getElementById(elementId);
+        element.textContent = message;
+        element.className = `result ${type}`;
+      }
+
+      async function testConnection() {
+        showResult("connection-result", "Testing connection...", "info");
+        try {
+          const response = await fetch("/api/health");
+          const data = await response.json();
+
+          if (response.ok && data.ok) {
+            showResult(
+              "connection-result",
+              "✅ Backend connection successful!\nResponse: " + JSON.stringify(data, null, 2),
+              "success",
+            );
+          } else {
+            showResult(
+              "connection-result",
+              "❌ Backend responded but with error:\n" + JSON.stringify(data, null, 2),
+              "error",
+            );
+          }
+        } catch (error) {
+          showResult(
+            "connection-result",
+            "❌ Failed to connect to backend:\n" +
+              error.message +
+              "\n\nThis means the frontend and backend are not properly connected.",
+            "error",
+          );
+        }
+      }
+
+      async function testPartnerCompanyLogin() {
+        showResult("partner-company-result", "Testing partner company login...", "info");
+        try {
+          const response = await fetch("/api/auth/login/partner", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: "Test Resort 1",
+              password: "partner123",
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.token) {
+            showResult(
+              "partner-company-result",
+              "✅ Partner company login successful!\nToken received: " +
+                data.token.substring(0, 50) +
+                "...",
+              "success",
+            );
+          } else {
+            showResult(
+              "partner-company-result",
+              "❌ Partner company login failed:\n" + JSON.stringify(data, null, 2),
+              "error",
+            );
+          }
+        } catch (error) {
+          showResult("partner-company-result", "❌ Request failed:\n" + error.message, "error");
+        }
+      }
+
+      async function testIndividualLogin() {
+        showResult("individual-result", "Testing individual user login...", "info");
+        try {
+          const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: "manager1@testresort.com",
+              password: "PartnerUser123!!",
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.token) {
+            showResult(
+              "individual-result",
+              "✅ Individual user login successful!\nToken received: " +
+                data.token.substring(0, 50) +
+                "...",
+              "success",
+            );
+          } else {
+            showResult(
+              "individual-result",
+              "❌ Individual user login failed:\n" + JSON.stringify(data, null, 2),
+              "error",
+            );
+          }
+        } catch (error) {
+          showResult("individual-result", "❌ Request failed:\n" + error.message, "error");
+        }
+      }
+
+      async function testSupportLogin() {
+        showResult("support-result", "Testing support user login...", "info");
+        try {
+          const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: "support@poolsafe.com",
+              password: "LounGenie123!!",
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.token) {
+            showResult(
+              "support-result",
+              "✅ Support user login successful!\nToken received: " +
+                data.token.substring(0, 50) +
+                "...",
+              "success",
+            );
+          } else {
+            showResult(
+              "support-result",
+              "❌ Support user login failed:\n" + JSON.stringify(data, null, 2),
+              "error",
+            );
+          }
+        } catch (error) {
+          showResult("support-result", "❌ Request failed:\n" + error.message, "error");
+        }
+      }
+
+      async function testCustomLogin(endpoint) {
+        const username = document.getElementById("custom-username").value;
+        const password = document.getElementById("custom-password").value;
+
+        if (!username || !password) {
+          showResult("custom-result", "❌ Please enter both username and password", "error");
+          return;
+        }
+
+        showResult("custom-result", `Testing custom login at ${endpoint}...`, "info");
+
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.token) {
+            showResult(
+              "custom-result",
+              "✅ Custom login successful!\nToken received: " +
+                data.token.substring(0, 50) +
+                "...\nEndpoint: " +
+                endpoint,
+              "success",
+            );
+          } else {
+            showResult(
+              "custom-result",
+              "❌ Custom login failed:\nEndpoint: " +
+                endpoint +
+                "\nResponse: " +
+                JSON.stringify(data, null, 2),
+              "error",
+            );
+          }
+        } catch (error) {
+          showResult(
+            "custom-result",
+            "❌ Request failed:\nEndpoint: " + endpoint + "\nError: " + error.message,
+            "error",
+          );
+        }
+      }
+
+      // Auto-run connection test when page loads
+      window.addEventListener("load", testConnection);
+    </script>
+  </body>
+</html>

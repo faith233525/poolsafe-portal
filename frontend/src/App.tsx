@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./theme.css";
 import styles from "./App.module.css";
 import Login from "./Login";
 import TicketForm from "./TicketForm";
@@ -97,17 +98,17 @@ function App() {
             pauseOnHover
             aria-label="Notification messages"
           />
-          <Header 
-            user={user} 
+          <Header
+            user={user}
             onLogout={handleLogout}
             onAccessibilitySettings={() => setShowAccessibilitySettings(true)}
           />
-          
+
           <div className={styles.mainContent}>
             {/* Sidebar navigation for all roles */}
             {user.role && (
-              <Sidebar 
-                role={user.role.toLowerCase() as "admin" | "support" | "partner"} 
+              <Sidebar
+                role={user.role.toLowerCase() as "admin" | "support" | "partner"}
                 onNavigate={setActiveView}
                 activeView={activeView}
               />

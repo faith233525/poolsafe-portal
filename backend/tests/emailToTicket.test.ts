@@ -20,7 +20,7 @@ describe("createTicketFromEmail", () => {
     });
 
     // Mock the prisma used by the service to point to our isolated client
-    await vi.doMock("../src/prismaClient", async () => ({
+    vi.doMock("../src/prismaClient", () => ({
       prisma,
       getPrismaClient: () => prisma,
     }));

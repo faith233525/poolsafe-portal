@@ -71,7 +71,7 @@ describe("Monitoring Middleware", () => {
       expect(mockNext).toHaveBeenCalledTimes(1);
     });
 
-    it("should track request performance", async () => {
+    it("should track request performance", () => {
       performanceMonitor(mockReq as Request, mockRes as Response, mockNext);
 
       // Simulate response ending
@@ -210,9 +210,9 @@ describe("Monitoring Middleware", () => {
     it("should handle missing alert ID", async () => {
       mockReq.params = { alertId: undefined };
 
-      let statusCode = 200;
+      let _statusCode = 200;
       mockRes.status = vi.fn().mockImplementation((code) => {
-        statusCode = code;
+        _statusCode = code;
         return {
           json: vi.fn(),
         };
@@ -226,9 +226,9 @@ describe("Monitoring Middleware", () => {
     it("should resolve alerts successfully", async () => {
       mockReq.params = { id: "test-alert-id" };
 
-      let capturedResponse: any = {};
+      let _capturedResponse: any = {};
       mockRes.json = vi.fn().mockImplementation((data) => {
-        capturedResponse = data;
+        _capturedResponse = data;
         return mockRes;
       });
 
@@ -246,7 +246,7 @@ describe("Monitoring Middleware", () => {
 
       // Simulate response end
       if (mockRes.end) {
-        (mockRes.end as any)();
+        mockRes.end();
       }
 
       expect(mockNext).toHaveBeenCalledTimes(1);
@@ -261,9 +261,9 @@ describe("Monitoring Middleware", () => {
         arrayBuffers: 25000000,
       });
 
-      let capturedResponse: any = {};
+      let _capturedResponse2: any = {};
       mockRes.json = vi.fn().mockImplementation((data) => {
-        capturedResponse = data;
+        _capturedResponse2 = data;
         return mockRes;
       });
 

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Pool Safe Portal Login</title>
+</head>
+<body>
+    <h1>Test Pool Safe Portal APIs</h1>
+    
+    <h2>Health Check</h2>
+    <button onclick="testHealth()">Test Health</button>
+    <div id="health-result"></div>
+    
+    <h2>Partner Login</h2>
+    <button onclick="testPartnerLogin()">Test Partner Login</button>
+    <div id="partner-result"></div>
+    
+    <h2>User Login</h2>
+    <button onclick="testUserLogin()">Test Admin Login</button>
+    <div id="user-result"></div>
+
+    <script>
+        async function testHealth() {
+            try {
+                const response = await fetch('http://localhost:4000/api/health');
+                const result = await response.json();
+                document.getElementById('health-result').innerHTML = 'Success: ' + JSON.stringify(result);
+            } catch (error) {
+                document.getElementById('health-result').innerHTML = 'Error: ' + error.message;
+            }
+        }
+        
+        async function testPartnerLogin() {
+            try {
+                const response = await fetch('http://localhost:4000/api/auth/login/partner', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'Test Resort 1', password: 'partner123' })
+                });
+                const result = await response.json();
+                document.getElementById('partner-result').innerHTML = 'Success: ' + JSON.stringify(result);
+            } catch (error) {
+                document.getElementById('partner-result').innerHTML = 'Error: ' + error.message;
+            }
+        }
+        
+        async function testUserLogin() {
+            try {
+                const response = await fetch('http://localhost:4000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'admin@poolsafe.com', password: 'admin123' })
+                });
+                const result = await response.json();
+                document.getElementById('user-result').innerHTML = 'Success: ' + JSON.stringify(result);
+            } catch (error) {
+                document.getElementById('user-result').innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

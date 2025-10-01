@@ -33,15 +33,15 @@ Out of scope:
   - Branches ≥ 85% (stretch 95%)
 - Commands (PowerShell):
 
-    ```powershell
-    cd backend
-    npm install
-    npx prisma generate
-    npm run lint
-    npm run typecheck
-    npm test
-    npm run build
-    ```
+  ```powershell
+  cd backend
+  npm install
+  npx prisma generate
+  npm run lint
+  npm run typecheck
+  npm test
+  npm run build
+  ```
 
 ### 2) Frontend Unit (Vitest + Testing Library)
 
@@ -49,14 +49,14 @@ Out of scope:
 - Notes: JSDOM logs network errors for relative fetch URLs; tests should mock fetch where relevant.
 - Commands (PowerShell):
 
-    ```powershell
-    cd frontend
-    npm install
-    npm run lint
-    npm run typecheck
-    npm test
-    npm run build
-    ```
+  ```powershell
+  cd frontend
+  npm install
+  npm run lint
+  npm run typecheck
+  npm test
+  npm run build
+  ```
 
 ### 3) E2E (Cypress)
 
@@ -65,9 +65,9 @@ Out of scope:
 - Expansion: login (mock), navigate to Analytics Dashboard, create ticket (stubbed API).
 - Command (PowerShell):
 
-    ```powershell
-    powershell -ExecutionPolicy Bypass -File frontend/scripts/e2e-preview.ps1
-    ```
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File frontend/scripts/e2e-preview.ps1
+  ```
 
 ## Environments
 

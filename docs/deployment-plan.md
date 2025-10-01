@@ -89,9 +89,9 @@ sudo /opt/deploy-blue-green.sh switch
 
 ## Runbook (Short)
 
-1) Confirm CI green on main.
-2) Ensure backups exist.
-3) Deploy (CI or manual).
-4) Validate health and basic flows.
-5) Switch traffic and monitor.
-6) If issues, rollback immediately and investigate.
+1. Confirm CI green on main.
+2. Ensure backups exist.
+3. Deploy (CI or manual).
+4. Validate health and basic flows.
+5. Switch traffic and monitor.
+6. If issues, rollback immediately and investigate.

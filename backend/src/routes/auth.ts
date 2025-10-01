@@ -1,4 +1,5 @@
 import { Router } from "express";
+import jwt from "jsonwebtoken";
 import { authLoginLimiter, partnerRegisterLimiter } from "../middleware/rateLimiters";
 import { getPrismaClient } from "../prismaClient";
 import {
@@ -11,6 +12,8 @@ import {
 import { msalInstance, ssoConfig, createGraphClient, isAzureADConfigured } from "../lib/azureAD";
 import { env } from "../lib/env";
 import { ActivityLogger } from "../services/activityLogger";
+
+const prisma = getPrismaClient();
 
 export const authRouter = Router();
 
@@ -45,7 +48,13 @@ authRouter.post("/login", authLoginLimiter, async (req, res) => {
 
     if (!user?.password) {
       // Log failed login attempt
-      await ActivityLogger.logLogin(username.toLowerCase(), 'UNKNOWN', false, req, "User not found or no password");
+      await ActivityLogger.logLogin(
+        username.toLowerCase(),
+        "UNKNOWN",
+        false,
+        req,
+        "User not found or no password",
+      );
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
@@ -53,7 +62,13 @@ authRouter.post("/login", authLoginLimiter, async (req, res) => {
     const isValidPassword = await comparePassword(password, user.password);
     if (!isValidPassword) {
       // Log failed login attempt
-      await ActivityLogger.logLogin(username.toLowerCase(), user.role, false, req, "Invalid password");
+      await ActivityLogger.logLogin(
+        username.toLowerCase(),
+        user.role,
+        false,
+        req,
+        "Invalid password",
+      );
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
@@ -99,7 +114,13 @@ authRouter.post("/login/partner", authLoginLimiter, async (req, res) => {
 
     if (!partner?.userPass) {
       // Log failed login attempt
-      await ActivityLogger.logLogin(username, 'PARTNER', false, req, "Partner not found or no password");
+      await ActivityLogger.logLogin(
+        username,
+        "PARTNER",
+        false,
+        req,
+        "Partner not found or no password",
+      );
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
@@ -107,12 +128,12 @@ authRouter.post("/login/partner", authLoginLimiter, async (req, res) => {
     // since partners use plain text passwords in the system
     if (password !== partner.userPass) {
       // Log failed login attempt
-      await ActivityLogger.logLogin(username, 'PARTNER', false, req, "Invalid password");
+      await ActivityLogger.logLogin(username, "PARTNER", false, req, "Invalid password");
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
     // Log successful partner login
-    await ActivityLogger.logLogin(partner.companyName, 'PARTNER', true, req);
+    await ActivityLogger.logLogin(partner.companyName, "PARTNER", true, req);
 
     // Generate token for partner
     const token = generateToken(partner.id, partner.companyName, "PARTNER", partner.id);
@@ -516,7 +537,11 @@ authRouter.get("/sso/callback", async (req, res) => {
       return res.status(503).json({ error: "Microsoft Graph client not available" });
     }
 
-    const userProfile = await graphClient.api("/me").get();
+    const userProfile = (await graphClient.api("/me").get()) as {
+      mail?: string;
+      userPrincipalName?: string;
+      displayName?: string;
+    };
 
     const email = userProfile.mail || userProfile.userPrincipalName;
     if (!email) {
@@ -566,4 +591,86 @@ authRouter.get("/sso/status", (req, res) => {
     enabled: isAzureADConfigured(),
     loginUrl: isAzureADConfigured() ? "/api/auth/sso/login" : null,
   });
+});
+
+// Handle Outlook user sync from frontend
+authRouter.post("/outlook-sync", async (req, res) => {
+  try {
+    const { email, name } = req.body;
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Missing or invalid authorization header" });
+    }
+
+    if (!email || !name) {
+      return res.status(400).json({ error: "Email and name are required" });
+    }
+
+    // Determine user role based on email
+    const adminEmails = [
+      "admin@poolsafeinc.com",
+      "fatima@poolsafeinc.com",
+      "support@poolsafeinc.com",
+    ];
+
+    const role =
+      adminEmails.includes(email.toLowerCase()) || email.toLowerCase().endsWith("@poolsafeinc.com")
+        ? "admin"
+        : "support";
+
+    // Check if user exists or create new user
+    let user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (!user) {
+      // Create new user with Outlook authentication
+      user = await prisma.user.create({
+        data: {
+          email: email.toLowerCase(),
+          displayName: name,
+          role: role.toUpperCase(), // Prisma expects uppercase role
+          password: null, // No password for SSO users
+        },
+      });
+    } else {
+      // Update existing user's display name if provided
+      if (name && user.displayName !== name) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            displayName: name, // Update display name in case it changed
+          },
+        });
+      }
+    }
+
+    // Generate JWT token for the user
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        authMethod: "outlook",
+      },
+      env.JWT_SECRET,
+      { expiresIn: "24h" },
+    );
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.displayName,
+        role: user.role,
+        authMethod: "outlook",
+      },
+      token,
+    });
+  } catch (error) {
+    console.error("Outlook user sync error:", error);
+    res.status(500).json({ error: "Failed to sync Outlook user" });
+  }
 });

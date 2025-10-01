@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pool Safe Portal - Main Dashboard Demo</title>
+    <style>
+      /* Pool Safe Brand Colors */
+      :root {
+        --color-aqua: #00b5cc;
+        --color-aqua-light: #33c5d4;
+        --color-aqua-dark: #00a0b8;
+        --color-blue-med: #005a8d;
+        --color-blue-light: #1e7ba8;
+        --color-blue-dark: #002b4c;
+        --color-gray-50: #f9fafb;
+        --color-gray-100: #f3f4f6;
+        --color-gray-200: #e5e7eb;
+        --color-gray-300: #d1d5db;
+        --color-gray-400: #9ca3af;
+        --color-gray-500: #6b7280;
+        --color-gray-600: #4b5563;
+        --color-gray-700: #374151;
+        --color-gray-800: #1f2937;
+        --color-gray-900: #111827;
+        --color-white: #ffffff;
+
+        --gradient-primary: linear-gradient(
+          135deg,
+          var(--color-blue-dark) 0%,
+          var(--color-blue-med) 50%,
+          var(--color-aqua) 100%
+        );
+        --gradient-secondary: linear-gradient(
+          135deg,
+          var(--color-aqua) 0%,
+          var(--color-blue-med) 100%
+        );
+        --gradient-glass: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.1) 0%,
+          rgba(255, 255, 255, 0.05) 100%
+        );
+
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+        --radius-2xl: 32px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--color-blue-dark) 0%,
+          var(--color-blue-med) 40%,
+          var(--color-aqua) 100%
+        );
+        min-height: 100vh;
+        color: var(--color-gray-900);
+      }
+
+      .portal-container {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* Modern Sidebar */
+      .sidebar {
+        width: 280px;
+        background: linear-gradient(145deg, var(--color-blue-dark) 0%, rgba(0, 43, 76, 0.95) 100%);
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(0, 181, 204, 0.3);
+        padding: 24px;
+        box-shadow: var(--shadow-lg);
+        color: white;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .logo-icon {
+        font-size: 2rem;
+        background: var(--gradient-secondary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .logo-text {
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: var(--radius-lg);
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        margin-bottom: 8px;
+        transition: all 0.2s ease;
+        font-weight: 500;
+      }
+
+      .nav-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        transform: translateX(4px);
+      }
+
+      .nav-item.active {
+        background: linear-gradient(135deg, var(--color-aqua) 0%, var(--color-blue-med) 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(0, 181, 204, 0.3);
+        transform: translateX(6px);
+      }
+
+      /* Main Content */
+      .main-content {
+        flex: 1;
+        padding: 24px;
+        overflow-y: auto;
+      }
+
+      /* Modern Header */
+      .header {
+        background: linear-gradient(135deg, var(--color-blue-dark) 0%, rgba(0, 43, 76, 0.95) 100%);
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
+        padding: 16px 24px;
+        border-radius: var(--radius-xl);
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(0, 181, 204, 0.3);
+      }
+
+      .header h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 8px 16px;
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+      }
+
+      .user-name {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: white;
+      }
+
+      .user-company {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--gradient-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+      }
+
+      /* Dashboard Cards */
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.95);
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
+        border-radius: var(--radius-xl);
+        padding: 24px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0, 43, 76, 0.15);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-lg);
+        background: linear-gradient(135deg, var(--color-blue-dark) 0%, var(--color-blue-med) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 43, 76, 0.3);
+      }
+
+      .card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-gray-900);
+      }
+
+      .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 8px;
+      }
+
+      .stat-label {
+        color: var(--color-gray-600);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+
+      /* Recent Activity */
+      .activity-feed {
+        background: rgba(255, 255, 255, 0.95);
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
+        border-radius: var(--radius-xl);
+        padding: 24px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .activity-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--color-gray-200);
+      }
+
+      .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 12px;
+        background: var(--gradient-glass);
+        transition: all 0.2s ease;
+      }
+
+      .activity-item:hover {
+        background: rgba(0, 181, 204, 0.05);
+        transform: translateX(4px);
+      }
+
+      .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--color-blue-dark) 0%, var(--color-blue-med) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        box-shadow: 0 3px 8px rgba(0, 43, 76, 0.3);
+      }
+
+      .activity-content h4 {
+        font-weight: 600;
+        color: var(--color-gray-900);
+        margin-bottom: 4px;
+      }
+
+      .activity-content p {
+        color: var(--color-gray-600);
+        font-size: 0.875rem;
+      }
+
+      .activity-time {
+        color: var(--color-gray-500);
+        font-size: 0.75rem;
+        margin-left: auto;
+      }
+
+      /* Status Badges */
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 12px;
+        border-radius: var(--radius-lg);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .status-open {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #92400e;
+      }
+
+      .status-closed {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #166534;
+      }
+
+      .status-urgent {
+        background: linear-gradient(135deg, #fecaca, #fca5a5);
+        color: #991b1b;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .portal-container {
+          flex-direction: column;
+        }
+
+        .sidebar {
+          width: 100%;
+          padding: 16px;
+        }
+
+        .main-content {
+          padding: 16px;
+        }
+
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .demo-banner {
+        background: linear-gradient(135deg, var(--color-blue-dark) 0%, var(--color-blue-med) 100%);
+        color: white;
+        padding: 12px 24px;
+        text-align: center;
+        font-weight: 600;
+        box-shadow: var(--shadow-md);
+        border-bottom: 2px solid var(--color-aqua);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-banner">🚀 Loun Genie Portal - Main Dashboard Preview (Demo Mode)</div>
+    <div class="portal-container">
+      <!-- Sidebar -->
+      <nav class="sidebar">
+        <div class="logo">
+          <span class="logo-icon">🛋️</span>
+          <span class="logo-text">Loun Genie</span>
+        </div>
+
+        <a href="#" class="nav-item active"> <span>📊</span> Dashboard </a>
+        <a href="#" class="nav-item"> <span>🎫</span> Support Tickets </a>
+        <a href="#" class="nav-item"> <span>📚</span> Knowledge Base </a>
+        <a href="#" class="nav-item"> <span>📈</span> Analytics </a>
+        <a href="#" class="nav-item"> <span>👥</span> Partners </a>
+        <a href="#" class="nav-item"> <span>🔧</span> Settings </a>
+        <a href="#" class="nav-item"> <span>💬</span> Feedback </a>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+          <h1>Welcome to Loun Genie Portal</h1>
+          <div class="user-info">
+            <div class="avatar">JP</div>
+            <div>
+              <div class="user-name">John Partner</div>
+              <div class="user-company">Comfort Solutions Inc</div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dashboard Cards -->
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">🎫</div>
+              <h3 class="card-title">Open Tickets</h3>
+            </div>
+            <div class="stat-number">8</div>
+            <div class="stat-label">Active Support Requests</div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">✅</div>
+              <h3 class="card-title">Resolved This Month</h3>
+            </div>
+            <div class="stat-number">24</div>
+            <div class="stat-label">Successfully Closed</div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">⚡</div>
+              <h3 class="card-title">Avg Response Time</h3>
+            </div>
+            <div class="stat-number">2.4</div>
+            <div class="stat-label">Hours</div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">📈</div>
+              <h3 class="card-title">Satisfaction Score</h3>
+            </div>
+            <div class="stat-number">4.8</div>
+            <div class="stat-label">Out of 5.0</div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="activity-feed">
+          <div class="activity-header">
+            <div class="card-icon">📋</div>
+            <h3 class="card-title">Recent Activity</h3>
+          </div>
+
+          <div class="activity-item">
+            <div class="activity-icon">🎫</div>
+            <div class="activity-content">
+              <h4>New Support Ticket Created</h4>
+              <p>Loun Genie recliner mechanism not responding - needs inspection</p>
+            </div>
+            <span class="status-badge status-open">Open</span>
+            <div class="activity-time">2 min ago</div>
+          </div>
+
+          <div class="activity-item">
+            <div class="activity-icon">✅</div>
+            <div class="activity-content">
+              <h4>Ticket Resolved</h4>
+              <p>Chemical balance issue resolved successfully</p>
+            </div>
+            <span class="status-badge status-closed">Closed</span>
+            <div class="activity-time">1 hour ago</div>
+          </div>
+
+          <div class="activity-item">
+            <div class="activity-icon">🚨</div>
+            <div class="activity-content">
+              <h4>Urgent Equipment Alert</h4>
+              <p>Pool heater malfunction detected at Blue Resort</p>
+            </div>
+            <span class="status-badge status-urgent">Urgent</span>
+            <div class="activity-time">3 hours ago</div>
+          </div>
+
+          <div class="activity-item">
+            <div class="activity-icon">📚</div>
+            <div class="activity-content">
+              <h4>Knowledge Base Updated</h4>
+              <p>New maintenance guides added for winter preparation</p>
+            </div>
+            <span class="status-badge status-closed">Published</span>
+            <div class="activity-time">5 hours ago</div>
+          </div>
+
+          <div class="activity-item">
+            <div class="activity-icon">👥</div>
+            <div class="activity-content">
+              <h4>New Partner Onboarded</h4>
+              <p>AquaTech Solutions joined the partner network</p>
+            </div>
+            <span class="status-badge status-closed">Active</span>
+            <div class="activity-time">1 day ago</div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      // Add some interactivity
+      document.querySelectorAll(".nav-item").forEach((item) => {
+        item.addEventListener("click", (e) => {
+          e.preventDefault();
+          document.querySelectorAll(".nav-item").forEach((nav) => nav.classList.remove("active"));
+          item.classList.add("active");
+        });
+      });
+
+      // Simulate live updates
+      setInterval(() => {
+        const timeElements = document.querySelectorAll(".activity-time");
+        timeElements.forEach((el) => {
+          const text = el.textContent;
+          if (text.includes("min ago")) {
+            const mins = parseInt(text);
+            el.textContent = `${mins + 1} min ago`;
+          }
+        });
+      }, 60000);
+    </script>
+  </body>
+</html>

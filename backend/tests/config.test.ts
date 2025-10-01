@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { config } from "../src/lib/config";
 
 describe("Config", () => {
@@ -58,30 +58,30 @@ describe("Config", () => {
     expect(config.rateLimits.globalMax).toBeGreaterThanOrEqual(50); // at least 50 requests
   });
 
-  it("should reject invalid numeric environment variables", () => {
+  it("should reject invalid numeric environment variables", async () => {
     process.env.UPLOAD_MAX_SIZE_MB = "invalid";
 
-    expect(() => {
-      delete require.cache[require.resolve("../src/lib/config")];
-      require("../src/lib/config");
-    }).toThrow();
+    await expect(async () => {
+      vi.resetModules();
+      await import("../src/lib/config");
+    }).rejects.toThrow();
   });
 
-  it("should require JWT_SECRET to be at least 10 characters", () => {
+  it("should require JWT_SECRET to be at least 10 characters", async () => {
     process.env.JWT_SECRET = "short";
 
-    expect(() => {
-      delete require.cache[require.resolve("../src/lib/config")];
-      require("../src/lib/config");
-    }).toThrow();
+    await expect(async () => {
+      vi.resetModules();
+      await import("../src/lib/config");
+    }).rejects.toThrow();
   });
 
-  it("should require DATABASE_URL to be non-empty", () => {
+  it("should require DATABASE_URL to be non-empty", async () => {
     process.env.DATABASE_URL = "";
 
-    expect(() => {
-      delete require.cache[require.resolve("../src/lib/config")];
-      require("../src/lib/config");
-    }).toThrow();
+    await expect(async () => {
+      vi.resetModules();
+      await import("../src/lib/config");
+    }).rejects.toThrow();
   });
 });

@@ -1,6 +1,6 @@
 # 🚀 LoungGenie Portal - LIVE DEPLOYMENT GUIDE
 
-## ✅ VALIDATION COMPLETE - ALL SYSTEMS GO!
+## ✅ VALIDATION COMPLETE - ALL SYSTEMS GO
 
 **Date:** September 26, 2025  
 **Status:** 🟢 PRODUCTION READY  
@@ -29,8 +29,8 @@
 
 ### Configuration ✅
 
-- **API Endpoint:** https://api.loungenie.com
-- **Frontend Domain:** https://portal.loungenie.com
+- **API Endpoint:** <https://api.loungenie.com>
+- **Frontend Domain:** <https://portal.loungenie.com>
 - **SSL:** Automated Let's Encrypt setup
 - **Security:** CORS, headers, SSL redirect configured
 
@@ -74,9 +74,9 @@ chmod +x *.sh
 
 After deployment, test these URLs:
 
-🌐 **Frontend:** https://portal.loungenie.com  
-🔗 **API Health:** https://api.loungenie.com/health  
-📋 **API Docs:** https://api.loungenie.com/docs
+🌐 **Frontend:** <https://portal.loungenie.com>  
+🔗 **API Health:** <https://api.loungenie.com/health>  
+📋 **API Docs:** <https://api.loungenie.com/docs>
 
 ---
 
@@ -110,7 +110,7 @@ After deployment, test these URLs:
 
 ## 📁 FILE STRUCTURE AFTER DEPLOYMENT
 
-```
+```text
 /var/www/
 ├── portal.loungenie.com/          # Frontend files
 │   ├── index.html
@@ -184,8 +184,8 @@ tail -f /var/log/nginx/error.log
 
 ### Health Check Endpoints
 
-- **API:** https://api.loungenie.com/health
-- **Frontend:** https://portal.loungenie.com (loads React app)
+- **API:** <https://api.loungenie.com/health>
+- **Frontend:** <https://portal.loungenie.com> (loads React app)
 
 ### Automatic Monitoring
 
@@ -206,7 +206,7 @@ tail -f /var/log/nginx/error.log
 - [x] Security configuration complete
 - [x] Monitoring setup ready
 
-**🟢 STATUS: READY FOR PRODUCTION DEPLOYMENT**
+## 🟢 STATUS: READY FOR PRODUCTION DEPLOYMENT
 
 ---
 

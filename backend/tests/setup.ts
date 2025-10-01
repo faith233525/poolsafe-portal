@@ -18,7 +18,7 @@ if (!(globalThis as any)[SEED_KEY]) {
     // Ensure schema is applied for the test database
     execSync(`npx prisma db push --accept-data-loss`, {
       stdio: "pipe",
-      env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL! },
+      env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL || "" },
     });
     // Reseed with a clean slate to guarantee required fixtures exist
     execSync(`npm run seed:raw -- --reset --dbFile=test-auth.db`, { stdio: "pipe" });

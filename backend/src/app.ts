@@ -40,8 +40,12 @@ export function buildApp() {
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin) {return callback(null, true);} // allow server-to-server
-        if (allowed.length === 0 || allowed.includes(origin)) {return callback(null, true);}
+        if (!origin) {
+          return callback(null, true);
+        } // allow server-to-server
+        if (allowed.length === 0 || allowed.includes(origin)) {
+          return callback(null, true);
+        }
         return callback(new Error("CORS origin not allowed"));
       },
       credentials: true,
@@ -134,7 +138,6 @@ export function buildApp() {
   app.use("/api/monitoring", monitoringRouter);
   app.use("/api/errors", errorsRouter);
   // app.use("/api", swaggerRouter);
-  app.use("/api/sso", authRouter);
   app.get("/api/metrics", metricsEndpoint);
 
   app.use((req, res) => {

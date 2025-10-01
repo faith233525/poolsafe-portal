@@ -1,20 +1,22 @@
 .header {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b  100%);
-  border-bottom: 1px solid #334155;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background: var(--gradient-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-lg);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 200;
 }
 
 .headerContent {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
-  max-width: 1400px;
+  padding: var(--space-6) var(--space-8);
+  max-width: 1600px;
   margin: 0 auto;
-  gap: 2rem;
+  gap: var(--space-8);
 }
 
 .brandSection {
@@ -24,26 +26,33 @@
 .logoContainer {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-4);
 }
 
 .logo {
   width: 2.5rem;
   height: 2.5rem;
-  color: #3b82f6;
-  filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.3));
+  color: var(--color-aqua);
+  filter: drop-shadow(0 2px 8px rgba(0, 181, 204, 0.4));
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.logo:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 4px 12px rgba(0, 181, 204, 0.6));
 }
 
 .brandText {
-  color: white;
+  color: var(--color-white);
 }
 
 .title {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.625rem;
+  font-weight: 800;
   margin: 0;
-  color: #ffffff;
+  color: var(--color-white);
   letter-spacing: -0.025em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .subtitle {
@@ -67,7 +76,8 @@
   gap: 1.5rem;
   padding: 0.75rem 1.25rem;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -261,12 +271,12 @@
     padding: 1rem 1.5rem;
     gap: 1.5rem;
   }
-  
+
   .userInfo {
     gap: 1rem;
     padding: 0.5rem 1rem;
   }
-  
+
   .businessDetails {
     gap: 0.75rem;
   }
@@ -279,27 +289,27 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .userSection {
     justify-content: space-between;
   }
-  
+
   .userInfo {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
   }
-  
+
   .businessDetails {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .title {
     font-size: 1.25rem;
   }
-  
+
   .companyName,
   .userName {
     font-size: 1rem;
@@ -310,24 +320,24 @@
   .headerContent {
     padding: 0.75rem;
   }
-  
+
   .logoContainer {
     gap: 0.5rem;
   }
-  
+
   .logo {
     width: 2rem;
     height: 2rem;
   }
-  
+
   .title {
     font-size: 1.125rem;
   }
-  
+
   .subtitle {
     font-size: 0.75rem;
   }
-  
+
   .logoutButton {
     padding: 0.5rem 1rem;
     font-size: 0.75rem;

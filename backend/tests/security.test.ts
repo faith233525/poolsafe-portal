@@ -13,11 +13,11 @@ describe("Security edge cases", () => {
       .post("/api/auth/login")
       .send({ email: "a@b.com", password: "badpass" });
     // Accept multiple status codes depending on how the backend surfaces rate limit/route handling
-  expect([429, 404, 400]).toContain(res.status);
-  // Accept common error messages for rate limit or generic validation/auth errors
-  const message = typeof res.body?.error === "string" ? res.body.error : "";
-  // Middleware order may cause validation/auth errors before rate limiting; allow sensible messages
-  expect(message).toMatch(/rate|Not Found|Bad Request|required|too many|invalid|missing|block/i);
+    expect([429, 404, 400]).toContain(res.status);
+    // Accept common error messages for rate limit or generic validation/auth errors
+    const message = typeof res.body?.error === "string" ? res.body.error : "";
+    // Middleware order may cause validation/auth errors before rate limiting; allow sensible messages
+    expect(message).toMatch(/rate|Not Found|Bad Request|required|too many|invalid|missing|block/i);
   });
 
   it("should reject oversize file upload", async () => {

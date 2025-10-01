@@ -99,17 +99,17 @@ ticketsRouter.post(
 
       // Log ticket creation activity
       await ActivityLogger.logTicketAction(
-        'CREATE_TICKET',
+        "CREATE_TICKET",
         ticket.id,
-        req.user!.email || req.user!.partnerId || 'Unknown',
-        req.user!.role || 'Unknown',
+        req.user!.email || req.user!.partnerId || "Unknown",
+        req.user!.role || "Unknown",
         req,
         {
           subject: ticket.subject,
           category: ticket.category,
           priority: ticket.priority,
           partnerId: finalPartnerId,
-        }
+        },
       );
 
       res.status(201).json(ticket);
@@ -150,16 +150,28 @@ ticketsRouter.get(
         where.partnerId = partnerId;
       }
 
-      if (category) {where.category = category;}
-      if (priority) {where.priority = priority;}
-      if (status) {where.status = status;}
-      if (assignedToId) {where.assignedToId = assignedToId;}
+      if (category) {
+        where.category = category;
+      }
+      if (priority) {
+        where.priority = priority;
+      }
+      if (status) {
+        where.status = status;
+      }
+      if (assignedToId) {
+        where.assignedToId = assignedToId;
+      }
 
       // Date range filtering
       if (startDate || endDate) {
         where.createdAt = {};
-        if (startDate) {where.createdAt.gte = new Date(startDate);}
-        if (endDate) {where.createdAt.lte = new Date(endDate);}
+        if (startDate) {
+          where.createdAt.gte = new Date(startDate);
+        }
+        if (endDate) {
+          where.createdAt.lte = new Date(endDate);
+        }
       }
 
       // Search functionality
@@ -380,7 +392,9 @@ ticketsRouter.post(
       // status validity already guaranteed by schema
 
       const updateData: any = { status };
-      if (internalNotes) {updateData.internalNotes = internalNotes;}
+      if (internalNotes) {
+        updateData.internalNotes = internalNotes;
+      }
       if (resolutionTime && status === "RESOLVED") {
         updateData.resolutionTime = resolutionTime;
       }
@@ -428,8 +442,12 @@ ticketsRouter.get(
       if (req.user!.role === "PARTNER") {
         where.partnerId = req.user!.partnerId;
       } else {
-        if (partnerId) {where.partnerId = partnerId;}
-        if (assignedToId) {where.assignedToId = assignedToId;}
+        if (partnerId) {
+          where.partnerId = partnerId;
+        }
+        if (assignedToId) {
+          where.assignedToId = assignedToId;
+        }
       }
 
       const [

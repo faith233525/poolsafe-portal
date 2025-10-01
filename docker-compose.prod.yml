@@ -1,7 +1,7 @@
 # Production Docker Compose Configuration
 # Pool Safe Inc Portal - Production Deployment
 
-version: '3.8'
+version: "3.8"
 
 services:
   # Backend API Server

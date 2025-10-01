@@ -162,7 +162,11 @@ class ErrorTracker {
     }
 
     // Send to backend (if online and not in development)
-    if (typeof navigator !== "undefined" && navigator.onLine && process.env.NODE_ENV === "production") {
+    if (
+      typeof navigator !== "undefined" &&
+      navigator.onLine &&
+      process.env.NODE_ENV === "production"
+    ) {
       this.sendErrorReport(this.errors.get(errorId)!);
     }
 

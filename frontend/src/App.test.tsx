@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { waitFor } from "@testing-library/react";
 import App from "./App";
 import { vi } from "vitest";
@@ -40,9 +40,11 @@ describe("App UI", () => {
       );
     });
     render(<App />);
-    fireEvent.change(screen.getByLabelText(/subject/i), { target: { value: "Test" } });
-    fireEvent.change(screen.getByLabelText(/description/i), { target: { value: "Desc" } });
-    fireEvent.click(screen.getByRole("button", { name: /submit ticket/i }));
+  fireEvent.change(screen.getByLabelText(/subject/i), { target: { value: "Test" } });
+  fireEvent.change(screen.getByLabelText(/description/i), { target: { value: "Desc" } });
+  const ticketForm = screen.getByRole("form", { name: /ticket form/i });
+  const submitBtn1 = within(ticketForm).getByRole("button", { name: /submit|processing/i });
+  fireEvent.click(submitBtn1);
     await waitFor(() => {
       const errorDiv = screen.getByTestId("ticket-error");
       expect(errorDiv.textContent).toMatch(/failed to submit ticket/i);
@@ -64,7 +66,7 @@ describe("App UI", () => {
     );
     // Re-mount App so it reads the updated JWT from storage
     unmount();
-    render(<App />);
+  render(<App />);
     await waitFor(() => {
       expect(screen.queryByLabelText(/subject/i)).not.toBeInTheDocument();
     });
@@ -159,13 +161,15 @@ describe("App UI", () => {
       );
     };
     render(<App />);
-    fireEvent.change(screen.getByLabelText(/subject/i), { target: { value: "Test" } });
-    fireEvent.change(screen.getByLabelText(/description/i), { target: { value: "Desc" } });
-    fireEvent.click(screen.getByRole("button", { name: /submit ticket/i }));
-    expect(screen.getByLabelText(/subject/i)).toBeDisabled();
-    expect(screen.getByLabelText(/description/i)).toBeDisabled();
-    expect(screen.getByRole("button", { name: /submit ticket/i })).toBeDisabled();
-    await waitFor(() => expect(screen.getByLabelText(/subject/i)).not.toBeDisabled());
+  fireEvent.change(screen.getByLabelText(/subject/i), { target: { value: "Test" } });
+  fireEvent.change(screen.getByLabelText(/description/i), { target: { value: "Desc" } });
+  const ticketForm2 = screen.getByRole("form", { name: /ticket form/i });
+  const submitBtn2 = within(ticketForm2).getByRole("button", { name: /submit|processing/i });
+  fireEvent.click(submitBtn2);
+  expect(within(ticketForm2).getByLabelText(/subject/i)).toBeDisabled();
+  expect(within(ticketForm2).getByLabelText(/description/i)).toBeDisabled();
+  expect(submitBtn2).toBeDisabled();
+  await waitFor(() => expect(within(ticketForm2).getByLabelText(/subject/i)).not.toBeDisabled());
     global.fetch = originalFetch;
   });
   it("shows ticket form for partner role", () => {
@@ -176,7 +180,8 @@ describe("App UI", () => {
     render(<App />);
     expect(screen.getByLabelText(/subject/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/description/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /submit ticket/i })).toBeInTheDocument();
+  const ticketForm3 = screen.getByRole("form", { name: /ticket form/i });
+  expect(within(ticketForm3).getByRole("button", { name: /submit|processing/i })).toBeInTheDocument();
   });
 
   it("hides ticket form for non-partner role", () => {
@@ -195,7 +200,8 @@ describe("App UI", () => {
     );
     render(<App />);
     fireEvent.change(screen.getByLabelText(/subject/i), { target: { value: "" } });
-    await fireEvent.click(screen.getByRole("button", { name: /submit ticket/i }));
+  const ticketForm4 = screen.getByRole("form", { name: /ticket form/i });
+  await fireEvent.click(within(ticketForm4).getByRole("button", { name: /submit|processing/i }));
     await waitFor(() => {
       const errorDiv = screen.getByTestId("ticket-error");
       expect(errorDiv.textContent).toMatch(/subject is required/i);

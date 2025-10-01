@@ -188,9 +188,15 @@ analyticsRouter.get("/tickets", requireSupport, async (req: AuthenticatedRequest
       createdAt: { gte: startDate },
     };
 
-    if (category) {where.category = category;}
-    if (priority) {where.priority = priority;}
-    if (assignedTo) {where.assignedToId = assignedTo;}
+    if (category) {
+      where.category = category;
+    }
+    if (priority) {
+      where.priority = priority;
+    }
+    if (assignedTo) {
+      where.assignedToId = assignedTo;
+    }
 
     // Detailed ticket statistics
     const [totalTickets, byStatus, byCategory, byPriority] = await Promise.all([
@@ -226,9 +232,7 @@ analyticsRouter.get("/tickets", requireSupport, async (req: AuthenticatedRequest
     });
 
     // Get assignee details
-    const assigneeIds = topAssignees
-      .map((a) => a.assignedToId)
-      .filter((id) => id !== null);
+    const assigneeIds = topAssignees.map((a) => a.assignedToId).filter((id) => id !== null);
 
     const assigneeDetails =
       assigneeIds.length > 0
@@ -438,25 +442,32 @@ analyticsRouter.get("/export", requireSupport, async (req: AuthenticatedRequest,
 });
 
 // Enhanced dashboard analytics with activity logging
-analyticsRouter.get("/enhanced-dashboard", requireSupport, async (req: AuthenticatedRequest, res) => {
-  try {
-    const days = parseInt(req.query.days as string) || 30;
-    const analytics = await AnalyticsService.getDashboardAnalytics(days);
-    
-    // Log analytics access
-    await ActivityLogger.log({
-      userEmail: req.user?.email,
-      userRole: req.user?.role,
-      action: 'VIEW_ENHANCED_DASHBOARD',
-      details: { timeRange: `${days} days` },
-    }, req);
+analyticsRouter.get(
+  "/enhanced-dashboard",
+  requireSupport,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const days = parseInt(req.query.days as string) || 30;
+      const analytics = await AnalyticsService.getDashboardAnalytics(days);
 
-    res.json(analytics);
-  } catch (error) {
-    console.error('Error getting enhanced dashboard analytics:', error);
-    res.status(500).json({ error: 'Failed to get enhanced dashboard analytics' });
-  }
-});
+      // Log analytics access
+      await ActivityLogger.log(
+        {
+          userEmail: req.user?.email,
+          userRole: req.user?.role,
+          action: "VIEW_ENHANCED_DASHBOARD",
+          details: { timeRange: `${days} days` },
+        },
+        req,
+      );
+
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error getting enhanced dashboard analytics:", error);
+      res.status(500).json({ error: "Failed to get enhanced dashboard analytics" });
+    }
+  },
+);
 
 // Get activity logs with pagination and filtering
 analyticsRouter.get("/activity-logs", requireSupport, async (req: AuthenticatedRequest, res) => {
@@ -465,12 +476,13 @@ analyticsRouter.get("/activity-logs", requireSupport, async (req: AuthenticatedR
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const action = req.query.action as string;
     const userRole = req.query.userRole as string;
-    const success = req.query.success === 'true' ? true : req.query.success === 'false' ? false : undefined;
+    const success =
+      req.query.success === "true" ? true : req.query.success === "false" ? false : undefined;
     const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
     const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
-    
+
     const skip = (page - 1) * limit;
-    
+
     const where: any = {};
     if (action) {
       where.action = action;
@@ -496,7 +508,7 @@ analyticsRouter.get("/activity-logs", requireSupport, async (req: AuthenticatedR
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         select: {
           id: true,
           userEmail: true,
@@ -514,15 +526,18 @@ analyticsRouter.get("/activity-logs", requireSupport, async (req: AuthenticatedR
     ]);
 
     // Log activity log access
-    await ActivityLogger.log({
-      userEmail: req.user?.email,
-      userRole: req.user?.role,
-      action: 'VIEW_ACTIVITY_LOGS',
-      details: { page, limit, filters: { action, userRole, success, startDate, endDate } },
-    }, req);
+    await ActivityLogger.log(
+      {
+        userEmail: req.user?.email,
+        userRole: req.user?.role,
+        action: "VIEW_ACTIVITY_LOGS",
+        details: { page, limit, filters: { action, userRole, success, startDate, endDate } },
+      },
+      req,
+    );
 
     res.json({
-      logs: logs.map(log => ({
+      logs: logs.map((log) => ({
         ...log,
         details: log.details ? JSON.parse(log.details) : null,
       })),
@@ -534,8 +549,8 @@ analyticsRouter.get("/activity-logs", requireSupport, async (req: AuthenticatedR
       },
     });
   } catch (error) {
-    console.error('Error getting activity logs:', error);
-    res.status(500).json({ error: 'Failed to get activity logs' });
+    console.error("Error getting activity logs:", error);
+    res.status(500).json({ error: "Failed to get activity logs" });
   }
 });
 
@@ -546,17 +561,20 @@ analyticsRouter.get("/activity-stats", requireSupport, async (req: Authenticated
     const stats = await ActivityLogger.getActivityStats(days);
 
     // Log stats access
-    await ActivityLogger.log({
-      userEmail: req.user?.email,
-      userRole: req.user?.role,
-      action: 'VIEW_ACTIVITY_STATS',
-      details: { timeRange: `${days} days` },
-    }, req);
+    await ActivityLogger.log(
+      {
+        userEmail: req.user?.email,
+        userRole: req.user?.role,
+        action: "VIEW_ACTIVITY_STATS",
+        details: { timeRange: `${days} days` },
+      },
+      req,
+    );
 
     res.json(stats);
   } catch (error) {
-    console.error('Error getting activity stats:', error);
-    res.status(500).json({ error: 'Failed to get activity statistics' });
+    console.error("Error getting activity stats:", error);
+    res.status(500).json({ error: "Failed to get activity statistics" });
   }
 });
 
@@ -569,11 +587,11 @@ analyticsRouter.get("/security-alerts", requireSupport, async (req: Authenticate
     const [failedLogins, suspiciousActivity] = await Promise.all([
       prisma.activityLog.findMany({
         where: {
-          action: 'LOGIN',
+          action: "LOGIN",
           success: false,
           createdAt: { gte: last24Hours },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 50,
         select: {
           userEmail: true,
@@ -583,9 +601,9 @@ analyticsRouter.get("/security-alerts", requireSupport, async (req: Authenticate
         },
       }),
       prisma.activityLog.groupBy({
-        by: ['ipAddress'],
+        by: ["ipAddress"],
         where: {
-          action: 'LOGIN',
+          action: "LOGIN",
           success: false,
           createdAt: { gte: last24Hours },
           ipAddress: { not: null },
@@ -602,28 +620,33 @@ analyticsRouter.get("/security-alerts", requireSupport, async (req: Authenticate
     ]);
 
     // Log security alert access
-    await ActivityLogger.log({
-      userEmail: req.user?.email,
-      userRole: req.user?.role,
-      action: 'VIEW_SECURITY_ALERTS',
-    }, req);
+    await ActivityLogger.log(
+      {
+        userEmail: req.user?.email,
+        userRole: req.user?.role,
+        action: "VIEW_SECURITY_ALERTS",
+      },
+      req,
+    );
 
     res.json({
       failedLogins,
-      suspiciousIPs: suspiciousActivity.map(item => ({
+      suspiciousIPs: suspiciousActivity.map((item) => ({
         ipAddress: item.ipAddress,
         failedAttempts: item._count,
       })),
     });
   } catch (error) {
-    console.error('Error getting security alerts:', error);
-    res.status(500).json({ error: 'Failed to get security alerts' });
+    console.error("Error getting security alerts:", error);
+    res.status(500).json({ error: "Failed to get security alerts" });
   }
 });
 
 // Helper function to convert to CSV
 function convertToCSV(data: any[]): string {
-  if (data.length === 0) {return "";}
+  if (data.length === 0) {
+    return "";
+  }
 
   const headers = Object.keys(data[0]);
   const csvRows = [

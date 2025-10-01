@@ -14,9 +14,9 @@ export default function Login({ onLogin }: { onLogin: (jwt: string) => void }) {
     setLoading(true);
     try {
       // Determine if it's an email (admin/support) or company name (partner)
-      const isEmail = username.includes('@');
+      const isEmail = username.includes("@");
       const endpoint = isEmail ? "/api/auth/login" : "/api/auth/login/partner";
-      
+
       const res = await apiFetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -39,7 +39,7 @@ export default function Login({ onLogin }: { onLogin: (jwt: string) => void }) {
       // Redirect to Microsoft SSO login endpoint
       const base =
         (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") || "";
-      window.location.href = `${base}/api/sso/login`;
+  window.location.href = `${base}/api/auth/sso/login`;
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
@@ -47,36 +47,86 @@ export default function Login({ onLogin }: { onLogin: (jwt: string) => void }) {
   }
 
   return (
-    <div className={styles.container}>
-      <h2 className={styles.title}>Portal Login</h2>
-      <form onSubmit={handleLocalLogin}>
-        <label htmlFor="username">Username</label>
-        <input
-          id="username"
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          className={styles.input}
-        />
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className={styles.input}
-        />
-        <button type="submit" disabled={loading} className={styles.button}>
-          {loading ? 'Logging in...' : 'Login'}
+    <div className={styles.wrapper}>
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <div className={styles.logo}>
+            <div className={styles.logoIcon}>🛋️</div>
+            <h1 className={styles.logoText}>LounGenie</h1>
+          </div>
+          <h2 className={styles.title}>Welcome Back</h2>
+          <p className={styles.subtitle}>Sign in to your support portal</p>
+        </div>
+
+        <form onSubmit={handleLocalLogin} className={styles.form}>
+          <div className={styles.inputGroup}>
+            <label htmlFor="username" className={styles.label}>
+              Email or Company Name
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              className={styles.input}
+              placeholder="Enter your email or company name"
+            />
+          </div>
+
+          <div className={styles.inputGroup}>
+            <label htmlFor="password" className={styles.label}>
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className={styles.input}
+              placeholder="Enter your password"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`${styles.button} ${styles.buttonPrimary}`}
+          >
+            {loading ? (
+              <span className={styles.buttonContent}>
+                <span className={styles.spinner}></span>
+                Signing in...
+              </span>
+            ) : (
+              "Sign In"
+            )}
+          </button>
+        </form>
+
+        <div className={styles.divider}>
+          <span className={styles.dividerText}>or continue with</span>
+        </div>
+
+        <button
+          onClick={handleSsoLogin}
+          disabled={loading}
+          className={`${styles.button} ${styles.buttonSso}`}
+        >
+          <span className={styles.buttonContent}>
+            <span className={styles.microsoftIcon}>🏢</span>
+            Microsoft SSO (Admin/Support)
+          </span>
         </button>
-      </form>
-      <hr className={styles.hr} />
-      <button onClick={handleSsoLogin} disabled={loading} className={styles.buttonSso}>
-        Login with Outlook SSO (Support/Admin)
-      </button>
-      {error && <div className={styles.error}>{error}</div>}
+
+        {error && (
+          <div className={styles.error}>
+            <span className={styles.errorIcon}>⚠️</span>
+            {error}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

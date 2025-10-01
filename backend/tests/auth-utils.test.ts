@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import {
   generateToken,
   verifyToken,

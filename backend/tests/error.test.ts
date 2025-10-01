@@ -58,11 +58,11 @@ describe("Error Middleware", () => {
   });
 
   describe("errorHandler", () => {
-    it("should handle AppError with custom status code", async () => {
+    it("should handle AppError with custom status code", () => {
       const error = new AppError("Test error", 404);
       (mockReq as any).requestId = "test-request-id";
 
-      await errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
+      errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(404);
       expect(mockRes.json).toHaveBeenCalledWith({
@@ -73,11 +73,11 @@ describe("Error Middleware", () => {
       expect(errorLogger.persistError).not.toHaveBeenCalled();
     });
 
-    it("should handle generic Error with default 500 status", async () => {
+    it("should handle generic Error with default 500 status", () => {
       const error = new Error("Generic error");
       (mockReq as any).requestId = "test-request-id";
 
-      await errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
+      errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.json).toHaveBeenCalledWith({
@@ -98,11 +98,11 @@ describe("Error Middleware", () => {
       });
     });
 
-    it("should persist server errors (status >= 500)", async () => {
+    it("should persist server errors (status >= 500)", () => {
       const error = new AppError("Internal server error", 500);
       (mockReq as any).requestId = "test-request-id";
 
-      await errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
+      errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(errorLogger.persistError).toHaveBeenCalledWith(error, {
@@ -118,22 +118,22 @@ describe("Error Middleware", () => {
       });
     });
 
-    it("should not persist client errors (status < 500)", async () => {
+    it("should not persist client errors (status < 500)", () => {
       const error = new AppError("Bad request", 400);
       (mockReq as any).requestId = "test-request-id";
 
-      await errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
+      errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(errorLogger.persistError).not.toHaveBeenCalled();
     });
 
-    it("should include error details when available", async () => {
+    it("should include error details when available", () => {
       const details = { validationErrors: ["field required"] };
       const error = new AppError("Validation failed", 422, details);
       (mockReq as any).requestId = "test-request-id";
 
-      await errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
+      errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockRes.json).toHaveBeenCalledWith({
         error: "Validation failed",
@@ -142,11 +142,11 @@ describe("Error Middleware", () => {
       });
     });
 
-    it("should handle errors without name property", async () => {
+    it("should handle errors without name property", () => {
       const error = { message: "Custom error", statusCode: 500 };
       (mockReq as any).requestId = "test-request-id";
 
-      await errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
+      errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
       expect(errorLogger.persistError).toHaveBeenCalledWith(error, {
         severity: "high",
@@ -161,11 +161,11 @@ describe("Error Middleware", () => {
       });
     });
 
-    it("should handle errors without message", async () => {
+    it("should handle errors without message", () => {
       const error = { statusCode: 500 };
       (mockReq as any).requestId = "test-request-id";
 
-      await errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
+      errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockRes.json).toHaveBeenCalledWith({
         error: "Internal Server Error",
@@ -174,10 +174,10 @@ describe("Error Middleware", () => {
       });
     });
 
-    it("should handle errors without requestId", async () => {
+    it("should handle errors without requestId", () => {
       const error = new AppError("Test error", 400);
 
-      await errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
+      errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockRes.json).toHaveBeenCalledWith({
         error: "Test error",
@@ -186,12 +186,12 @@ describe("Error Middleware", () => {
       });
     });
 
-    it("should handle errors without user agent", async () => {
+    it("should handle errors without user agent", () => {
       const error = new AppError("Server error", 500);
       (mockReq as any).requestId = "test-request-id";
       mockReq.headers = {};
 
-      await errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
+      errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
       expect(errorLogger.persistError).toHaveBeenCalledWith(error, {
         severity: "high",
@@ -206,20 +206,20 @@ describe("Error Middleware", () => {
       });
     });
 
-    it("should handle non-integer status codes", async () => {
+    it("should handle non-integer status codes", () => {
       const error = { statusCode: "not-a-number", message: "Test" };
       (mockReq as any).requestId = "test-request-id";
 
-      await errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
+      errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(500);
     });
 
-    it("should handle null error object", async () => {
+    it("should handle null error object", () => {
       const error = null;
       (mockReq as any).requestId = "test-request-id";
 
-      await errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
+      errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.json).toHaveBeenCalledWith({

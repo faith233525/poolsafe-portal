@@ -1,5 +1,5 @@
-import { prisma } from '../prismaClient';
-import { ActivityLogger } from './activityLogger';
+import { prisma } from "../prismaClient";
+import { ActivityLogger } from "./activityLogger";
 
 export interface DashboardAnalytics {
   overview: {
@@ -64,47 +64,49 @@ export class AnalyticsService {
 
     try {
       // Get overview statistics
-      const [totalPartners, totalTickets, activeTickets, totalUsers, todayLogins] = await Promise.all([
-        prisma.partner.count(),
-        prisma.ticket.count(),
-        prisma.ticket.count({ where: { status: { in: ['OPEN', 'IN_PROGRESS'] } } }),
-        prisma.user.count(),
-        prisma.activityLog.count({
-          where: {
-            action: 'LOGIN',
-            success: true,
-            createdAt: { gte: todayStart },
-          },
-        }),
-      ]);
+      const [totalPartners, totalTickets, activeTickets, totalUsers, todayLogins] =
+        await Promise.all([
+          prisma.partner.count(),
+          prisma.ticket.count(),
+          prisma.ticket.count({ where: { status: { in: ["OPEN", "IN_PROGRESS"] } } }),
+          prisma.user.count(),
+          prisma.activityLog.count({
+            where: {
+              action: "LOGIN",
+              success: true,
+              createdAt: { gte: todayStart },
+            },
+          }),
+        ]);
 
       // Get ticket statistics
-      const [ticketsByStatus, ticketsByPriority, ticketsByCategory, recentTickets] = await Promise.all([
-        prisma.ticket.groupBy({
-          by: ['status'],
-          _count: true,
-          orderBy: { _count: { status: 'desc' } },
-        }),
-        prisma.ticket.groupBy({
-          by: ['priority'],
-          _count: true,
-          orderBy: { _count: { priority: 'desc' } },
-        }),
-        prisma.ticket.groupBy({
-          by: ['category'],
-          _count: true,
-          orderBy: { _count: { category: 'desc' } },
-        }),
-        prisma.ticket.findMany({
-          take: 10,
-          orderBy: { createdAt: 'desc' },
-          include: {
-            partner: {
-              select: { companyName: true },
+      const [ticketsByStatus, ticketsByPriority, ticketsByCategory, recentTickets] =
+        await Promise.all([
+          prisma.ticket.groupBy({
+            by: ["status"],
+            _count: true,
+            orderBy: { _count: { status: "desc" } },
+          }),
+          prisma.ticket.groupBy({
+            by: ["priority"],
+            _count: true,
+            orderBy: { _count: { priority: "desc" } },
+          }),
+          prisma.ticket.groupBy({
+            by: ["category"],
+            _count: true,
+            orderBy: { _count: { category: "desc" } },
+          }),
+          prisma.ticket.findMany({
+            take: 10,
+            orderBy: { createdAt: "desc" },
+            include: {
+              partner: {
+                select: { companyName: true },
+              },
             },
-          },
-        }),
-      ]);
+          }),
+        ]);
 
       // Get partner statistics
       const [partnersByUnits, partnersByState, recentPartners] = await Promise.all([
@@ -113,20 +115,20 @@ export class AnalyticsService {
             companyName: true,
             numberOfLoungeUnits: true,
           },
-          orderBy: { numberOfLoungeUnits: 'desc' },
+          orderBy: { numberOfLoungeUnits: "desc" },
           take: 10,
         }),
         prisma.partner.groupBy({
-          by: ['state'],
+          by: ["state"],
           _count: true,
           where: {
             state: { not: null },
           },
-          orderBy: { _count: { state: 'desc' } },
+          orderBy: { _count: { state: "desc" } },
         }),
         prisma.partner.findMany({
           take: 5,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           select: {
             id: true,
             companyName: true,
@@ -157,10 +159,16 @@ export class AnalyticsService {
           todayLogins,
         },
         ticketStats: {
-          byStatus: ticketsByStatus.map(item => ({ status: item.status, count: item._count })),
-          byPriority: ticketsByPriority.map(item => ({ priority: item.priority, count: item._count })),
-          byCategory: ticketsByCategory.map(item => ({ category: item.category, count: item._count })),
-          recentTickets: recentTickets.map(ticket => ({
+          byStatus: ticketsByStatus.map((item) => ({ status: item.status, count: item._count })),
+          byPriority: ticketsByPriority.map((item) => ({
+            priority: item.priority,
+            count: item._count,
+          })),
+          byCategory: ticketsByCategory.map((item) => ({
+            category: item.category,
+            count: item._count,
+          })),
+          recentTickets: recentTickets.map((ticket) => ({
             id: ticket.id,
             subject: ticket.subject,
             priority: ticket.priority,
@@ -171,16 +179,25 @@ export class AnalyticsService {
         },
         partnerStats: {
           byUnits: partnersByUnits,
-          byState: partnersByState.map(item => ({ state: item.state || 'Unknown', count: item._count })),
+          byState: partnersByState.map((item) => ({
+            state: item.state || "Unknown",
+            count: item._count,
+          })),
           recentPartners,
         },
         activityStats: {
           loginTrends,
-          topActions: activityStats.actionStats.map(item => ({ action: item.action, count: item._count })),
-          userActivity: activityStats.userActivityStats.map(item => ({ userRole: item.userRole || 'Unknown', count: item._count })),
-          recentActivity: recentActivity.map(activity => ({
-            userEmail: activity.userEmail || 'System',
-            userRole: activity.userRole || 'Unknown',
+          topActions: activityStats.actionStats.map((item) => ({
+            action: item.action,
+            count: item._count,
+          })),
+          userActivity: activityStats.userActivityStats.map((item) => ({
+            userRole: item.userRole || "Unknown",
+            count: item._count,
+          })),
+          recentActivity: recentActivity.map((activity) => ({
+            userEmail: activity.userEmail || "System",
+            userRole: activity.userRole || "Unknown",
             action: activity.action,
             success: activity.success,
             createdAt: activity.createdAt,
@@ -189,8 +206,8 @@ export class AnalyticsService {
         systemHealth,
       };
     } catch (error) {
-      console.error('Error getting dashboard analytics:', error);
-      throw new Error('Failed to get dashboard analytics');
+      console.error("Error getting dashboard analytics:", error);
+      throw new Error("Failed to get dashboard analytics");
     }
   }
 
@@ -202,31 +219,33 @@ export class AnalyticsService {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
       date.setHours(0, 0, 0, 0);
-      
+
       const nextDate = new Date(date);
       nextDate.setDate(nextDate.getDate() + 1);
 
       const [logins, uniqueUsers] = await Promise.all([
         prisma.activityLog.count({
           where: {
-            action: 'LOGIN',
+            action: "LOGIN",
             success: true,
             createdAt: { gte: date, lt: nextDate },
           },
         }),
-        prisma.activityLog.findMany({
-          where: {
-            action: 'LOGIN',
-            success: true,
-            createdAt: { gte: date, lt: nextDate },
-          },
-          select: { userEmail: true },
-          distinct: ['userEmail'],
-        }).then(users => users.length),
+        prisma.activityLog
+          .findMany({
+            where: {
+              action: "LOGIN",
+              success: true,
+              createdAt: { gte: date, lt: nextDate },
+            },
+            select: { userEmail: true },
+            distinct: ["userEmail"],
+          })
+          .then((users) => users.length),
       ]);
 
       trends.push({
-        date: date.toISOString().split('T')[0],
+        date: date.toISOString().split("T")[0],
         logins,
         uniqueUsers,
       });
@@ -257,7 +276,7 @@ export class AnalyticsService {
     return {
       errorRate: Math.round(errorRate * 100) / 100,
       averageResponseTime: Math.random() * 100 + 50, // Mock data - would need real monitoring
-      uptime: '99.9%', // Mock data - would need real monitoring
+      uptime: "99.9%", // Mock data - would need real monitoring
       databaseConnections: 10, // Mock data - would need real monitoring
     };
   }
@@ -278,13 +297,13 @@ export class AnalyticsService {
           },
         }),
         prisma.ticket.groupBy({
-          by: ['status'],
+          by: ["status"],
           where: { partnerId },
           _count: true,
         }),
         prisma.ticket.findMany({
           where: { partnerId },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           take: 5,
           select: {
             id: true,
@@ -297,20 +316,20 @@ export class AnalyticsService {
         prisma.activityLog.count({
           where: {
             userEmail: partnerId,
-            userRole: 'PARTNER',
+            userRole: "PARTNER",
           },
         }),
       ]);
 
       return {
         partner,
-        ticketStats: ticketStats.map(item => ({ status: item.status, count: item._count })),
+        ticketStats: ticketStats.map((item) => ({ status: item.status, count: item._count })),
         recentTickets,
         activityCount,
       };
     } catch (error) {
-      console.error('Error getting partner analytics:', error);
-      throw new Error('Failed to get partner analytics');
+      console.error("Error getting partner analytics:", error);
+      throw new Error("Failed to get partner analytics");
     }
   }
 }

@@ -64,11 +64,15 @@ export function startEmailToTicketService() {
 
   imap.once("ready", () => {
     openInbox((err: any, _box: any) => {
-      if (err) {throw err;}
+      if (err) {
+        throw err;
+      }
       imap.on("mail", () => {
         // Search for unseen emails
         imap.search(["UNSEEN"], (err: any, results: any) => {
-          if (err || !results || results.length === 0) {return;}
+          if (err || !results || results.length === 0) {
+            return;
+          }
           const fetch = imap.fetch(results, { bodies: "" });
           fetch.on("message", (msg: any) => {
             msg.on("body", (_stream: any) => {

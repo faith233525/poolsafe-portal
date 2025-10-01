@@ -140,7 +140,10 @@ export class AccessibilityManager {
   // Motion Preferences
   private setupMotionPreferences(): void {
     if (typeof window === "undefined") return;
-    const mq = typeof window.matchMedia === "function" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+    const mq =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-reduced-motion: reduce)")
+        : null;
     const reducedMotion = (mq?.matches ?? false) || this.preferences.reducedMotion;
 
     if (reducedMotion) {
@@ -163,7 +166,10 @@ export class AccessibilityManager {
   // Contrast Preferences
   private setupContrastPreferences(): void {
     if (typeof window === "undefined") return;
-    const mq = typeof window.matchMedia === "function" ? window.matchMedia("(prefers-contrast: high)") : null;
+    const mq =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-contrast: high)")
+        : null;
     const highContrast = (mq?.matches ?? false) || this.preferences.highContrast;
 
     if (highContrast) {
@@ -192,7 +198,12 @@ export class AccessibilityManager {
 
   // Page Change Announcements
   private announcePageChanges(): void {
-    if (typeof window === "undefined" || typeof document === "undefined" || typeof MutationObserver === "undefined") return;
+    if (
+      typeof window === "undefined" ||
+      typeof document === "undefined" ||
+      typeof MutationObserver === "undefined"
+    )
+      return;
     // Announce route changes for SPAs
     let currentPath = window.location.pathname;
 

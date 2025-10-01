@@ -1,25 +1,31 @@
 .sidebar {
-  background: linear-gradient(180deg, #1a365d 0%, #2d5a87 50%, #005a8d 100%);
-  color: #fff;
-  width: 260px;
+  background: var(--gradient-primary);
+  color: var(--color-white);
+  width: 280px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
-  position: relative;
+  box-shadow: var(--shadow-2xl);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
   overflow: hidden;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  background:
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -33,10 +39,11 @@
 .logo {
   display: flex;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding: 0.75rem;
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
+  -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
 }
 
@@ -50,8 +57,8 @@
   font-size: 1.5rem;
   font-weight: 700;
   background: linear-gradient(135deg, #ffffff 0%, #e0f7fa 100%);
-  background-clip: text;
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
@@ -97,11 +104,12 @@
   overflow: hidden;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
 }
 
 .navLink::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -157,9 +165,10 @@
 .roleIndicator {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
+  padding: var(--space-4) var(--space-4);
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
+  -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
 }
 
@@ -175,33 +184,94 @@
   color: rgba(255, 255, 255, 0.95);
 }
 
-/* Responsive design */
+/* Mobile-First Responsive Design */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 260px;
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
-    width: 220px;
+    width: 280px;
     position: fixed;
-    left: -220px;
+    left: -280px;
     z-index: 1000;
-    transition: left 0.3s ease;
+    transition: left var(--duration-normal) var(--ease-out);
+    box-shadow: var(--shadow-2xl);
   }
-  
+
   .sidebar.open {
     left: 0;
   }
-  
+
+  .sidebarHeader {
+    padding: var(--space-6) var(--space-4);
+  }
+
   .logo {
-    flex-direction: column;
-    text-align: center;
+    margin-bottom: var(--space-4);
   }
-  
-  .logoIcon {
-    margin-right: 0;
-    margin-bottom: 0.5rem;
+
+  .navItem {
+    padding: 0 var(--space-4);
   }
-  
+
+  .navLink {
+    padding: var(--space-4);
+    font-size: 0.95rem;
+  }
+
   .navIcon {
-    margin-right: 0.5rem;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-right: var(--space-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 100vw;
+    left: -100vw;
+  }
+
+  .logoText {
+    font-size: 1.25rem;
+  }
+
+  .sidebarTitle {
+    font-size: 0.875rem;
+  }
+
+  .navLink {
+    padding: var(--space-5) var(--space-4);
+    font-size: 1rem;
+  }
+
+  .navIcon {
+    width: 2rem;
+    height: 2rem;
+    margin-right: var(--space-4);
+  }
+
+  .navLabel {
+    font-size: 1rem;
+  }
+}
+
+/* Touch-Friendly Navigation */
+@media (hover: none) and (pointer: coarse) {
+  .navLink {
+    min-height: 48px;
+    padding: var(--space-4) var(--space-4);
+  }
+
+  .navLink:hover {
+    transform: none;
+  }
+
+  .navLink:active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(0.98);
   }
 }

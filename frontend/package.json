@@ -43,6 +43,8 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@azure/msal-browser": "^4.24.1",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
     "@sentry/react": "^10.14.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

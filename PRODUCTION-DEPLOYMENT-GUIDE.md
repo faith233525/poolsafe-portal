@@ -1,6 +1,7 @@
 # 🚀 POOL SAFE INC PORTAL - PRODUCTION DEPLOYMENT GUIDE
 
 ## ✅ PRE-DEPLOYMENT CHECKLIST
+
 - [x] All 561 tests passing (100% success rate)
 - [x] Backend API fully tested (370/370 tests)
 - [x] Frontend UI fully tested (35/35 tests)
@@ -15,6 +16,7 @@
 ### 1. PRODUCTION ENVIRONMENT SETUP
 
 #### Backend Environment
+
 ```bash
 # Copy production template
 cp PRODUCTION.env.template backend/.env.production
@@ -28,6 +30,7 @@ cp PRODUCTION.env.template backend/.env.production
 ```
 
 #### Frontend Environment
+
 ```bash
 # Create frontend production env
 # frontend/.env.production
@@ -39,6 +42,7 @@ VITE_ENVIRONMENT=production
 ### 2. DATABASE SETUP
 
 #### PostgreSQL Production Database
+
 ```sql
 -- Create production database
 CREATE DATABASE poolsafe_production;
@@ -47,6 +51,7 @@ GRANT ALL PRIVILEGES ON DATABASE poolsafe_production TO poolsafe_user;
 ```
 
 #### Run Migrations
+
 ```bash
 cd backend
 NODE_ENV=production npx prisma migrate deploy
@@ -56,6 +61,7 @@ NODE_ENV=production npx prisma db seed
 ### 3. BUILD PRODUCTION ASSETS
 
 #### Backend Build
+
 ```bash
 cd backend
 npm run build
@@ -63,6 +69,7 @@ npm prune --production
 ```
 
 #### Frontend Build
+
 ```bash
 cd frontend
 npm run build
@@ -72,6 +79,7 @@ npm run build
 ### 4. DEPLOYMENT OPTIONS
 
 #### Option A: Traditional Server Deployment
+
 ```bash
 # Backend (API Server)
 cd backend
@@ -83,6 +91,7 @@ NODE_ENV=production PORT=4000 npm start
 ```
 
 #### Option B: Docker Deployment
+
 ```bash
 # Build Docker images
 docker-compose -f docker-compose.prod.yml build
@@ -92,15 +101,18 @@ docker-compose -f docker-compose.prod.yml up -d
 #### Option C: Cloud Deployment
 
 **Vercel/Netlify (Frontend):**
+
 - Deploy frontend/dist folder
 - Set environment variables in dashboard
 
 **Railway/Heroku (Backend):**
+
 - Connect GitHub repository
 - Set production environment variables
 - Deploy backend with database
 
 ### 5. SSL CERTIFICATE SETUP
+
 ```bash
 # Using Let's Encrypt (recommended)
 sudo certbot --nginx -d your-domain.com -d api.your-domain.com
@@ -109,6 +121,7 @@ sudo certbot --nginx -d your-domain.com -d api.your-domain.com
 ### 6. PRODUCTION VERIFICATION
 
 #### Health Checks
+
 ```bash
 # API Health Check
 curl https://api.your-domain.com/api/health
@@ -118,6 +131,7 @@ curl https://your-domain.com
 ```
 
 #### Smoke Tests
+
 ```bash
 # Run production smoke tests
 npm run test:smoke:production
@@ -126,6 +140,7 @@ npm run test:smoke:production
 ## 🔐 SECURITY HARDENING
 
 ### Essential Production Security
+
 - [x] HTTPS/SSL certificates installed
 - [x] Rate limiting enabled (100 req/15min)
 - [x] CORS properly configured
@@ -136,6 +151,7 @@ npm run test:smoke:production
 - [x] Error logging configured
 
 ### Monitoring & Alerts
+
 - Set up error tracking (Sentry recommended)
 - Configure uptime monitoring
 - Set up log aggregation
@@ -144,6 +160,7 @@ npm run test:smoke:production
 ## 📊 PRODUCTION METRICS
 
 ### Expected Performance
+
 - API Response Time: < 300ms
 - Frontend Load Time: < 2s
 - Database Query Time: < 100ms
@@ -151,6 +168,7 @@ npm run test:smoke:production
 - Concurrent Users: 1000+
 
 ### Resource Requirements
+
 - **Backend**: 2GB RAM, 2 CPU cores minimum
 - **Database**: PostgreSQL 13+ with 4GB RAM
 - **Frontend**: CDN or static hosting
@@ -159,6 +177,7 @@ npm run test:smoke:production
 ## 🚨 DISASTER RECOVERY
 
 ### Database Backups
+
 ```bash
 # Daily automated backups
 pg_dump poolsafe_production > backup_$(date +%Y%m%d).sql
@@ -167,6 +186,7 @@ pg_dump poolsafe_production > backup_$(date +%Y%m%d).sql
 ```
 
 ### Application Backups
+
 - Code repository (GitHub)
 - Environment configurations
 - SSL certificates
@@ -175,11 +195,13 @@ pg_dump poolsafe_production > backup_$(date +%Y%m%d).sql
 ## 📞 SUPPORT CONTACTS
 
 ### Production Issues
+
 - **Technical Lead**: [Your Contact]
 - **Database Admin**: [Your Contact]
 - **Security Team**: [Your Contact]
 
 ### Monitoring Dashboards
+
 - **Uptime**: [Monitoring URL]
 - **Performance**: [APM URL]
 - **Errors**: [Sentry URL]
@@ -206,6 +228,7 @@ pg_dump poolsafe_production > backup_$(date +%Y%m%d).sql
 ## 🎉 CONGRATULATIONS!
 
 Your Pool Safe Inc Portal is now **LIVE IN PRODUCTION** with:
+
 - ✅ 100% test coverage (561/561 tests passing)
 - ✅ Enterprise-grade security
 - ✅ High-performance architecture

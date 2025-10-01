@@ -4,63 +4,24 @@ import { env as coreEnv } from "./env";
 // intFromEnv is not used, so removed to fix lint warning
 
 // Validate only the optional tuning knobs; DB/JWT are provided by core env loader
+const numericEnv = (def: number) =>
+  z
+    .union([z.string().regex(/^\d+$/), z.undefined()])
+    .transform((v) => (v === undefined ? def : Number(v)));
+
 const envSchema = z.object({
   ALLOWED_ORIGINS: z.string().optional(),
-  UPLOAD_MAX_SIZE_MB: z
-    .string()
-    .regex(/^[0-9]+$/)
-    .transform(Number)
-    .default(2),
-  RATE_LIMIT_GLOBAL_MAX: z
-    .string()
-    .regex(/^[0-9]+$/)
-    .transform(Number)
-    .default(100),
-  RATE_LIMIT_GLOBAL_WINDOW_MS: z
-    .string()
-    .regex(/^[0-9]+$/)
-    .transform(Number)
-    .default(60000),
-  RATE_LIMIT_LOGIN_MAX: z
-    .string()
-    .regex(/^[0-9]+$/)
-    .transform(Number)
-    .default(10),
-  RATE_LIMIT_LOGIN_WINDOW_MS: z
-    .string()
-    .regex(/^[0-9]+$/)
-    .transform(Number)
-    .default(60000),
-  RATE_LIMIT_REGISTER_MAX: z
-    .string()
-    .regex(/^[0-9]+$/)
-    .transform(Number)
-    .default(5),
-  RATE_LIMIT_REGISTER_WINDOW_MS: z
-    .string()
-    .regex(/^[0-9]+$/)
-    .transform(Number)
-    .default(60000),
-  RATE_LIMIT_UPLOAD_MAX: z
-    .string()
-    .regex(/^[0-9]+$/)
-    .transform(Number)
-    .default(10),
-  RATE_LIMIT_UPLOAD_WINDOW_MS: z
-    .string()
-    .regex(/^[0-9]+$/)
-    .transform(Number)
-    .default(60000),
-  RATE_LIMIT_NOTIFICATIONS_MAX: z
-    .string()
-    .regex(/^[0-9]+$/)
-    .transform(Number)
-    .default(20),
-  RATE_LIMIT_NOTIFICATIONS_WINDOW_MS: z
-    .string()
-    .regex(/^[0-9]+$/)
-    .transform(Number)
-    .default(60000),
+  UPLOAD_MAX_SIZE_MB: numericEnv(2),
+  RATE_LIMIT_GLOBAL_MAX: numericEnv(100),
+  RATE_LIMIT_GLOBAL_WINDOW_MS: numericEnv(60000),
+  RATE_LIMIT_LOGIN_MAX: numericEnv(10),
+  RATE_LIMIT_LOGIN_WINDOW_MS: numericEnv(60000),
+  RATE_LIMIT_REGISTER_MAX: numericEnv(5),
+  RATE_LIMIT_REGISTER_WINDOW_MS: numericEnv(60000),
+  RATE_LIMIT_UPLOAD_MAX: numericEnv(10),
+  RATE_LIMIT_UPLOAD_WINDOW_MS: numericEnv(60000),
+  RATE_LIMIT_NOTIFICATIONS_MAX: numericEnv(20),
+  RATE_LIMIT_NOTIFICATIONS_WINDOW_MS: numericEnv(60000),
   LOG_LEVEL: z.string().default("info"),
 });
 
@@ -86,6 +47,20 @@ export const config = {
     notificationMax: env.RATE_LIMIT_NOTIFICATIONS_MAX,
   },
   logLevel: env.LOG_LEVEL,
-  databaseUrl: coreEnv.DATABASE_URL,
-  jwtSecret: coreEnv.JWT_SECRET,
+  databaseUrl: (() => {
+    // If user explicitly sets empty string, treat as error (ignore dev fallback)
+    if (typeof process.env.DATABASE_URL !== "undefined" && process.env.DATABASE_URL.trim() === "") {
+      throw new Error("DATABASE_URL is required and must be non-empty");
+    }
+    if (!coreEnv.DATABASE_URL || coreEnv.DATABASE_URL.trim() === "") {
+      throw new Error("DATABASE_URL is required and must be non-empty");
+    }
+    return coreEnv.DATABASE_URL;
+  })(),
+  jwtSecret: (() => {
+    if (!coreEnv.JWT_SECRET || coreEnv.JWT_SECRET.length < 10) {
+      throw new Error("JWT_SECRET must be at least 10 characters");
+    }
+    return coreEnv.JWT_SECRET;
+  })(),
 };

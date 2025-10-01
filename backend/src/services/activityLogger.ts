@@ -1,5 +1,5 @@
-import { Request } from 'express';
-import { prisma } from '../prismaClient';
+import { Request } from "express";
+import { prisma } from "../prismaClient";
 
 export interface ActivityLogData {
   userId?: string;
@@ -18,7 +18,7 @@ export class ActivityLogger {
   static async log(data: ActivityLogData, req?: Request): Promise<void> {
     try {
       const ipAddress = req ? this.getClientIP(req) : undefined;
-      const userAgent = req?.headers['user-agent'];
+      const userAgent = req?.headers["user-agent"];
 
       await prisma.activityLog.create({
         data: {
@@ -37,59 +37,100 @@ export class ActivityLogger {
         },
       });
     } catch (error) {
-      console.error('Failed to log activity:', error);
+      console.error("Failed to log activity:", error);
       // Don't throw - activity logging should not break the main flow
     }
   }
 
-  static async logLogin(userEmail: string, userRole: string, success: boolean, req: Request, errorMessage?: string): Promise<void> {
-    await this.log({
-      userEmail,
-      userRole,
-      action: 'LOGIN',
-      success,
-      errorMessage,
-    }, req);
+  static async logLogin(
+    userEmail: string,
+    userRole: string,
+    success: boolean,
+    req: Request,
+    errorMessage?: string,
+  ): Promise<void> {
+    await this.log(
+      {
+        userEmail,
+        userRole,
+        action: "LOGIN",
+        success,
+        errorMessage,
+      },
+      req,
+    );
   }
 
   static async logLogout(userEmail: string, userRole: string, req: Request): Promise<void> {
-    await this.log({
-      userEmail,
-      userRole,
-      action: 'LOGOUT',
-    }, req);
+    await this.log(
+      {
+        userEmail,
+        userRole,
+        action: "LOGOUT",
+      },
+      req,
+    );
   }
 
-  static async logTicketAction(action: string, ticketId: string, userEmail: string, userRole: string, req: Request, details?: Record<string, any>): Promise<void> {
-    await this.log({
-      userEmail,
-      userRole,
-      action,
-      entityType: 'TICKET',
-      entityId: ticketId,
-      details,
-    }, req);
+  static async logTicketAction(
+    action: string,
+    ticketId: string,
+    userEmail: string,
+    userRole: string,
+    req: Request,
+    details?: Record<string, any>,
+  ): Promise<void> {
+    await this.log(
+      {
+        userEmail,
+        userRole,
+        action,
+        entityType: "TICKET",
+        entityId: ticketId,
+        details,
+      },
+      req,
+    );
   }
 
-  static async logPartnerAction(action: string, partnerId: string, userEmail: string, userRole: string, req: Request, details?: Record<string, any>): Promise<void> {
-    await this.log({
-      userEmail,
-      userRole,
-      action,
-      entityType: 'PARTNER',
-      entityId: partnerId,
-      details,
-    }, req);
+  static async logPartnerAction(
+    action: string,
+    partnerId: string,
+    userEmail: string,
+    userRole: string,
+    req: Request,
+    details?: Record<string, any>,
+  ): Promise<void> {
+    await this.log(
+      {
+        userEmail,
+        userRole,
+        action,
+        entityType: "PARTNER",
+        entityId: partnerId,
+        details,
+      },
+      req,
+    );
   }
 
-  static async logKnowledgeBaseAction(action: string, kbId: string, userEmail: string, userRole: string, req: Request): Promise<void> {
-    await this.log({
-      userEmail,
-      userRole,
-      action,
-      entityType: 'KNOWLEDGE_BASE',
-      entityId: kbId,
-    }, req);
+  static async logKnowledgeBaseAction(
+    action: string,
+    kbId: string,
+    userEmail: string,
+    userRole: string,
+    req: Request,
+  ): Promise<void> {
+    await this.log(
+      {
+        userEmail,
+        userRole,
+        action,
+        entityType: "KNOWLEDGE_BASE",
+        entityId: kbId,
+      },
+      req,
+    );
   }
 
   static async getActivityStats(days: number = 30) {
@@ -99,9 +140,9 @@ export class ActivityLogger {
     const [loginStats, actionStats, userActivityStats, failedAttempts] = await Promise.all([
       // Login statistics
       prisma.activityLog.groupBy({
-        by: ['action', 'success'],
+        by: ["action", "success"],
         where: {
-          action: 'LOGIN',
+          action: "LOGIN",
           createdAt: { gte: startDate },
         },
         _count: true,
@@ -109,18 +150,18 @@ export class ActivityLogger {
 
       // Action statistics
       prisma.activityLog.groupBy({
-        by: ['action'],
+        by: ["action"],
         where: {
           createdAt: { gte: startDate },
-          action: { not: 'LOGIN' },
+          action: { not: "LOGIN" },
         },
         _count: true,
-        orderBy: { _count: { action: 'desc' } },
+        orderBy: { _count: { action: "desc" } },
       }),
 
       // User activity by role
       prisma.activityLog.groupBy({
-        by: ['userRole'],
+        by: ["userRole"],
         where: {
           createdAt: { gte: startDate },
         },
@@ -130,7 +171,7 @@ export class ActivityLogger {
       // Failed login attempts
       prisma.activityLog.findMany({
         where: {
-          action: 'LOGIN',
+          action: "LOGIN",
           success: false,
           createdAt: { gte: startDate },
         },
@@ -140,7 +181,7 @@ export class ActivityLogger {
           createdAt: true,
           errorMessage: true,
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 50,
       }),
     ]);
@@ -155,7 +196,7 @@ export class ActivityLogger {
 
   static async getRecentActivity(limit: number = 100) {
     return prisma.activityLog.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: limit,
       select: {
         id: true,
@@ -175,7 +216,7 @@ export class ActivityLogger {
       where: options.where,
       skip: options.skip,
       take: options.take,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         userEmail: true,
@@ -197,7 +238,7 @@ export class ActivityLogger {
 
   private static getClientIP(req: Request): string | undefined {
     return (
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+      (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
       req.connection.remoteAddress ||
       req.socket.remoteAddress ||
       undefined

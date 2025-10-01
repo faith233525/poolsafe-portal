@@ -25,13 +25,17 @@ interface EnvShape {
 
 function getEnv(name: string, fallback?: string, opts?: { requiredInProd?: boolean }): string {
   const val = process.env[name];
-  if (val && val.trim() !== "") {return val;}
+  if (val && val.trim() !== "") {
+    return val;
+  }
   const inProd = (process.env.NODE_ENV || "development") === "production";
   const requiredInProd = opts?.requiredInProd ?? true;
   if (inProd && requiredInProd) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
-  if (fallback !== undefined) {return fallback;}
+  if (fallback !== undefined) {
+    return fallback;
+  }
   return "";
 }
 

@@ -23,61 +23,69 @@ A comprehensive support portal for Pool Safe Inc partners with complete Activity
 
 ## ✅ System Status
 
-1. Backend
+### 1. Backend
 
 ```powershell
-
 cd backend
-
 copy .env.example .env
-
 npm install
 npx prisma generate
 npm run dev
 ```
 
-2. Frontend
+### 2. Frontend
 
 ```powershell
 cd frontend
+npm install
+npm run dev
+```
+
 ## 🛡️ Backup & Recovery
 
 ### Database Backup
+
 - Automate regular backups of all SQLite databases (`dev.db`, `test-auth.db`, `test-knowledgebase.db`, `test-tickets.db`).
 - Use PowerShell scripts or scheduled tasks to copy database files to a secure backup location.
 - Retain at least 7 daily and 4 weekly backup snapshots.
 - Store backups offsite (cloud storage, external drive, or network share).
 
 ### Database Restore
+
 - Stop backend service before restoring.
 - Replace corrupted database file with backup copy.
 - Restart backend service and verify integrity.
-3. Frontend
 
 ### Migration/Seed Validation
+
 - After restore, run `prisma migrate deploy` and `npm run seed` to ensure schema and data integrity.
 
 ### Blue-Green Deployment Rollback
+
 - Deploy to a new environment (green), validate health, then switch traffic.
 - If issues arise, switch back to previous (blue) environment instantly.
- - Backend: [http://localhost:4000/api/health](http://localhost:4000/api/health)
- - Frontend: [http://localhost:5173](http://localhost:5173)
+
+**Health Endpoints:**
+
+- Backend: [http://localhost:4000/api/health](http://localhost:4000/api/health)
+- Frontend: [http://localhost:5173](http://localhost:5173)
+
 ### Monitoring & Alerts
+
 - Integrate external monitoring (Datadog, Azure Monitor, UptimeRobot) for uptime and error alerts.
 - Set up notifications for failed backups, restore attempts, or health check failures.
 
 ### Troubleshooting
+
 - If restore fails, check backup file integrity and permissions.
 - For migration/seed errors, review logs and rerun scripts.
 
-npm install
-npm run dev
-```
+## 🔗 Development URLs
 
 - Backend: <http://localhost:4000/api/health>
 - Frontend: <http://localhost:5173>
 
-Test endpoints:
+### Test Endpoints
 
 ## Backend Environment Variables
 
@@ -129,14 +137,14 @@ Contact: project owner or repo maintainer for credentials and Azure registration
 - If you see `jest is not defined`, ensure you use `vi.fn` for mocks (Vitest).
 - If you see `tickets.map is not a function`, make sure your fetch mocks for `/api/tickets` always return an array.
 - If you see CSS module import errors, ensure you have a `declaration.d.ts` file with:
- 
+
   ```ts
   declare module "*.module.css" {
     const classes: { [key: string]: string };
     export default classes;
   }
   ```
- 
+
 - If you see React version or act(...) warnings, update your test to wrap state updates in `act()` if needed.
 
 ### React & Test Library Versions
@@ -181,7 +189,7 @@ Mounted via `backend/src/routes/swagger.ts` under `/api` in `backend/src/app.ts`
 4. Run `npm run dev` in frontend.
 5. Access frontend at <http://localhost:5173> and backend at <http://localhost:4000>.
 
-### Troubleshooting
+### Development Troubleshooting
 
 - If you see database errors, check your `.env` and Prisma provider settings.
 - For frontend build issues, ensure Node.js and npm versions are compatible.
