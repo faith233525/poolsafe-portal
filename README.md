@@ -1,5 +1,8 @@
 # 🏊‍♂️ Pool Safe Inc Support Partner Portal
 
+Repository: https://github.com/faith233525/Fatima-Pool-Safe-Inc-Portal-2025-Final-
+Branch: main
+
 ## ✅ **PRODUCTION READY** - All Features Implemented
 
 > **Status**: Complete implementation with Activity Logging and Admin Dashboard Analytics  
@@ -8,7 +11,113 @@
 
 A comprehensive support portal for Pool Safe Inc partners with complete Activity Logging and Admin Dashboard Analytics implementation.
 
-## 🚀 Project Structure
+Important security note:
+- Secrets are never committed. Environment files like `.env` are ignored by Git. Use the provided `.env.example` templates to create your own `.env` locally and in production.
+- Backend: create `backend/.env` from `backend/.env.example` (or the appropriate template).
+- Frontend: create `frontend/.env` from `frontend/.env.example` when frontend runtime envs are required.
+- For servers/CI, inject secrets via host-level environment variables or GitHub Actions Secrets.
+
+## 🔐 Authentication Policy
+
+- **Partners** sign in with **company username and password** (shared company account).
+  - Username = Company Name (e.g., "Marriott Downtown")
+  - Password = Company password (`userPass` field in Partner table)
+  - **Company-based login**: All employees from same company use the same credentials
+  - **No individual Outlook logins for partners**
+  
+- **Support/Admin** sign in with company email and password (individual accounts).
+  - Internal emails under `@poolsafeinc.com` are recognized as SUPPORT role
+  - Can also login via Outlook/Microsoft SSO
+  
+- **Admin emails** are configured via `ADMIN_EMAILS` (comma-separated).
+  - Default admin: `support@poolsafeinc.com` with password `LounGenie123!!`
+  - Admin: `fabdi@poolsafeinc.com` (Outlook SSO)
+  
+- **Contacts** (stored separately for admin/support reference only):
+  - When partners submit tickets, contact info (first name, last name, title) is captured
+  - Contacts are NOT used for authentication
+  - Multiple contacts per company (GM, Operations Manager, IT Director, etc.)
+  - One contact marked as Primary Contact
+  - Admins create/update contacts manually
+
+## 🎨 Asset Management
+
+### Logo Upload (Admin Only)
+- **Endpoint**: `POST /api/assets/logo`
+- **Content-Type**: `multipart/form-data`; field name: `file`
+- **Accepted formats**: PNG, JPG, SVG, WebP
+- **Usage**: Upload company/portal logo; replaces any existing logo
+- **Public URL**: `/api/assets/logo.{ext}`
+
+### Video Upload (Admin & Support)
+- **Endpoint**: `POST /api/assets/video`
+- **Content-Type**: `multipart/form-data`; field name: `file`
+- **Accepted formats**: MP4, WebM, MOV, AVI
+- **Max size**: 100MB
+- **Usage**: Upload training or demo videos
+- **Public URL**: `/api/assets/{filename}`
+- **Access**: Support staff can also upload videos
+
+### List Assets
+- **Endpoint**: `GET /api/assets`
+- **Returns**: Array of all uploaded assets with filenames, sizes, upload timestamps
+
+### Delete Asset
+- **Endpoint**: `DELETE /api/assets/{filename}`
+- **Usage**: Remove unused assets
+
+## 📊 Partner Management (Admin & Support)
+
+### Editable Fields
+Admin and Support can create/update partners with:
+- **Basic Info**: companyName, managementCompany, streetAddress, city, state, zip, country
+- **Lounge Units**: numberOfLoungeUnits (integer)
+- **Top Colour**: Dropdown with options:
+  - Ducati Red
+  - Classic Blue
+  - Ice Blue
+  - Yellow
+  - Custom (freeform input: prefix with "Custom:")
+- **Lock Info** (Admin/Support only):
+  - lock: MAKE or L&F
+  - masterCode
+  - subMasterCode
+  - lockPart
+  - key
+- **Location**: latitude, longitude (for map display)
+
+### Bulk partner import
+
+- **Endpoint**: `POST /api/partners/import` (admin-only)
+- **Content-Type**: `multipart/form-data`; field name: `file`
+- **Accepts**: CSV or Excel (.xlsx)
+- **Optional**: `?dryRun=true` to preview without saving
+- **Columns** (case-insensitive):
+  - `companyName` (required), `managementCompany`, `streetAddress`, `city`, `state`, `zip`, `country`, `numberOfLoungeUnits`, `topColour`, `latitude`, `longitude`
+  - Unrecognized columns are ignored safely
+- **Behavior**: Upserts by companyName (updates existing, creates new)
+
+## 👥 User Management (Admin Only)
+
+### Bulk user import
+
+- **Endpoint**: `POST /api/users/import` (admin-only)
+- **Content-Type**: `multipart/form-data`; field name: `file`
+- **Accepts**: CSV or Excel (.xlsx)
+- **Optional**: `?dryRun=true` to preview without saving
+- **Columns** (case-insensitive):
+  - `email` (required), `displayName`, `role` (ADMIN or SUPPORT), `password`
+  - If password is omitted, defaults to `ChangeMe123!!`
+- **Behavior**: Upserts by email (updates role/name for existing, creates new users)
+
+## 🗺️ Map View (Admin & Support)
+
+- **Endpoint**: `GET /api/partners/map`
+- **Returns**: All partners with latitude/longitude + open ticket counts
+- **Usage**: Display partner locations on an interactive map (frontend integration required)
+
+
+## �🚀 Project Structure
 
 - `frontend/` - React + TypeScript frontend (Vite) - **FULLY FUNCTIONAL**
 - `backend/` - Node.js + Express + Prisma backend - **FULLY FUNCTIONAL**
@@ -32,6 +141,8 @@ npm install
 npx prisma generate
 npm run dev
 ```
+
+To run with PostgreSQL in production, use `backend/.env.postgresql.template` as the starting point and set `DATABASE_URL` accordingly. Never commit the real `.env` file.
 
 ### 2. Frontend
 
@@ -97,7 +208,9 @@ The repository includes a self-contained demo/marketing portal at `frontend/publ
   <script>
     window.__API_BASE__ = "https://api.your-domain.com";
   </script>
-  <script src="/public/loungenie-portal.html"><!-- your hosting will serve this file --></script>
+  <script src="/public/loungenie-portal.html">
+    <!-- your hosting will serve this file -->
+  </script>
   ```
 
 If you prefer to keep CSS separate for maintainability, you can extract the inline styles into a dedicated CSS file and include it with a `<link>` tag. The current inline approach is intentional for portability.
@@ -135,6 +248,12 @@ The backend requires several environment variables to be configured in `.env` fi
 Notes:
 
 - The Prisma schema uses `DATABASE_URL` environment variable. For quick local testing you can use SQLite by changing `provider` to `sqlite` in `prisma/schema.prisma` and updating `DATABASE_URL`.
+
+Security policy for secrets:
+- Do not hardcode tokens, passwords, or keys inside source code.
+- Keep `.env` files out of Git (enforced via `.gitignore`).
+- Use `.env.example` and `*.template` files to document required variables without values.
+- Rotate production secrets periodically and after any incident.
 
 - Azure AD, HubSpot, and email integrations are planned in `docs/integrations.md`.
 
