@@ -1,10 +1,10 @@
-# Ticket Creation Form Updates - Pool Safe Inc. Portal
+# Ticket Creation Form Updates - Pool Safe Portal (PSP)
 
 ## Summary of Changes
 
 ### 1. Branding Updates
-- **Plugin Name**: Updated from "Pool Safe Partner Portal" to "Pool Safe Inc. Portal"
-- **Portal Header**: Changed to "Pool Safe Inc. Portal" throughout the interface
+- **Plugin Name**: "Pool Safe Portal (PSP)" - PSP now stands for Pool Safe Portal
+- **Portal Header**: Changed to "Pool Safe Portal" throughout the interface
 - **Plugin Description**: Updated to reflect contact management features
 
 ### 2. New Ticket Contact Fields
