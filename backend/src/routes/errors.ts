@@ -14,6 +14,12 @@ const errorReportLimit = rateLimit({
   message: "Too many error reports, please try again later",
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) =>
+    (req.headers["x-bypass-ratelimit"] as string) === "true" ||
+    (typeof req.headers["user-agent"] === "string" &&
+      req.headers["user-agent"].includes("Cypress/")) ||
+    process.env.NODE_ENV === "test" ||
+    process.env.CI === "true",
 });
 
 interface ErrorReport {

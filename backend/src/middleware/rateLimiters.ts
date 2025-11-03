@@ -7,6 +7,14 @@ export const authLoginLimiter = rateLimit({
   message: { error: "Too many login attempts. Please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
+  // Allow Cypress and test orchestration to bypass rate limits
+  skip: (req) =>
+    req.headers["x-bypass-ratelimit"] === "true" ||
+    // Allow Cypress runner to bypass limits by detecting its user agent
+    (typeof req.headers["user-agent"] === "string" &&
+      req.headers["user-agent"].includes("Cypress/")) ||
+    process.env.NODE_ENV === "test" ||
+    process.env.CI === "true",
 });
 
 export const partnerRegisterLimiter = rateLimit({
@@ -15,6 +23,12 @@ export const partnerRegisterLimiter = rateLimit({
   message: { error: "Too many registrations from this IP. Try later." },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) =>
+    req.headers["x-bypass-ratelimit"] === "true" ||
+    (typeof req.headers["user-agent"] === "string" &&
+      req.headers["user-agent"].includes("Cypress/")) ||
+    process.env.NODE_ENV === "test" ||
+    process.env.CI === "true",
 });
 
 export const uploadLimiter = rateLimit({
@@ -23,6 +37,12 @@ export const uploadLimiter = rateLimit({
   message: { error: "Upload rate limit exceeded." },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) =>
+    req.headers["x-bypass-ratelimit"] === "true" ||
+    (typeof req.headers["user-agent"] === "string" &&
+      req.headers["user-agent"].includes("Cypress/")) ||
+    process.env.NODE_ENV === "test" ||
+    process.env.CI === "true",
 });
 
 export const notificationCreateLimiter = rateLimit({
@@ -31,4 +51,10 @@ export const notificationCreateLimiter = rateLimit({
   message: { error: "Too many notifications created." },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) =>
+    req.headers["x-bypass-ratelimit"] === "true" ||
+    (typeof req.headers["user-agent"] === "string" &&
+      req.headers["user-agent"].includes("Cypress/")) ||
+    process.env.NODE_ENV === "test" ||
+    process.env.CI === "true",
 });

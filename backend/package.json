@@ -33,6 +33,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node-fetch": "^2.6.13",
     "@types/nodemailer": "^7.0.1",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
@@ -53,7 +54,9 @@
     "pino-pretty": "^11.0.0",
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.17.0",
-    "winston-daily-rotate-file": "^5.0.0"
+    "winston-daily-rotate-file": "^5.0.0",
+    "xlsx": "^0.18.5",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.8.0",
@@ -66,6 +69,7 @@
     "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/mailparser": "^3.4.6",
+    "@types/multer": "^1.4.12",
     "@types/node": "^20.0.0",
     "@types/supertest": "^6.0.3",
     "@types/swagger-ui-express": "^4.1.8",

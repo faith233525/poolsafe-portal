@@ -62,7 +62,7 @@ const AnalyticsDashboard: React.FC = () => {
   }, [timeRange]);
 
   const apiCall = async (url: string) => {
-    const token = localStorage.getItem("auth_token");
+    const token = localStorage.getItem("jwt");
     const response = await apiFetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,

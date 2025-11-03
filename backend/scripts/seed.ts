@@ -19,12 +19,20 @@ for (const arg of process.argv) {
   }
 }
 
-// List of DB files to seed
+// List of DB files to seed (use correct prisma/ path for local SQLite files)
 const dbFiles = process.env.SEED_DB_FILES
   ? process.env.SEED_DB_FILES.split(",")
       .map((s) => s.trim())
       .filter(Boolean)
-  : ["dev.db", "test-auth.db", "test-tickets.db"];
+  : [
+      "prisma/dev.db",
+      "prisma/test-auth.db",
+      "prisma/test-tickets.db",
+      "prisma/test-health.db",
+      "prisma/test-knowledgebase.db",
+      "prisma/test-middleware.db",
+      "prisma/test-email.db",
+    ];
 
 async function clearDatabase(prisma: PrismaClient) {
   console.log("🧹 Clearing existing data...");
@@ -271,7 +279,11 @@ async function seedDatabase(databaseUrl: string, label: string, shouldReset: boo
     // Upsert support and admin users with test emails
     await prisma.user.upsert({
       where: { email: SUPPORT_EMAIL },
-      update: {},
+      update: {
+        password: hashedSupportPassword,
+        role: "SUPPORT",
+        displayName: "Support Staff",
+      },
       create: {
         email: SUPPORT_EMAIL,
         displayName: "Support Staff",
@@ -281,7 +293,11 @@ async function seedDatabase(databaseUrl: string, label: string, shouldReset: boo
     });
     await prisma.user.upsert({
       where: { email: ADMIN_EMAIL },
-      update: {},
+      update: {
+        password: hashedAdminPassword,
+        role: "ADMIN",
+        displayName: "Admin User",
+      },
       create: {
         email: ADMIN_EMAIL,
         displayName: "Admin User",
@@ -383,8 +399,9 @@ async function seedDatabase(databaseUrl: string, label: string, shouldReset: boo
 async function main() {
   // Priority: explicit --dbUrl > SEED_DB_URL/DATABASE_URL > explicit --dbFile > default files
   const envDbUrl = process.env.SEED_DB_URL || process.env.DATABASE_URL;
+  const forceMulti = process.env.SEED_DB_FILES || process.env.SEED_ALL === "true";
 
-  if (cliDbUrl || envDbUrl) {
+  if (!forceMulti && (cliDbUrl || envDbUrl)) {
     const dbUrl = (cliDbUrl || envDbUrl)!;
     const label = dbUrl.startsWith("file:") ? dbUrl.replace(/^file:\.\//, "") : "custom-url";
     console.log(`\nSeeding single database via URL: ${dbUrl}`);

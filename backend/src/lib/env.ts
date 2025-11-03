@@ -12,6 +12,10 @@ interface EnvShape {
   AZURE_CLIENT_SECRET?: string;
   AZURE_TENANT_ID?: string;
   AZURE_REDIRECT_URI?: string;
+  // Auth policy
+  ADMIN_EMAILS?: string; // comma-separated
+  INTERNAL_EMAIL_DOMAIN?: string; // e.g. poolsafeinc.com
+  PARTNER_PASSWORD_LOGIN_ENABLED?: string; // "true" or "false"
   // SMTP Configuration
   SMTP_HOST?: string;
   SMTP_PORT?: string;
@@ -51,6 +55,10 @@ export const env: EnvShape = {
   AZURE_CLIENT_SECRET: process.env.AZURE_CLIENT_SECRET,
   AZURE_TENANT_ID: process.env.AZURE_TENANT_ID,
   AZURE_REDIRECT_URI: process.env.AZURE_REDIRECT_URI,
+  // Auth policy
+  ADMIN_EMAILS: process.env.ADMIN_EMAILS,
+  INTERNAL_EMAIL_DOMAIN: process.env.INTERNAL_EMAIL_DOMAIN || "poolsafeinc.com",
+  PARTNER_PASSWORD_LOGIN_ENABLED: process.env.PARTNER_PASSWORD_LOGIN_ENABLED || "false",
   // SMTP Configuration
   SMTP_HOST: process.env.SMTP_HOST,
   SMTP_PORT: process.env.SMTP_PORT,

@@ -6241,7 +6241,10 @@
       // - To target a different backend domain, set window.__API_BASE__ before this script runs
       //   Example:
       //   <script>window.__API_BASE__ = "https://api.your-domain.com";<\/script>
-      const API_BASE = (typeof window.__API_BASE__ === "string" ? window.__API_BASE__ : "").replace(/\/$/, "");
+      const API_BASE = (typeof window.__API_BASE__ === "string" ? window.__API_BASE__ : "").replace(
+        /\/$/,
+        "",
+      );
 
       // Initialize MSAL instance
       let msalInstance = null;

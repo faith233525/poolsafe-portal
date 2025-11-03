@@ -5,7 +5,6 @@ import { prisma } from "../prismaClient";
 import { requireAuthenticated, AuthenticatedRequest } from "../utils/auth";
 import { validateBody } from "../middleware/validate";
 import { attachmentCreateSchema } from "../validation/schemas";
-// @ts-expect-error: multer types may not be present in this workspace
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -18,7 +17,7 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-const storage = (multer as any).diskStorage({
+const storage = multer.diskStorage({
   destination: (_req: any, _file: any, cb: any) => cb(null, UPLOAD_DIR),
   filename: (_req: any, file: any, cb: any) => {
     const unique = `${Date.now()  }-${  Math.round(Math.random() * 1e9)}`;

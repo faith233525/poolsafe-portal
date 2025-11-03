@@ -13,11 +13,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false
   },
   "include": ["src", "src/types"],
-  "exclude": ["node_modules"],
-  "composite": true,
-  "declaration": true,
-  "declarationMap": true
+  "exclude": ["node_modules"]
 }

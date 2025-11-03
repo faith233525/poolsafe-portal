@@ -9,6 +9,8 @@
     "rangav.vscode-thunder-client",
     "ms-azuretools.vscode-docker",
     "ms-vscode.vscode-typescript-next",
-    "ms-kubernetes-tools.kind-vscode"
+    "ms-kubernetes-tools.kind-vscode",
+    "cypress.cypress-helper",
+    "github.vscode-github-actions"
   ]
 }

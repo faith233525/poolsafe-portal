@@ -3,8 +3,24 @@ import { render, screen, waitFor } from "@testing-library/react";
 import PartnerMap from "./PartnerMap";
 
 const partners = [
-  { id: "1", companyName: "Alpha", city: "Toronto", state: "ON", latitude: 43.65, longitude: -79.38, status: "active" },
-  { id: "2", companyName: "Beta", city: "Vancouver", state: "BC", latitude: 49.28, longitude: -123.12, status: "pending" },
+  {
+    id: "1",
+    companyName: "Alpha",
+    city: "Toronto",
+    state: "ON",
+    latitude: 43.65,
+    longitude: -79.38,
+    status: "active",
+  },
+  {
+    id: "2",
+    companyName: "Beta",
+    city: "Vancouver",
+    state: "BC",
+    latitude: 49.28,
+    longitude: -123.12,
+    status: "pending",
+  },
 ];
 
 describe("PartnerMap", () => {
@@ -27,8 +43,8 @@ describe("PartnerMap", () => {
   it("renders map and controls", async () => {
     render(<PartnerMap role="SUPPORT" />);
 
-  // Shows loading state first
-  expect(!!screen.getByText(/loading enhanced map/i)).toBe(true);
+    // Shows loading state first
+    expect(!!screen.getByText(/loading enhanced map/i)).toBe(true);
 
     await waitFor(() => {
       // Controls should be present

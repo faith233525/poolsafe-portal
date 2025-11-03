@@ -26,7 +26,10 @@ function decodeJwt(token: string): any {
   if (!token) return null;
   try {
     const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
+    // Decode base64url (JWT) payload safely
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+    return JSON.parse(atob(padded));
   } catch {
     return null;
   }

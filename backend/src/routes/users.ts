@@ -7,11 +7,15 @@ import {
   AuthenticatedRequest,
   hashPassword,
 } from "../utils/auth";
+import { usersImportRouter } from "./usersImport";
 
 export const usersRouter = Router();
 
 // Apply authentication to all routes
 usersRouter.use(authenticateToken);
+
+// Mount import sub-router (admin-only bulk import)
+usersRouter.use("/", usersImportRouter);
 
 // Get all users (Support/Admin only)
 usersRouter.get("/", requireSupport, async (req: AuthenticatedRequest, res) => {

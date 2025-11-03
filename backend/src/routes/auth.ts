@@ -95,7 +95,7 @@ authRouter.post("/login", authLoginLimiter, async (req, res) => {
   }
 });
 
-// Partner Login (company-based authentication)
+// Partner Login (company-based authentication) - DEFAULT LOGIN METHOD FOR PARTNERS
 authRouter.post("/login/partner", authLoginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -235,7 +235,9 @@ authRouter.post("/register/partner", partnerRegisterLimiter, async (req, res) =>
   }
 });
 
-// Outlook SSO Login (Support/Admin)
+// Outlook SSO Login (Partners + Support/Admin)
+// This endpoint accepts an accessToken + email from the client and classifies the user role
+// Partners must be present as a Contact email on a Partner record; Support/Admin are internal emails
 authRouter.post("/login/outlook", async (req, res) => {
   try {
     const { accessToken, email, displayName } = req.body;
@@ -247,27 +249,64 @@ authRouter.post("/login/outlook", async (req, res) => {
     // Verify the access token with Microsoft Graph (simplified for demo)
     // In production, you would validate the token with Microsoft Graph API
 
-    // Find or create user with support/admin role
     const prisma = getPrismaClient();
-    let user = await prisma.user.findFirst({
-      where: {
-        email: email.toLowerCase(),
-        role: {
-          in: ["SUPPORT", "ADMIN"],
-        },
-      },
-    });
 
+    const lowerEmail = email.toLowerCase();
+    let adminEmails = (env.ADMIN_EMAILS || "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    if (adminEmails.length === 0) {
+      adminEmails = ["support@poolsafeinc.com", "fabdi@poolsafeinc.com"]; // safe defaults
+    }
+    const internalDomain = (env.INTERNAL_EMAIL_DOMAIN || "poolsafeinc.com").toLowerCase();
+    const isInternal = lowerEmail.endsWith(`@${internalDomain}`);
+
+    let role: "ADMIN" | "SUPPORT" | "PARTNER" | null = null;
+    let partnerId: string | undefined;
+
+    if (adminEmails.includes(lowerEmail)) {
+      role = "ADMIN";
+    } else if (isInternal) {
+      role = "SUPPORT";
+    } else {
+      // External email: attempt to map to Partner via Contact email
+      const contact = await prisma.contact.findFirst({
+        where: { email: lowerEmail },
+        select: { partnerId: true },
+      });
+      if (contact?.partnerId) {
+        role = "PARTNER";
+        partnerId = contact.partnerId;
+      }
+    }
+
+    if (!role) {
+      // Not recognized as internal or a known partner contact
+      return res.status(403).json({ error: "This email is not authorized for SSO" });
+    }
+
+    // Upsert user with resolved role and optional partnerId
+    let user = await prisma.user.findUnique({ where: { email: lowerEmail } });
     if (!user) {
-      // Auto-create user with SUPPORT role (Admin can upgrade later)
       user = await prisma.user.create({
         data: {
-          email: email.toLowerCase(),
+          email: lowerEmail,
           displayName: displayName || email,
-          role: "SUPPORT", // Default to SUPPORT, admin can upgrade
-          password: null, // No password for SSO users
+          role,
+          partnerId,
+          password: null,
         },
       });
+    } else {
+      // Ensure role/partner mapping is in sync (do not downgrade ADMIN)
+      const nextRole = user.role === "ADMIN" ? "ADMIN" : role;
+      if (user.role !== nextRole || (partnerId && user.partnerId !== partnerId)) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { role: nextRole, partnerId: partnerId ?? user.partnerId },
+        });
+      }
     }
 
     // Generate token
@@ -280,6 +319,7 @@ authRouter.post("/login/outlook", async (req, res) => {
         email: user.email,
         displayName: user.displayName,
         role: user.role,
+        partnerId: user.partnerId,
       },
     });
   } catch (error) {
@@ -293,10 +333,11 @@ authRouter.get("/me", authenticateToken, async (req: AuthenticatedRequest, res) 
   try {
     const prisma = getPrismaClient();
 
-    // Handle direct partner authentication
+    // Handle partner authentication (support legacy tokens where userId==partnerId)
     if (req.user!.role === "PARTNER") {
+      const partnerId = req.user!.partnerId || req.user!.id;
       const partner = await prisma.partner.findUnique({
-        where: { id: req.user!.id },
+        where: { id: partnerId },
         select: {
           id: true,
           companyName: true,
@@ -498,7 +539,7 @@ authRouter.get("/sso/login", async (req, res) => {
   }
 });
 
-// Handle SSO callback from Microsoft
+// Handle SSO callback from Microsoft (Partners + Support/Admin)
 authRouter.get("/sso/callback", async (req, res) => {
   try {
     if (!isAzureADConfigured() || !msalInstance) {
@@ -548,25 +589,60 @@ authRouter.get("/sso/callback", async (req, res) => {
       return res.status(400).json({ error: "Unable to retrieve email from Microsoft profile" });
     }
 
-    // Find or create user in our system
     const prisma = getPrismaClient();
-    let user = await prisma.user.findFirst({
-      where: {
-        email: email.toLowerCase(),
-        role: { in: ["ADMIN", "SUPPORT"] },
-      },
-    });
 
+    const lowerEmail = email.toLowerCase();
+    let adminEmails = (env.ADMIN_EMAILS || "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    if (adminEmails.length === 0) {
+      adminEmails = ["support@poolsafeinc.com", "fabdi@poolsafeinc.com"]; // safe defaults
+    }
+    const internalDomain = (env.INTERNAL_EMAIL_DOMAIN || "poolsafeinc.com").toLowerCase();
+    const isInternal = lowerEmail.endsWith(`@${internalDomain}`);
+
+    let role: "ADMIN" | "SUPPORT" | "PARTNER" | null = null;
+    let partnerId: string | undefined;
+
+    if (adminEmails.includes(lowerEmail)) {
+      role = "ADMIN";
+    } else if (isInternal) {
+      role = "SUPPORT";
+    } else {
+      const contact = await prisma.contact.findFirst({
+        where: { email: lowerEmail },
+        select: { partnerId: true },
+      });
+      if (contact?.partnerId) {
+        role = "PARTNER";
+        partnerId = contact.partnerId;
+      }
+    }
+
+    if (!role) {
+      return res.status(403).json({ error: "This email is not authorized for SSO" });
+    }
+
+    let user = await prisma.user.findUnique({ where: { email: lowerEmail } });
     if (!user) {
-      // Auto-create support user if not exists (admin must be manually created)
       user = await prisma.user.create({
         data: {
-          email: email.toLowerCase(),
+          email: lowerEmail,
           displayName: userProfile.displayName || email,
-          role: "SUPPORT", // Default to support, admin can upgrade later
-          // No password needed for SSO users
+          role,
+          partnerId,
+          // No password for SSO users
         },
       });
+    } else {
+      const nextRole = user.role === "ADMIN" ? "ADMIN" : role;
+      if (user.role !== nextRole || (partnerId && user.partnerId !== partnerId)) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { role: nextRole, partnerId: partnerId ?? user.partnerId },
+        });
+      }
     }
 
     // Generate JWT token for our system
@@ -576,7 +652,7 @@ authRouter.get("/sso/callback", async (req, res) => {
     const redirectUrl =
       env.NODE_ENV === "production"
         ? `${req.protocol}://${req.get("host")}/dashboard?token=${token}`
-        : `http://localhost:5174/dashboard?token=${token}`;
+        : `http://localhost:5173/dashboard?token=${token}`;
 
     res.redirect(redirectUrl);
   } catch (error) {
@@ -608,16 +684,18 @@ authRouter.post("/outlook-sync", async (req, res) => {
     }
 
     // Determine user role based on email
-    const adminEmails = [
-      "admin@poolsafeinc.com",
-      "fatima@poolsafeinc.com",
-      "support@poolsafeinc.com",
-    ];
-
-    const role =
-      adminEmails.includes(email.toLowerCase()) || email.toLowerCase().endsWith("@poolsafeinc.com")
-        ? "admin"
-        : "support";
+    const lowerEmail = email.toLowerCase();
+    let adminEmails = (env.ADMIN_EMAILS || "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    if (adminEmails.length === 0) {
+      adminEmails = ["support@poolsafeinc.com", "fabdi@poolsafeinc.com"]; // safe defaults
+    }
+    const internalDomain = (env.INTERNAL_EMAIL_DOMAIN || "poolsafeinc.com").toLowerCase();
+    const role = adminEmails.includes(lowerEmail) || lowerEmail.endsWith(`@${internalDomain}`)
+      ? "admin"
+      : "support";
 
     // Check if user exists or create new user
     let user = await prisma.user.findUnique({

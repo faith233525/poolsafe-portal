@@ -14,6 +14,12 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
+// Ensure clean state between tests
+beforeEach(() => {
+  cy.clearCookies({ log: false });
+  cy.clearLocalStorage();
+});
+
 import "./commands";
 
 import "cypress-file-upload";

@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { apiFetch } from "./utils/api";
 
 type FormState = {
+  firstName: string;
+  lastName: string;
+  title: string;
   subject: string;
   category: string;
   priority: string;
@@ -16,8 +19,11 @@ type FormState = {
 };
 
 const initialState: FormState = {
+  firstName: "",
+  lastName: "",
+  title: "",
   subject: "",
-  category: "General",
+  category: "Call Button",
   priority: "MEDIUM",
   description: "",
   unitsAffected: 0,
@@ -64,12 +70,19 @@ export default function TicketForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    
+    // Validate required contact fields
+    if (!form.firstName || !form.lastName || !form.title) {
+      setError("Please provide your first name, last name, and position/title.");
+      return;
+    }
+    
     if (!form.subject) {
       setError("Subject is required.");
       return;
     }
     if (!form.description) {
-      setError("Description is required.");
+      setError("Description/Message is required.");
       return;
     }
     try {
@@ -108,6 +121,64 @@ export default function TicketForm({
           </div>
         )}
 
+        {/* Contact Information Section */}
+        <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h3 className="text-lg font-semibold text-gray-800">👤 Contact Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="firstName" className="form-label">
+                First Name *
+              </label>
+              <input
+                id="firstName"
+                name="firstName"
+                value={form.firstName}
+                onChange={handleTextChange}
+                placeholder="John"
+                required
+                disabled={submitting}
+                className="form-input"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="lastName" className="form-label">
+                Last Name *
+              </label>
+              <input
+                id="lastName"
+                name="lastName"
+                value={form.lastName}
+                onChange={handleTextChange}
+                placeholder="Doe"
+                required
+                disabled={submitting}
+                className="form-input"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="title" className="form-label">
+                Position/Title *
+              </label>
+              <input
+                id="title"
+                name="title"
+                value={form.title}
+                onChange={handleTextChange}
+                placeholder="e.g., Manager, GM, Supervisor"
+                required
+                disabled={submitting}
+                className="form-input"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Ticket Details Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">🎫 Ticket Details</h3>
+          
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label htmlFor="subject" className="form-label">
@@ -137,9 +208,9 @@ export default function TicketForm({
               disabled={submitting}
               className="form-select"
             >
-              <option>General</option>
-              <option>Connectivity</option>
+              <option>Call Button</option>
               <option>Charging</option>
+              <option>Connectivity</option>
               <option>Screen</option>
               <option>Locking</option>
               <option>General Maintenance</option>
@@ -155,7 +226,7 @@ export default function TicketForm({
 
         <div className="space-y-2">
           <label htmlFor="description" className="form-label">
-            Description *
+            Message *
           </label>
           <textarea
             id="description"
@@ -191,7 +262,7 @@ export default function TicketForm({
 
           <div className="space-y-2">
             <label htmlFor="unitsAffected" className="form-label">
-              Units Affected
+              Number of Units Affected
             </label>
             <input
               id="unitsAffected"
@@ -254,6 +325,7 @@ export default function TicketForm({
               className="form-input"
             />
           </div>
+        </div>
         </div>
 
         <div className="flex items-center space-x-3">

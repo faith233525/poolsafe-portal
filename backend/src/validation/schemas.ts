@@ -6,6 +6,15 @@ const ticketStatusValues = Object.values(TICKET_STATUS);
 const ticketPriorityValues = Object.values(TICKET_PRIORITY);
 const ticketCategoryValues = [...TICKET_CATEGORIES];
 
+// Approved top colours for lounge units
+export const TOP_COLOURS = [
+  "Ducati Red",
+  "Classic Blue",
+  "Ice Blue",
+  "Yellow",
+  "Custom",
+] as const;
+
 export const authLoginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
@@ -28,7 +37,15 @@ export const partnerCreateSchema = z.object({
   zip: z.string().optional(),
   country: z.string().optional(),
   numberOfLoungeUnits: z.number().int().min(0).default(0),
-  topColour: z.string().optional(),
+  topColour: z
+    .string()
+    .refine(
+      (val) => !val || TOP_COLOURS.includes(val as any) || val.startsWith("Custom:"),
+      {
+        message: `Top colour must be one of: ${TOP_COLOURS.join(", ")} or start with "Custom:"`,
+      },
+    )
+    .optional(),
   lock: z
     .string()
     .refine((val) => !val || val === "MAKE" || val === "L&F", {

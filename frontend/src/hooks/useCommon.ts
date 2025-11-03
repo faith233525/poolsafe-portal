@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { apiFetch } from '../utils/api';
+import { useState, useEffect } from "react";
+import { apiFetch } from "../utils/api";
 
 /**
  * Custom hook for fetching data with loading, error states
@@ -16,18 +16,18 @@ export function useApiData<T>(url: string, dependencies: any[] = []) {
       try {
         setLoading(true);
         setError(null);
-        const token = localStorage.getItem('jwt');
+        const token = localStorage.getItem("jwt");
         const response = await apiFetch(url, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-        
+
         if (!cancelled) {
           const result = await response.json();
           setData(result);
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch data');
+          setError(err instanceof Error ? err.message : "Failed to fetch data");
         }
       } finally {
         if (!cancelled) {
@@ -48,14 +48,14 @@ export function useApiData<T>(url: string, dependencies: any[] = []) {
       try {
         setLoading(true);
         setError(null);
-        const token = localStorage.getItem('jwt');
+        const token = localStorage.getItem("jwt");
         const response = await apiFetch(url, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         const result = await response.json();
         setData(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+        setError(err instanceof Error ? err.message : "Failed to fetch data");
       } finally {
         setLoading(false);
       }
@@ -74,14 +74,14 @@ export function useFormState<T>(initialState: T) {
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
 
   const handleChange = (field: keyof T, value: any) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
   const setFieldError = (field: keyof T, message: string) => {
-    setErrors(prev => ({ ...prev, [field]: message }));
+    setErrors((prev) => ({ ...prev, [field]: message }));
   };
 
   const clearErrors = () => setErrors({});
@@ -98,7 +98,7 @@ export function useFormState<T>(initialState: T) {
     handleChange,
     setFieldError,
     clearErrors,
-    reset
+    reset,
   };
 }
 

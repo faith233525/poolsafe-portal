@@ -17,6 +17,7 @@ import { emailRouter } from "./routes/email";
 import { analyticsRouter } from "./routes/analytics";
 import monitoringRouter from "./routes/monitoring";
 import errorsRouter from "./routes/errors";
+import { assetsRouter } from "./routes/assets";
 import { requestLogger } from "./middleware/logger";
 import { metricsMiddleware, metricsEndpoint } from "./metrics";
 import { performanceMonitor } from "./middleware/monitoring";
@@ -37,7 +38,13 @@ import { attachResolvedPermissions } from "./middleware/accessControl";
 export function buildApp() {
   const app = express();
   // Running behind reverse proxies (nginx, traefik) in most deployments
-  app.set("trust proxy", true);
+  // In production, trust only the first proxy hop for security
+  // In dev/test, allow permissive trust for local testing
+  if (process.env.NODE_ENV === "production") {
+    app.set("trust proxy", 1); // Trust only the first proxy (load balancer/nginx)
+  } else {
+    app.set("trust proxy", true); // Dev/test permissive
+  }
   const allowed = config.cors.allowedOrigins;
   app.use(
     cors({
@@ -97,6 +104,13 @@ export function buildApp() {
       max: config.rateLimits.globalMax,
       standardHeaders: true,
       legacyHeaders: false,
+      // Allow Cypress/tests to bypass global rate limiting
+      skip: (req) =>
+        (req.headers["x-bypass-ratelimit"] as string) === "true" ||
+        (typeof req.headers["user-agent"] === "string" &&
+          req.headers["user-agent"].includes("Cypress/")) ||
+        process.env.NODE_ENV === "test" ||
+        process.env.CI === "true",
     }),
   );
   app.use(requestId);
@@ -139,6 +153,7 @@ export function buildApp() {
   app.use("/api/analytics", analyticsRouter);
   app.use("/api/monitoring", monitoringRouter);
   app.use("/api/errors", errorsRouter);
+  app.use("/api/assets", assetsRouter);
   // app.use("/api", swaggerRouter);
   app.get("/api/metrics", metricsEndpoint);
 

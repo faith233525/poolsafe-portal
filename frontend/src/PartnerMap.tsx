@@ -55,8 +55,8 @@ export default function PartnerMap({ role: _role }: { role: string }) {
       setLoading(true);
       setError(null);
       try {
-        const token = localStorage.getItem("auth_token");
-        const res = await apiFetch("/api/partners", {
+        const token = localStorage.getItem("jwt");
+        const res = await apiFetch("/api/partners/map", {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
         const data = await res.json();
@@ -293,7 +293,11 @@ export default function PartnerMap({ role: _role }: { role: string }) {
         </div>
 
         <div className={styles.mapControlGroup}>
-          <button onClick={resetView} onKeyDown={(e) => e.key === 'Enter' && resetView()} className={styles.mapButton}>
+          <button
+            onClick={resetView}
+            onKeyDown={(e) => e.key === "Enter" && resetView()}
+            className={styles.mapButton}
+          >
             Reset View
           </button>
         </div>
@@ -375,7 +379,12 @@ export default function PartnerMap({ role: _role }: { role: string }) {
           <div
             className={styles.tooltip}
             // Use CSS variables to avoid inline style lint violation while preserving dynamic positioning
-            {...{ style: { ["--tooltip-left" as any]: `${tooltip.x}px`, ["--tooltip-top" as any]: `${tooltip.y}px` } }}
+            {...{
+              style: {
+                ["--tooltip-left" as any]: `${tooltip.x}px`,
+                ["--tooltip-top" as any]: `${tooltip.y}px`,
+              },
+            }}
           >
             {Array.isArray(tooltip.partner) ? (
               <div>

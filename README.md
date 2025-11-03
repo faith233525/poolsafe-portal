@@ -130,6 +130,29 @@ Admin and Support can create/update partners with:
 - Test Plan: `docs/test-plan.md`
 - Deployment Plan: `docs/deployment-plan.md`
 
+## Development
+
+- Run unit tests
+  - Backend: from `backend/` run `npm test`
+  - Frontend: from `frontend/` run `npm test`
+
+### Stability test loop (Windows PowerShell)
+
+To repeatedly run backend and frontend tests and capture logs to detect flakiness:
+
+1. From the repository root, run the script:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts/test-loop.ps1 -Iterations 20
+   ```
+
+2. Logs are written to `logs/test-runs-<timestamp>.log` with a pass/fail summary at the end.
+
+Arguments:
+- `-Iterations` (default 5)
+- `-BackendPath` (default `../backend` from `scripts/`)
+- `-FrontendPath` (default `../frontend` from `scripts/`)
+
 ## ✅ System Status
 
 ### 1. Backend
@@ -464,6 +487,46 @@ Services:
 - Frontend: <http://localhost:5173>
 
 Multi-stage Dockerfiles are located in `backend/Dockerfile` and `frontend/Dockerfile` (frontend served via Nginx, backend runs Node.js runtime image). Runtime uploads are excluded from git; placeholder kept with `.keep`.
+
+### Nginx reverse proxy (VPS)
+
+Route `/` to the main portal (frontend SPA), `/support` to the same SPA (client-side route), and `/api` to the backend service:
+
+```nginx
+server {
+  listen 80;
+  server_name your.domain.tld;
+
+  # Frontend static build output
+  root /var/www/portal/frontend/dist;
+  index index.html;
+
+  # Support path uses same SPA bundle
+  location /support {
+    try_files $uri /index.html;
+  }
+
+  # SPA fallback for main
+  location / {
+    try_files $uri /index.html;
+  }
+
+  # Backend API proxy
+  location /api/ {
+    proxy_pass http://127.0.0.1:4000/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}
+```
+
+Notes:
+- Health check endpoint: `GET /api/health`
+- See `deploy/` scripts for VPS setup helpers
 
 ### Release Automation (semantic-release)
 

@@ -1,0 +1,126 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  test-build-deploy:
+    runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: '20'
+      REMOTE_DIR: '/var/www/poolsafe-portal'
+      BUNDLE_NAME: 'portal-latest.zip'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache npm (backend)
+        uses: actions/cache@v4
+        with:
+          path: backend/node_modules
+          key: ${{ runner.os }}-backend-npm-${{ hashFiles('backend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-backend-npm-
+
+      - name: Install backend deps
+        working-directory: backend
+        run: npm ci
+
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
+
+      - name: Cache npm (frontend)
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-frontend-npm-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-npm-
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend (with API base URL)
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: ${{ secrets.PRODUCTION_API_BASE_URL }}
+        run: npm run build
+
+      - name: Assemble deployment bundle
+        run: |
+          set -e
+          mkdir -p release/portal-latest/backend release/portal-latest/frontend release/portal-latest/deploy
+          cp -r backend/dist release/portal-latest/backend/dist
+          cp backend/package.json release/portal-latest/backend/package.json
+          if [ -f backend/package-lock.json ]; then cp backend/package-lock.json release/portal-latest/backend/package-lock.json; fi
+          if [ -f backend/.env.example ]; then cp backend/.env.example release/portal-latest/backend/.env.example; fi
+          cp -r frontend/dist release/portal-latest/frontend/dist
+          if [ -f frontend/nginx.conf ]; then cp frontend/nginx.conf release/portal-latest/frontend/nginx.conf; fi
+          if [ -f deploy/nginx-sites.conf ]; then cp deploy/nginx-sites.conf release/portal-latest/deploy/nginx-sites.conf; fi
+          if [ -f deploy/VPS-DEPLOYMENT-GUIDE.md ]; then cp deploy/VPS-DEPLOYMENT-GUIDE.md release/portal-latest/deploy/VPS-DEPLOYMENT-GUIDE.md; fi
+          if [ -f FIXES_SUMMARY.md ]; then cp FIXES_SUMMARY.md release/portal-latest/FIXES_SUMMARY.md; fi
+          if [ -f release/portal-latest/RUNBOOK.md ]; then :; else printf "%s" "# See deploy/VPS-DEPLOYMENT-GUIDE.md for full steps." > release/portal-latest/RUNBOOK.md; fi
+          (cd release/portal-latest && zip -qr ../$BUNDLE_NAME .)
+          echo "Bundle assembled: release/$BUNDLE_NAME"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: portal-bundle
+          path: release/${{ env.BUNDLE_NAME }}
+
+      - name: Copy bundle to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "release/${{ env.BUNDLE_NAME }}"
+          target: "${{ env.REMOTE_DIR }}"
+          strip_components: 1
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            sudo mkdir -p ${{ env.REMOTE_DIR }}
+            cd ${{ env.REMOTE_DIR }}
+            unzip -o ${{ env.BUNDLE_NAME }} -d release/current
+            cd release/current/backend
+            # Ensure Node is available; install if needed (optional, commented)
+            # if ! command -v node >/dev/null 2>&1; then curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs; fi
+            npm ci --omit=dev
+            npx prisma generate
+            # Uncomment to push schema for Postgres
+            # npx prisma db push
+            # Start or restart backend (systemd service or pm2)
+            if systemctl is-enabled --quiet poolsafe-backend; then
+              sudo systemctl restart poolsafe-backend
+            else
+              # Fallback: run with pm2 if present
+              if command -v pm2 >/dev/null 2>&1; then
+                pm2 startOrReload ecosystem.config.js || pm2 start dist/src/index.js --name poolsafe-backend
+                pm2 save
+              fi
+            fi
+            # Ensure nginx serves frontend (expects nginx conf already set up)
+            sudo nginx -t && sudo systemctl reload nginx || true
+            echo "Deployment complete."
+
+      - name: Verify health (optional)
+        if: ${{ secrets.PRODUCTION_HEALTH_URL != '' }}
+        run: |
+          curl -fsSL ${{ secrets.PRODUCTION_HEALTH_URL }}/api/healthz
+          curl -fsSL ${{ secrets.PRODUCTION_HEALTH_URL }}/api/readyz

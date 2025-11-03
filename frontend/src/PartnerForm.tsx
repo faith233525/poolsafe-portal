@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import styles from "./App.module.css";
 
+const TOP_COLOURS = ["Ducati Red", "Classic Blue", "Ice Blue", "Yellow", "Custom"] as const;
+
 const initialState = {
   companyName: "",
   managementCompany: "",
@@ -34,7 +36,7 @@ export default function PartnerForm({
   const [form, setForm] = useState<PartnerFormState>({ ...initialState, ...(initialData || {}) });
   const [error, setError] = useState<string | null>(null);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
     setForm((f: PartnerFormState) => ({ ...f, [name]: value }) as PartnerFormState);
   }
@@ -98,12 +100,22 @@ export default function PartnerForm({
         onChange={handleChange}
         placeholder="LounGenie Units"
       />
-      <input
-        name="topColour"
-        value={form.topColour}
-        onChange={handleChange}
-        placeholder="Top Colour"
-      />
+      <select name="topColour" value={form.topColour} onChange={handleChange}>
+        <option value="">Select Top Colour</option>
+        {TOP_COLOURS.map((colour) => (
+          <option key={colour} value={colour}>
+            {colour}
+          </option>
+        ))}
+      </select>
+      {form.topColour === "Custom" && (
+        <input
+          name="topColour"
+          value={form.topColour}
+          onChange={handleChange}
+          placeholder="Custom: Enter custom colour"
+        />
+      )}
       <input name="latitude" value={form.latitude} onChange={handleChange} placeholder="Latitude" />
       <input
         name="longitude"

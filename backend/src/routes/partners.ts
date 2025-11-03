@@ -1,4 +1,6 @@
 import { Router } from "express";
+import multer from "multer";
+import * as XLSX from "xlsx";
 import { z } from "zod";
 import { prisma } from "../prismaClient";
 import {
@@ -30,6 +32,123 @@ export const partnersRouter = Router();
 
 // Apply authentication to all routes
 partnersRouter.use(authenticateToken);
+
+// File upload setup (memory storage for small admin imports)
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
+// Admin: Bulk import partners via CSV or Excel (.xlsx)
+// Usage: POST /api/partners/import (multipart/form-data), field name: file
+// Optional query: ?dryRun=true -> returns what would be imported without saving
+partnersRouter.post("/import", requireAdmin, upload.single("file"), async (req, res) => {
+  try {
+  const file = (req as any).file as { buffer: Buffer; originalname: string } | undefined;
+    if (!file?.buffer || !file.originalname) {
+      return res.status(400).json({ error: "Missing file upload" });
+    }
+
+    const buf = file.buffer;
+    const wb = XLSX.read(buf, { type: "buffer" });
+    const firstSheet = wb.SheetNames[0];
+    if (!firstSheet) {
+      return res.status(400).json({ error: "No sheets found in uploaded file" });
+    }
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[firstSheet], {
+      defval: null,
+      raw: false,
+      blankrows: false,
+    }) as Array<Record<string, any>>;
+    if (!rows.length) {
+      return res.status(400).json({ error: "No data rows found in uploaded file" });
+    }
+
+    // Column mapping (case-insensitive)
+    const mapKey = (k: string) => k.trim().toLowerCase();
+    const normalize = (row: Record<string, any>) => {
+      const m: Record<string, any> = {};
+      for (const [k, v] of Object.entries(row)) {
+        m[mapKey(k)] = v;
+      }
+      return {
+        companyName: m.companyname ?? m.company_name ?? m.name,
+        managementCompany: m.managementcompany ?? m.management_company,
+        streetAddress: m.streetaddress ?? m.address ?? m.street_address,
+        city: m.city,
+        state: m.state,
+        zip: m.zip ?? m.postal ?? m.postalcode,
+        country: m.country ?? "USA",
+        numberOfLoungeUnits: Number(m.numberofloungeunits ?? m.units ?? 0) || 0,
+        topColour: m.topcolour ?? m.top_color ?? m.topcolour,
+        latitude: m.latitude ? Number(m.latitude) : null,
+        longitude: m.longitude ? Number(m.longitude) : null,
+      };
+    };
+
+    const normalized = rows
+      .map((row: Record<string, any>) => normalize(row))
+      .filter((r: { companyName?: string }) => r.companyName);
+    if (!normalized.length) {
+      return res.status(400).json({ error: "No valid rows with companyName found" });
+    }
+
+  const dryRunParam = (req.query as any).dryRun ?? (req.query as any).dryrun;
+  const dryRun = typeof dryRunParam === "string" ? dryRunParam.toLowerCase() === "true" : false;
+
+    if (dryRun) {
+      return res.json({
+        dryRun: true,
+        totalRows: rows.length,
+        validRows: normalized.length,
+        sample: normalized.slice(0, 5),
+      });
+    }
+
+    let created = 0;
+    let updated = 0;
+    for (const r of normalized) {
+      const existing = await prisma.partner.findUnique({ where: { companyName: r.companyName } });
+      if (existing) {
+        await prisma.partner.update({
+          where: { id: existing.id },
+          data: {
+            managementCompany: r.managementCompany ?? existing.managementCompany,
+            streetAddress: r.streetAddress ?? existing.streetAddress,
+            city: r.city ?? existing.city,
+            state: r.state ?? existing.state,
+            zip: r.zip ?? existing.zip,
+            country: r.country ?? existing.country,
+            numberOfLoungeUnits: r.numberOfLoungeUnits ?? existing.numberOfLoungeUnits,
+            topColour: r.topColour ?? existing.topColour,
+            latitude: r.latitude ?? existing.latitude,
+            longitude: r.longitude ?? existing.longitude,
+          },
+        });
+        updated += 1;
+      } else {
+        await prisma.partner.create({
+          data: {
+            companyName: r.companyName,
+            managementCompany: r.managementCompany,
+            streetAddress: r.streetAddress,
+            city: r.city,
+            state: r.state,
+            zip: r.zip,
+            country: r.country,
+            numberOfLoungeUnits: r.numberOfLoungeUnits,
+            topColour: r.topColour,
+            latitude: r.latitude ?? undefined,
+            longitude: r.longitude ?? undefined,
+          },
+        });
+        created += 1;
+      }
+    }
+
+    res.json({ success: true, created, updated, processed: normalized.length });
+  } catch (error: any) {
+    console.error("Partner import error:", error);
+    res.status(500).json({ error: error?.message || "Failed to import partners" });
+  }
+});
 
 // Get partners (paginated) - Support/Admin only
 partnersRouter.get(

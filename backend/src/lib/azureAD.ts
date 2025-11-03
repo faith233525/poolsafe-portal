@@ -42,16 +42,16 @@ export const createGraphClient = (accessToken: string) => {
         const response = await fetch(`https://graph.microsoft.com/v1.0${endpoint}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         });
-        
+
         if (!response.ok) {
           throw new Error(`Graph API error: ${response.status} ${response.statusText}`);
         }
-        
+
         return response.json();
-      }
-    })
+      },
+    }),
   };
 };

@@ -6,7 +6,8 @@ export default function SecurityPanel({ role }: { role: string }) {
     <div className={styles.card}>
       <h2>Security & Permissions</h2>
       <ul>
-        <li>SSO (Outlook) enabled for all roles</li>
+        <li>SSO (Outlook) for partners</li>
+        <li>Company email/password for support and admin</li>
         <li>Encrypted storage for sensitive fields</li>
         <li>Role-based operational controls (admin/support/partner)</li>
         <li>Secure password/code management</li>

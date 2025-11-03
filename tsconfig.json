@@ -17,6 +17,5 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["backend/src", "backend/scripts", "frontend/src"],
-  "exclude": ["node_modules", "backend/node_modules", "frontend/node_modules"],
-  "references": [{ "path": "./backend" }, { "path": "./frontend" }]
+  "exclude": ["node_modules", "backend/node_modules", "frontend/node_modules"]
 }

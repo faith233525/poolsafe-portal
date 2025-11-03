@@ -283,3 +283,88 @@
 .buttonSpacing {
   margin-right: 0.5rem;
 }
+
+/* Upload & Import Styles */
+.progressMessage {
+  background: #e7f3ff;
+  color: #0066cc;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.uploadSection {
+  margin-bottom: 2rem;
+}
+
+.uploadSection h4 {
+  color: #1a365d;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.logoPreview {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.fileName {
+  margin-top: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.divider {
+  border: none;
+  border-top: 2px solid #e9ecef;
+  margin: 2rem 0;
+}
+
+.importInstructions {
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  color: #856404;
+}
+
+.importInstructions p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.importInstructions strong {
+  color: #533f03;
+}
+
+.secondaryButton {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.secondaryButton:hover {
+  background: #5a6268;
+}
+
+.secondaryButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.submitButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}

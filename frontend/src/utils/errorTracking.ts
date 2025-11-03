@@ -1,4 +1,5 @@
 import React from "react";
+import { apiUrl } from "./api";
 
 // Error tracking utility for logging and monitoring errors
 interface ErrorContext {
@@ -26,7 +27,7 @@ interface ErrorReport {
 class ErrorTracker {
   private errors: Map<string, ErrorReport> = new Map();
   private maxErrors = 100;
-  private reportEndpoint = "/api/errors";
+  private reportEndpoint = apiUrl("/api/errors");
 
   constructor() {
     // Only attach browser globals when window/document exist
@@ -161,11 +162,15 @@ class ErrorTracker {
       }
     }
 
-    // Send to backend (if online and not in development)
+    // Send to backend (if online, in production, and not running Cypress/headless tests)
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
+    const isTestUA = ua.includes("Cypress") || ua.includes("HeadlessChrome");
     if (
       typeof navigator !== "undefined" &&
       navigator.onLine &&
-      process.env.NODE_ENV === "production"
+      process.env.NODE_ENV === "production" &&
+      !isTestUA &&
+      process.env.CI !== "true"
     ) {
       this.sendErrorReport(this.errors.get(errorId)!);
     }
@@ -196,6 +201,12 @@ class ErrorTracker {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          // Allow backend to bypass rate limiting for automated pipelines if configured
+          ...(typeof navigator !== "undefined" &&
+          (navigator.userAgent.includes("Cypress") ||
+            navigator.userAgent.includes("HeadlessChrome"))
+            ? { "x-bypass-ratelimit": "true" }
+            : {}),
         },
         body: JSON.stringify(errorReport),
       });

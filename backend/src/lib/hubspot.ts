@@ -8,13 +8,17 @@ export const HUBSPOT_ACCOUNT_ID = "21854204";
 let hubspotClient: Client | null = null;
 
 export function getHubSpotClient(): Client | null {
-  if (!env.HUBSPOT_API_KEY) {
+  const inTest = !!process.env.VITEST || process.env.NODE_ENV === "test";
+  // In tests, only respect process.env to allow per-test overrides
+  const token = inTest ? process.env.HUBSPOT_API_KEY : process.env.HUBSPOT_API_KEY || env.HUBSPOT_API_KEY;
+  if (!token) {
     console.warn("HubSpot API key not configured");
+    hubspotClient = null;
     return null;
   }
 
   if (!hubspotClient) {
-    hubspotClient = new Client({ accessToken: env.HUBSPOT_API_KEY });
+    hubspotClient = new Client({ accessToken: token });
   }
 
   return hubspotClient;
@@ -22,8 +26,9 @@ export function getHubSpotClient(): Client | null {
 
 // Check if HubSpot is configured
 export function isHubSpotConfigured(): boolean {
-  // Check process.env directly for tests that modify environment variables
-  const apiKey = process.env.HUBSPOT_API_KEY || env.HUBSPOT_API_KEY;
+  const inTest = !!process.env.VITEST || process.env.NODE_ENV === "test";
+  // In tests, only use process.env so test can force missing/present
+  const apiKey = inTest ? process.env.HUBSPOT_API_KEY : process.env.HUBSPOT_API_KEY || env.HUBSPOT_API_KEY;
   return !!apiKey;
 }
 
