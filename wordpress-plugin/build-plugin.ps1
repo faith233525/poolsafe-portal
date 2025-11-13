@@ -7,7 +7,7 @@ $buildDir = Join-Path $scriptPath "build"
 $zipName = "wp-poolsafe-portal-v1.3.0.zip"
 
 # Load .env file from backend
-$envPath = Join-Path $scriptPath "..\..\backend\.env"
+$envPath = Join-Path $scriptPath "..\backend\.env"
 if (!(Test-Path $envPath)) {
     Write-Host "ERROR: .env file not found at: $envPath" -ForegroundColor Red
     exit 1
