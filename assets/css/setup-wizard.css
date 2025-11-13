@@ -1,0 +1,341 @@
+/* Setup Wizard Styles */
+.psp-setup-wizard {
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+.psp-wizard-container {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    margin-top: 20px;
+}
+
+/* Tabs */
+.psp-tabs {
+    display: flex;
+    border-bottom: 1px solid #ccd0d4;
+    background: #f6f7f7;
+}
+
+.psp-tab {
+    flex: 1;
+    padding: 15px 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #50575e;
+    transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+}
+
+.psp-tab:hover {
+    background: #fff;
+    color: #2271b1;
+}
+
+.psp-tab.active {
+    background: #fff;
+    color: #2271b1;
+    border-bottom-color: #2271b1;
+}
+
+/* Panels */
+.psp-tab-content {
+    position: relative;
+    min-height: 500px;
+}
+
+.psp-panel {
+    display: none;
+    padding: 30px;
+    animation: fadeIn 0.3s;
+}
+
+.psp-panel.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.psp-panel h2 {
+    margin-top: 0;
+    color: #1d2327;
+    border-bottom: 2px solid #2271b1;
+    padding-bottom: 10px;
+}
+
+/* Sections */
+.psp-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-left: 4px solid #2271b1;
+}
+
+.psp-section h3 {
+    margin-top: 0;
+    color: #2271b1;
+}
+
+/* Field Groups */
+.psp-field-group {
+    margin-bottom: 20px;
+}
+
+.psp-field-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #1d2327;
+}
+
+.psp-field-group input[type="text"],
+.psp-field-group input[type="password"],
+.psp-field-group select {
+    width: 100%;
+    max-width: 600px;
+}
+
+.psp-field-group .description {
+    margin-top: 5px;
+    font-size: 13px;
+    color: #646970;
+}
+
+/* Input Groups */
+.psp-input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.psp-input-group input[readonly] {
+    background: #f0f0f1;
+}
+
+.psp-input-group .button {
+    white-space: nowrap;
+}
+
+/* Status Indicators */
+.psp-status {
+    margin-left: 10px;
+    font-weight: 600;
+}
+
+.psp-status.success {
+    color: #00a32a;
+}
+
+.psp-status.error {
+    color: #d63638;
+}
+
+.psp-status.loading:before {
+    content: "⏳ ";
+}
+
+/* Status Cards */
+.psp-status-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.psp-status-card {
+    background: #fff;
+    border: 2px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.psp-status-card:hover {
+    border-color: #2271b1;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.psp-card-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.psp-status-card h3 {
+    margin: 10px 0;
+    font-size: 16px;
+}
+
+.psp-card-status {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 5px 0;
+}
+
+/* Checklist */
+.psp-checklist {
+    list-style: none;
+    padding: 0;
+}
+
+.psp-checklist li {
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.psp-checklist li:before {
+    content: "✓ ";
+    color: #00a32a;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* Next Steps */
+.psp-next-steps {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    padding: 20px 40px;
+    border-radius: 4px;
+}
+
+.psp-next-steps li {
+    padding: 8px 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Footer */
+.psp-wizard-footer {
+    position: sticky;
+    bottom: 0;
+    background: #f6f7f7;
+    padding: 15px 30px;
+    border-top: 1px solid #ccd0d4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.psp-save-status {
+    font-weight: 600;
+    margin-left: 15px;
+}
+
+.psp-save-status.saving {
+    color: #2271b1;
+}
+
+.psp-save-status.saved {
+    color: #00a32a;
+}
+
+.psp-save-status.error {
+    color: #d63638;
+}
+
+/* Details/Accordion */
+details {
+    margin: 10px 0;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+}
+
+details summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 5px;
+    user-select: none;
+}
+
+details summary:hover {
+    color: #2271b1;
+}
+
+details[open] summary {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #c3c4c7;
+}
+
+details ol {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+details li {
+    margin: 8px 0;
+}
+
+/* Code blocks */
+.code {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .psp-tabs {
+        flex-direction: column;
+    }
+    
+    .psp-tab {
+        border-bottom: 1px solid #ccd0d4;
+    }
+    
+    .psp-panel {
+        padding: 15px;
+    }
+    
+    .psp-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .psp-status-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tooltips */
+.psp-tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+}
+
+.psp-tooltip:hover:after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1d2327;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+}
+
+/* Buttons */
+.button-hero {
+    font-size: 16px !important;
+    height: auto !important;
+    padding: 12px 24px !important;
+}
+
+/* Notice styles */
+.psp-panel .notice {
+    margin: 20px 0;
+}

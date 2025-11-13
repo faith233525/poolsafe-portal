@@ -1,0 +1,304 @@
+﻿/* CSS Variables - can be overridden by theme customizer via inline styles */
+:root{--psp-primary:#3AA6B9;--psp-primary-hover:#25D0EE;--psp-navy:#000080;--psp-accent:#25D0EE;--psp-bg:#f9fafb;--psp-border:#e5e7eb;--psp-danger:#dc2626;--psp-success:#065f46}
+.psp-portal{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#fff;border:1px solid var(--psp-border);border-radius:8px;padding:16px}
+#psp-portal-status{font-size:14px;color:#374151}
+.psp-section{margin-top:16px}
+.psp-map{height:320px;border:1px solid #e5e7eb;border-radius:6px}
+.psp-list{list-style:none;padding:0;margin:8px 0}
+.psp-list-item{padding:6px 8px;border-bottom:1px solid #f0f0f0}
+.psp-ticket-create{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin-bottom:16px}
+.psp-ticket-create h4{margin-top:0;margin-bottom:16px;color:#111827;font-size:18px}
+
+/* File Attachments */
+.psp-attachment-section{margin:16px 0}
+.psp-attachment-label{display:block;margin-bottom:8px;font-weight:600;color:#374151;cursor:pointer}
+.psp-file-input{width:100%;padding:10px;border:2px dashed #d1d5db;border-radius:6px;background:#f9fafb;cursor:pointer;transition:all 0.2s}
+.psp-file-input:hover{border-color:#3b82f6;background:#eff6ff}
+.psp-attachments-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-top:12px}
+.psp-attachment-item{border:1px solid #e5e7eb;border-radius:6px;padding:8px;background:#fff;text-align:center}
+.psp-attachment-thumb{width:100%;height:80px;object-fit:cover;border-radius:4px;margin-bottom:6px}
+.psp-file-icon{width:100%;height:80px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;border-radius:4px;font-weight:700;color:#6b7280;font-size:14px;margin-bottom:6px}
+.psp-attachment-info{font-size:11px}
+.psp-attachment-name{color:#374151;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.psp-attachment-size{color:#9ca3af}
+
+.psp-form-row{display:flex;gap:12px;margin-bottom:12px}
+.psp-form-field{flex:1;display:flex;flex-direction:column}
+.psp-form-field label{font-size:14px;font-weight:500;color:#374151;margin-bottom:4px}
+.psp-ticket-create input,.psp-ticket-create textarea{width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:inherit}
+.psp-ticket-create input:focus,.psp-ticket-create textarea:focus{outline:2px solid #3b82f6;outline-offset:2px;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.psp-ticket-create textarea{resize:vertical;min-height:100px}
+.psp-button{padding:10px 20px;border:none;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s}
+.psp-button:focus{outline:2px solid #3b82f6;outline-offset:2px}
+.psp-button:focus:not(:focus-visible){outline:none}
+.psp-button-primary{background:var(--psp-primary);color:#fff}
+.psp-button-primary:hover{background:var(--psp-primary-hover)}
+.psp-hint{font-size:12px;color:#6b7280;margin-top:8px}
+.psp-files-preview{margin-top:8px}
+.psp-file-list{list-style:none;padding:0;margin:0}
+.psp-file-list li{padding:6px 8px;background:#f3f4f6;border-radius:4px;font-size:13px;margin-top:4px}
+.psp-partner-item{line-height:1.4}
+.psp-partner-title{font-weight:600;margin-bottom:4px}
+.psp-partner-row{margin:2px 0}
+.psp-label{color:#6b7280}
+
+@media (max-width: 640px) {
+    .psp-form-row{flex-direction:column;gap:8px}
+}
+
+/* Login Page Styles */
+.psp-login-wrapper{display:flex;align-items:center;justify-content:center;min-height:400px;padding:20px;background:#f9fafb}
+.psp-login-box{background:#fff;border:1px solid var(--psp-border);border-radius:12px;padding:40px;max-width:880px;width:100%;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06)}
+.psp-login-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:40px;margin-bottom:12px}
+.psp-login-section{background:#fafafa;border:1px solid var(--psp-border);border-radius:10px;padding:24px;display:flex;flex-direction:column}
+.psp-login-section.psp-login-support{background:#f5f9ff}
+.psp-login-section.psp-login-partners{background:var(--psp-bg)}
+.psp-login-section-title{margin-top:0}
+.psp-button-microsoft{height:44px;font-size:14px;border-radius:4px}
+.psp-button-microsoft svg{width:22px;height:22px}
+.psp-button-microsoft:active{background:#e1dfdd}
+.psp-login-footer{text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid #e5e7eb}
+.psp-login-header{text-align:center;margin-bottom:32px}
+.psp-login-header h2{margin:0 0 8px;font-size:28px;font-weight:700;color:#111827}
+.psp-login-subtitle{margin:0;font-size:14px;color:#6b7280}
+.psp-login-error{background:#fee;border:1px solid #fcc;border-radius:6px;padding:12px;margin-bottom:20px;color:#c00;font-size:14px}
+
+/* Login Sections */
+.psp-login-section{margin-bottom:24px}
+.psp-login-section-title{font-size:16px;font-weight:600;color:#111827;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.psp-login-description{font-size:13px;color:#6b7280;margin:0 0 16px}
+.psp-icon{font-size:20px}
+
+/* Microsoft Login Button */
+.psp-button-microsoft{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#1e293b;border:1px solid #8c8c8c;padding:12px 20px;font-weight:500;transition:all 0.2s}
+.psp-button-microsoft:hover{background:#f3f2f1;border-color:#6b7280}
+.psp-button-microsoft:focus{outline:2px solid #0078d4;outline-offset:2px;box-shadow:0 0 0 3px rgba(0,120,212,0.1)}
+.psp-microsoft-icon{width:20px;height:20px;flex-shrink:0}
+
+/* Login Divider */
+.psp-login-divider{position:relative;text-align:center;margin:24px 0}
+.psp-login-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--psp-border)}
+.psp-login-divider span{position:relative;background:#fff;padding:0 16px;color:#6b7280;font-size:13px;font-weight:500}
+
+/* Traditional Login Form */
+.psp-login-form .psp-form-field{margin-bottom:16px}
+.psp-login-form label{display:block;font-size:14px;font-weight:500;color:#374151;margin-bottom:6px}
+.psp-login-form input[type="text"],.psp-login-form input[type="password"]{width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;transition:border-color 0.2s,box-shadow 0.2s}
+.psp-login-form input:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.psp-login-form input::placeholder{color:#9ca3af}
+.psp-form-checkbox label{display:flex;align-items:center;font-weight:400;font-size:14px}
+.psp-form-checkbox input[type="checkbox"]{margin-right:8px;width:auto}
+.psp-button-full{width:100%;margin-top:8px}
+.psp-login-footer{text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid #e5e7eb}
+.psp-login-footer a{color:#3b82f6;text-decoration:none;font-size:14px}
+.psp-login-footer a:hover{text-decoration:underline}
+.psp-login-help{color:#6b7280;font-size:13px;margin:0}
+.psp-logged-in .psp-login-box{text-align:center}
+.psp-logged-in h2{margin-top:0;color:#111827}
+.psp-logged-in p{color:#6b7280;margin:12px 0}
+
+/* Responsive Login */
+@media (max-width: 640px) {
+    .psp-login-box{padding:24px;max-width:100%}
+    .psp-login-columns{grid-template-columns:1fr}
+    .psp-login-header h2{font-size:24px}
+    .psp-button-microsoft{padding:10px 16px;font-size:14px;height:42px}
+}
+
+/* Notification Styles */
+.psp-notification-list{list-style:none;padding:0;margin:0}
+.psp-notification-item{padding:16px;border-bottom:1px solid #e5e7eb;display:flex;gap:12px;align-items:flex-start;transition:background 0.2s}
+.psp-notification-item:hover{background:#f9fafb}
+.psp-notification-item:last-child{border-bottom:none}
+.psp-notification-unread{background:#eff6ff;border-left:3px solid #3b82f6}
+.psp-notification-read{opacity:0.7}
+.psp-notification-empty{text-align:center;padding:32px;color:#6b7280;font-style:italic}
+.psp-notification-content{flex:1}
+.psp-notification-title{display:block;font-size:15px;font-weight:600;color:#111827;margin-bottom:4px}
+.psp-notification-message{font-size:14px;color:#374151;line-height:1.5;margin-bottom:6px}
+.psp-notification-time{font-size:12px;color:#9ca3af}
+.psp-notification-mark-read{padding:6px 12px;background:#3b82f6;color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;font-weight:500}
+.psp-notification-mark-read:hover{background:#2563eb}
+.psp-notification-badge{display:inline-block;background:#ef4444;color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;min-width:18px;text-align:center}
+.psp-logged-in .button{margin:0 6px}
+
+/* Knowledge Base Styles */
+.psp-kb{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:24px;max-width:1200px}
+.psp-kb-search{margin-bottom:32px;display:flex;gap:12px}
+.psp-kb-search input{flex:1;padding:10px 14px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:inherit}
+.psp-kb-search input:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.psp-kb-categories{margin-bottom:32px}
+.psp-kb-categories h3{margin:0 0 16px;font-size:18px;font-weight:600;color:#111827}
+.psp-kb-categories-list{display:flex;flex-wrap:wrap;gap:8px}
+.psp-kb-category-btn{padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:6px;font-size:14px;cursor:pointer;transition:all 0.2s}
+.psp-kb-category-btn:hover{background:#e5e7eb;border-color:#9ca3af}
+.psp-kb-articles h3{margin:0 0 16px;font-size:18px;font-weight:600;color:#111827}
+.psp-kb-article-list{list-style:none;padding:0;margin:0}
+.psp-kb-article-item{padding:16px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:12px;transition:box-shadow 0.2s}
+.psp-kb-article-item:hover{box-shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06)}
+.psp-kb-article-title{margin:0 0 8px;font-size:16px;font-weight:600;color:#3b82f6;cursor:pointer}
+.psp-kb-article-title:hover{text-decoration:underline}
+.psp-kb-article-excerpt{margin:0;font-size:14px;color:#6b7280;line-height:1.6}
+.psp-kb-article-view{animation:fadeIn 0.3s}
+.psp-kb-article-view h2{margin:24px 0 16px;font-size:28px;font-weight:700;color:#111827}
+.psp-kb-article-meta{margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb}
+.psp-kb-categories{display:inline-block;padding:4px 12px;background:#eff6ff;color:#3b82f6;border-radius:4px;font-size:13px;font-weight:500}
+.psp-kb-article-body{font-size:15px;line-height:1.8;color:#374151}
+.psp-kb-article-body h1,.psp-kb-article-body h2,.psp-kb-article-body h3{margin-top:24px;margin-bottom:12px;color:#111827}
+.psp-kb-article-body ul,.psp-kb-article-body ol{margin:12px 0;padding-left:24px}
+.psp-kb-article-body li{margin:6px 0}
+.psp-kb-article-body p{margin:12px 0}
+.psp-kb-article-body code{background:#f3f4f6;padding:2px 6px;border-radius:3px;font-size:13px;font-family:monospace}
+.psp-kb-article-body pre{background:#f3f4f6;padding:16px;border-radius:6px;overflow-x:auto;margin:16px 0}
+.psp-kb-article-body pre code{background:none;padding:0}
+#psp-kb-back-btn{margin-bottom:16px}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Ticket Item Styles */
+.psp-ticket-item{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:12px;transition:box-shadow 0.2s,border-color 0.2s}
+.psp-ticket-item:hover{box-shadow:0 2px 4px rgba(0,0,0,0.05);border-color:#d1d5db}
+.psp-ticket-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.psp-ticket-id{color:#6b7280;font-size:13px;font-weight:600;font-family:monospace}
+.psp-ticket-title{font-size:15px;font-weight:600;color:#111827;flex:1}
+.psp-ticket-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
+.psp-badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;white-space:nowrap}
+.psp-badge.status-open{background:#dbeafe;color:#1e40af}
+.psp-badge.status-in_progress{background:#fef3c7;color:#92400e}
+.psp-badge.status-pending{background:#fce7f3;color:#9f1239}
+.psp-badge.status-resolved{background:#d1fae5;color:#065f46}
+.psp-badge.status-closed{background:#f3f4f6;color:#4b5563}
+.psp-badge.priority-low{background:#f3f4f6;color:#6b7280}
+.psp-badge.priority-medium{background:#dbeafe;color:#1e40af}
+.psp-badge.priority-high{background:#fed7aa;color:#9a3412}
+.psp-badge.priority-urgent{background:#fecaca;color:#991b1b}
+.psp-ticket-contact,.psp-ticket-category{color:#6b7280;font-size:13px}
+.psp-ticket-age{color:#9ca3af;font-size:12px;font-style:italic}
+
+/* SLA & Overdue Styles */
+.ticket-overdue{border-left:4px solid #ef4444!important;background:#fef2f2!important}
+.ticket-overdue:hover{box-shadow:0 4px 6px -1px rgba(239,68,68,0.2)!important}
+.psp-badge-overdue{display:inline-block;padding:5px 12px;background:#ef4444;color:#fff;border-radius:12px;font-size:11px;font-weight:700;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}
+
+/* Search & Filter Styles */
+.psp-ticket-filters{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:16px}
+.psp-filter-row{display:flex;gap:12px;flex-wrap:wrap}
+.psp-search-input{flex:2;min-width:200px;padding:10px 14px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:inherit}
+.psp-search-input:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.psp-filter-select{flex:1;min-width:150px;padding:10px 14px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-family:inherit;background:#fff;cursor:pointer}
+.psp-filter-select:focus{outline:2px solid #3b82f6;outline-offset:2px;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.psp-search-input:focus{outline:2px solid #3b82f6;outline-offset:2px;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.psp-button-secondary{background:#f3f4f6;color:#374151;padding:10px 20px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s}
+.psp-button-secondary:hover{background:#e5e7eb;border-color:#9ca3af}
+
+@media (max-width: 640px) {
+    .psp-filter-row{flex-direction:column}
+    .psp-search-input,.psp-filter-select{flex:1;width:100%}
+}
+
+/* Empty State Styles */
+.psp-empty-state{background:transparent!important;border:none!important;padding:0!important}
+.psp-map-notice{pointer-events:none}
+
+/* Partner Item Enhanced Styles */
+.psp-partner-item{background:linear-gradient(135deg,#ffffff 0%,#f2fbfd 100%);border:1px solid #c7e9f0;border-left:4px solid #3AA6B9;border-radius:10px;padding:20px;margin-bottom:18px;transition:box-shadow 0.25s,border-color 0.25s}
+.psp-partner-item:hover{box-shadow:0 6px 12px -2px rgba(0,0,0,0.08),0 3px 6px -2px rgba(0,0,0,0.05);border-color:#3AA6B9}
+.psp-partner-profile{background:#ffffff;border:1px solid #c7e9f0;border-radius:12px;padding:20px;margin-top:16px;box-shadow:0 4px 10px -2px rgba(0,0,0,0.06);animation:fadeIn 0.3s}
+.psp-profile-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:12px}
+.psp-mini-list{list-style:none;padding:0;margin:0}
+.psp-mini-item{padding:6px 8px;border-bottom:1px solid #e2f4f8;font-size:13px;line-height:1.3}
+.psp-mini-item:last-child{border-bottom:none}
+.psp-mini-meta{color:#6b7280;font-size:11px;margin-left:4px}
+.psp-contact-primary{background:#fffbeb;border-left:3px solid #f59e0b}
+.psp-profile-meta div{font-size:13px;margin:4px 0;color:#374151}
+.psp-partner-title{color:#000080;display:flex;align-items:center;justify-content:space-between;font-size:16px}
+.psp-partner-section{margin-top:16px;padding-top:12px;border-top:1px solid #e2f4f8;font-size:14px;font-weight:600;color:#000080}
+.psp-lock-section{background:#f0f7fa;border:1px solid #3AA6B9;border-radius:8px;padding:12px;margin-top:18px;border-top:none}
+.psp-lock-section strong{color:#000080;display:flex;align-items:center;gap:6px}
+.psp-lock-info{background:#e8f5f8;padding:8px 12px;border-radius:6px;margin:6px 0;font-family:monospace;border:1px solid #c7e9f0}
+.psp-lock-info code{background:#f0f7fa;padding:4px 8px;border-radius:4px;font-weight:600;color:#000080;font-size:13px;border:1px solid #3AA6B9}
+.psp-badge-active{display:inline-block;padding:4px 10px;background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;font-weight:600;margin-left:8px}
+.psp-badge-inactive{display:inline-block;padding:4px 10px;background:#f3f4f6;color:#6b7280;border-radius:12px;font-size:11px;font-weight:600;margin-left:8px}
+
+@media (max-width: 640px) {
+    .psp-kb{padding:16px}
+    .psp-kb-search{flex-direction:column}
+    .psp-kb-categories-list{flex-direction:column}
+    .psp-kb-category-btn{width:100%;text-align:left}
+}
+
+/* Service Records */
+.psp-service-records{max-width:1200px;margin:0 auto;padding:20px}
+.psp-service-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.psp-service-header h2{margin:0}
+.psp-service-form{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:24px;margin-bottom:24px}
+.psp-service-form h3{margin-top:0}
+.psp-form-row{display:flex;gap:16px;margin-bottom:16px}
+.psp-form-group{flex:1;min-width:0}
+.psp-form-group label{display:block;margin-bottom:6px;font-weight:600;color:#374151}
+.psp-form-group input,.psp-form-group select,.psp-form-group textarea{width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px}
+.psp-form-group input:focus,.psp-form-group select:focus,.psp-form-group textarea:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,0.2)}
+.psp-form-actions{display:flex;gap:12px;margin-top:20px}
+.psp-service-filters{margin-bottom:20px}
+.psp-service-filters label{font-weight:600;color:#374151}
+.psp-service-filters select{margin-left:10px;padding:6px 12px;border:1px solid #d1d5db;border-radius:6px}
+.psp-service-timeline{position:relative;padding-left:40px}
+.psp-service-timeline::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:2px;background:#e5e7eb}
+.psp-service-item{position:relative;display:flex;margin-bottom:24px}
+.psp-service-marker{position:absolute;left:-30px;width:20px;height:20px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #e5e7eb}
+.psp-service-marker.onsite{background:#3b82f6}
+.psp-service-marker.remote{background:#10b981}
+.psp-service-content{flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px}
+.psp-service-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.psp-service-type-badge{display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600}
+.psp-service-type-badge.onsite{background:#dbeafe;color:#1e40af}
+.psp-service-type-badge.remote{background:#d1fae5;color:#065f46}
+.psp-service-date{font-size:14px;color:#6b7280}
+.psp-service-partner{font-weight:600;color:#111827;margin-bottom:8px}
+.psp-service-notes{color:#4b5563;margin-bottom:8px;line-height:1.6}
+.psp-service-meta{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:13px;color:#6b7280}
+.psp-meta-item{display:flex;align-items:center}
+.psp-no-records{text-align:center;padding:40px;color:#9ca3af;font-size:16px}
+.psp-badge-success{display:inline-block;padding:4px 10px;background:#d1fae5;color:#065f46;border-radius:12px;font-size:11px;font-weight:600}
+.psp-badge-warning{display:inline-block;padding:4px 10px;background:#fef3c7;color:#92400e;border-radius:12px;font-size:11px;font-weight:600}
+
+@media (max-width: 640px) {
+    .psp-service-records{padding:16px}
+    .psp-service-header{flex-direction:column;align-items:flex-start;gap:12px}
+    .psp-form-row{flex-direction:column}
+    .psp-service-timeline{padding-left:30px}
+    .psp-service-marker{left:-25px;width:16px;height:16px}
+}
+
+/* Dashboard */
+.psp-dashboard{max-width:1200px;margin:0 auto;padding:20px}
+.psp-dashboard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.psp-dashboard-header h2{margin:0}
+.psp-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px}
+.psp-stat-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:20px;display:flex;align-items:center;gap:16px;transition:all 0.2s}
+.psp-stat-card:hover{box-shadow:0 4px 6px rgba(0,0,0,0.1);transform:translateY(-2px)}
+.psp-stat-icon{font-size:32px}
+.psp-stat-content{flex:1}
+.psp-stat-value{font-size:28px;font-weight:700;color:#111827;margin-bottom:4px}
+.psp-stat-label{font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px}
+.psp-stat-open{border-left:4px solid #3b82f6}
+.psp-stat-assigned{border-left:4px solid #8b5cf6}
+.psp-stat-urgent{border-left:4px solid #ef4444}
+.psp-stat-partners{border-left:4px solid #10b981}
+.psp-recent-activity{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:24px}
+.psp-recent-activity h3{margin-top:0;margin-bottom:16px;color:#111827}
+.psp-dashboard-tickets{display:flex;flex-direction:column;gap:12px}
+.psp-dashboard-ticket-item{padding:12px;background:#f9fafb;border-radius:6px;border-left:3px solid #3b82f6}
+.psp-ticket-title-row{font-size:14px;margin-bottom:6px;color:#374151}
+.psp-ticket-meta-row{display:flex;gap:8px;align-items:center;font-size:12px;color:#6b7280}
+.psp-badge-priority-urgent{background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px;font-size:11px}
+.psp-badge-priority-high{background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:4px;font-size:11px}
+.psp-badge-priority-medium{background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:4px;font-size:11px}
+.psp-badge-priority-low{background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:4px;font-size:11px}
+
+@media (max-width: 640px) {
+    .psp-dashboard{padding:16px}
+    .psp-dashboard-header{flex-direction:column;align-items:flex-start;gap:12px}
+    .psp-stats-grid{grid-template-columns:1fr}
+}

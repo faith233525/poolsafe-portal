@@ -1,0 +1,6 @@
+companyName,managementCompany,streetAddress,city,state,zip,country,numberOfLoungeUnits,topColour,latitude,longitude,has_fb_call_button,has_usb_charging,has_safe_lock,company_email
+"Comfort Solutions Inc","Pool Management LLC","123 Main St","Austin","TX","78701","USA",24,"Ice Blue",30.2672,-97.7431,1,1,1,"contact@comfort.com"
+"Luxury Resort & Spa","Resort Group Inc","456 Ocean Drive","Miami","FL","33139","USA",18,"Classic Blue",25.7617,-80.1918,1,1,0,"info@luxuryresort.com"
+"Downtown Hotel","City Hotels","789 Broadway","New York","NY","10003","USA",12,"Ducati Red",40.7128,-74.0060,0,1,1,"support@downtownhotel.com"
+"Beachside Resort","Coastal Management","321 Beach Blvd","San Diego","CA","92101","USA",30,"Yellow",32.7157,-117.1611,1,1,1,"info@beachside.com"
+"Mountain Lodge","Alpine Properties","654 Summit Rd","Denver","CO","80202","USA",15,"Classic Blue",39.7392,-104.9903,1,0,1,"contact@mountainlodge.com"

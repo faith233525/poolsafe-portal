@@ -1,0 +1,68 @@
+name: Build & Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
+          coverage: none
+
+      - name: Validate plugin main file
+        working-directory: wordpress-plugin/wp-poolsafe-portal
+        run: php -l wp-poolsafe-portal.php
+
+      - name: Lint includes
+        working-directory: wordpress-plugin/wp-poolsafe-portal/includes
+        run: |
+          for f in *.php; do php -l "$f"; done
+
+      - name: Package ZIP
+        working-directory: wordpress-plugin/wp-poolsafe-portal
+        run: |
+          VERSION=$(grep -m1 "Version:" wp-poolsafe-portal.php | awk '{print $2}')
+          PLUGIN_SLUG=wp-poolsafe-portal
+          cd ..
+          zip -r "${PLUGIN_SLUG}-v${VERSION}.zip" "${PLUGIN_SLUG}" -x "*/.git/*" "*/docs/archive/*"
+          ls -lh "${PLUGIN_SLUG}-v${VERSION}.zip"
+          echo "artifactName=${PLUGIN_SLUG}-v${VERSION}.zip" >> $GITHUB_ENV
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifactName }}
+          path: wordpress-plugin/${{ env.artifactName }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifactName }}
+          path: dist
+        continue-on-error: true
+      - name: Extract version
+        run: |
+          FILE=$(ls dist/*.zip | head -n1)
+          echo "FILE=$FILE" >> $GITHUB_ENV
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ env.FILE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

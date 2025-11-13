@@ -1,0 +1,23 @@
+# WordPress plugin build ignores
+/node_modules/
+/vendor/
+/dist/
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# Credentials (local only - never commit)
+YOUR-CREDENTIALS.md
+*-CREDENTIALS-*.md
+.env.local
+wp-config-local.php
+
+# Old/deprecated files (keep in repo for reference, exclude from builds)
+*.old
+*.bak
+*.disabled
+configure-azure.template.php
+WP-CONFIG-CREDENTIALS.php
+check-config.php

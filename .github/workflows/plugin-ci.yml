@@ -1,0 +1,38 @@
+name: plugin-ci
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+
+jobs:
+  lint-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: PHP lint
+        run: |
+          find . -type f -name "*.php" -not -path "./.git/*" -print0 | xargs -0 -n1 php -l
+
+      - name: Build distributable zip
+        run: |
+          mkdir -p build/wp-poolsafe-portal
+          rsync -a --exclude='.git' --exclude='.github' ./ build/wp-poolsafe-portal/
+          cd build
+          zip -r wp-poolsafe-portal.zip wp-poolsafe-portal
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp-poolsafe-portal
+          path: build/wp-poolsafe-portal.zip
